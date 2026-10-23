@@ -110,6 +110,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 - **Plage de dates** : par défaut du jour – 15 jours au jour + 30 jours (vraies dates). Modifiez-les librement ; **Plage par défaut** les remet.
 - **Résumé** (à droite) : nombre d'OF, total d'heures, nombre d'OF avec manquants.
 - **Tri** : cliquez sur un titre de colonne (re-cliquez pour inverser).
+- **Filtres comme dans Excel** : le petit entonnoir à droite de chaque titre ouvre un menu avec le tri, une zone *Rechercher* et la liste des valeurs à cocher (« (Sélectionner tout) », « (Vides) » pour les cases vides). La liste ne montre que les valeurs encore présentes avec les autres filtres. L'entonnoir devient bleu quand un filtre est actif ; **Effacer les filtres** (en haut) les supprime tous. Le résumé indique alors « n OF (filtrés sur N) ».
 - Le tableau se lit dans le fichier source de l'activité *Prépa OF* (onglets `OF` et `OF - Opérations`) : chargez-le d'abord dans **Fichiers sources**.
 
 | Colonne | Origine |
