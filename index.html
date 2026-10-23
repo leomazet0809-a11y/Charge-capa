@@ -214,6 +214,7 @@ table.tbl { width: 100%; border-collapse: collapse; }
 }
 .tbl tr:last-child td { border-bottom: 0; }
 .tbl th.sort { cursor: pointer; user-select: none; }
+.tbl tr.clickable { cursor: pointer; }
 .tbl th.sort:hover { color: var(--text); }
 .tbl th.sort.on { color: var(--accent); }
 .tbl-wrap.tall { max-height: calc(100vh - 290px); }
@@ -498,10 +499,13 @@ table.tbl { width: 100%; border-collapse: collapse; }
 
   <section class="page" id="page-gammes">
     <h1>Temps gammes</h1>
+    <div id="gammesList"></div>
+    <div id="gammeEdit">
     <div class="card">
       <div class="toolbar">
-        <label for="selGamme" class="muted">Gamme</label>
-        <select id="selGamme"></select>
+        <button class="btn" id="btnBackGammes"
+          data-tip-name="Toutes les gammes" data-tip-role="Revient au récapitulatif des gammes par activité">← Toutes les gammes</button>
+        <h2 id="gammeTitle" style="margin:0"></h2>
         <button class="mini" id="btnRenameGamme"
           data-tip-name="Renommer la gamme" data-tip-role="Change le nom de la gamme affichée">
           <svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
@@ -510,13 +514,11 @@ table.tbl { width: 100%; border-collapse: collapse; }
           data-tip-name="Supprimer la gamme" data-tip-role="Supprime la gamme affichée">
           <svg class="i" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
         </button>
-        <span class="spacer"></span>
-        <button class="btn" id="btnAddGamme"
-          data-tip-name="Nouvelle gamme" data-tip-role="Crée une gamme vide pour une nouvelle activité">+ Nouvelle gamme</button>
       </div>
       <div id="gammeBody"></div>
     </div>
     <div id="calcCards"></div>
+    </div>
   </section>
 
   <section class="page active" id="page-prepa">
@@ -989,6 +991,7 @@ $("btnReloadAll").onclick = () => loadAllSources(true);
 
 /* ================= Temps gammes ================= */
 let currentGammeId = null;
+let gammeView = "list"; // list = récapitulatif, edit = modification d'une gamme
 
 function currentGamme() {
   let g = state.gammes.find(x => x.id === currentGammeId);
@@ -1001,9 +1004,13 @@ function calcDefault() {
 }
 
 function renderGammes() {
+  // Une annulation peut faire disparaître la gamme ouverte : retour au récapitulatif.
+  if (gammeView === "edit" && !state.gammes.some(x => x.id === currentGammeId)) gammeView = "list";
   const g = currentGamme();
-  $("selGamme").innerHTML = state.gammes.map(x =>
-    '<option value="' + esc(x.id) + '"' + (g && x.id === g.id ? " selected" : "") + ">" + esc(x.name) + "</option>").join("");
+  $("gammesList").style.display = gammeView === "list" ? "" : "none";
+  $("gammeEdit").style.display = gammeView === "edit" ? "" : "none";
+  if (gammeView === "list") { renderGammesList(); return; }
+  $("gammeTitle").textContent = g ? g.name : "";
   $("btnDelGamme").disabled = state.gammes.length <= 1;
   if (!g) { $("gammeBody").innerHTML = ""; $("calcCards").innerHTML = ""; return; }
 
@@ -1048,6 +1055,56 @@ function renderGammes() {
   $("gammeBody").innerHTML = h;
 
   $("calcCards").innerHTML = g.tasks.map((t, i) => t.a === "Calcul" && t.calc ? renderCalcCard(g, t, i, src) : "").join("");
+}
+
+// Récapitulatif : une carte par activité, avec les gammes qui lui sont associées dans Fichiers sources.
+function gammeSummary(g) {
+  const sums = { Forfait: 0, Ligne: 0, "Quantité": 0 };
+  for (const t of g.tasks) if (t.a in sums) sums[t.a] += Number(t.sec) || 0;
+  const calcs = g.tasks.filter(t => t.a === "Calcul" && t.calc).map(t => t.calc.label || t.name || "Calcul");
+  return { sums, calcs };
+}
+
+function renderGammesList() {
+  const groups = ACTIVITIES.map(a => ({
+    title: a.name,
+    gammes: state.gammes.filter(g => state.sources.some(s => s.activity === a.id && s.gamme === g.id)),
+    empty: "Aucune gamme associée : choisissez-la dans l'onglet Fichiers sources."
+  }));
+  const used = new Set(groups.flatMap(gr => gr.gammes.map(g => g.id)));
+  const free = state.gammes.filter(g => !used.has(g.id));
+  if (free.length) groups.push({ title: "Gammes non associées à une activité", gammes: free, empty: "" });
+
+  let h = '<div class="toolbar"><span class="muted">Cliquez sur une gamme pour l\'ouvrir et la modifier.</span><span class="spacer"></span>' +
+    '<button class="btn primary" data-act="g-new" data-tip-name="Nouvelle gamme" data-tip-role="Crée une gamme vide, puis l\'ouvre pour la remplir">+ Nouvelle gamme</button></div>';
+  for (const gr of groups) {
+    h += '<div class="card"><h2>' + esc(gr.title) + "</h2>";
+    if (!gr.gammes.length) { h += '<p class="muted" style="margin:0">' + esc(gr.empty) + "</p></div>"; continue; }
+    h += '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Gamme</th><th>Fichier source</th><th class="num">Tâches</th>' +
+      '<th class="num">Forfait (s / dossier)</th><th class="num">Ligne (s / ligne)</th><th class="num">Quantité (s / pièce)</th><th>Tableaux de calcul</th></tr></thead><tbody>';
+    for (const g of gr.gammes) {
+      const sm = gammeSummary(g);
+      const srcs = state.sources.filter(s => s.gamme === g.id).map(s => s.label || s.fileName || "Source sans nom");
+      h += '<tr class="clickable" data-act="g-open" data-gid="' + esc(g.id) + '" data-tip-name="' + esc(g.name) + '" data-tip-role="Cliquez pour ouvrir et modifier cette gamme">' +
+        "<td><b>" + esc(g.name) + "</b></td>" +
+        "<td>" + (srcs.length ? esc(srcs.join(", ")) : '<span class="muted">–</span>') + "</td>" +
+        '<td class="num">' + g.tasks.length + "</td>" +
+        '<td class="num">' + fmtInt(sm.sums.Forfait) + "</td>" +
+        '<td class="num">' + fmtInt(sm.sums.Ligne) + "</td>" +
+        '<td class="num">' + fmtInt(sm.sums["Quantité"]) + "</td>" +
+        "<td>" + (sm.calcs.length ? sm.calcs.map(c => '<span class="badge off">' + esc(c) + "</span>").join(" ") : '<span class="muted">–</span>') + "</td>" +
+        "</tr>";
+    }
+    h += "</tbody></table></div></div>";
+  }
+  $("gammesList").innerHTML = h;
+}
+
+function openGamme(id) {
+  currentGammeId = id;
+  gammeView = "edit";
+  render();
+  document.querySelector("main").scrollTop = 0;
 }
 
 function renderCalcCard(g, t, i, lineSrc) {
@@ -1137,7 +1194,6 @@ function numVal(v) {
 $("page-gammes").addEventListener("change", e => {
   const el = e.target, f = el.dataset.f;
   if (!f) return;
-  if (el.id === "selGamme") return;
   const gid = currentGamme().id;
   const i = Number(el.dataset.ti), j = Number(el.dataset.vi);
   commit(st => {
@@ -1167,6 +1223,8 @@ $("page-gammes").addEventListener("change", e => {
 $("page-gammes").addEventListener("click", e => {
   const b = e.target.closest("[data-act]");
   if (!b || b.disabled) return;
+  if (b.dataset.act === "g-open") return openGamme(b.dataset.gid);
+  if (b.dataset.act === "g-new") return newGamme();
   const gid = currentGamme().id;
   const i = Number(b.dataset.ti), j = Number(b.dataset.vi);
   const G = st => st.gammes.find(x => x.id === gid);
@@ -1188,15 +1246,14 @@ $("page-gammes").addEventListener("click", e => {
   }
 });
 
-$("selGamme").onchange = e => { currentGammeId = e.target.value; render(); };
-$("btnAddGamme").onclick = () => {
+function newGamme() {
   const name = prompt("Nom de la nouvelle gamme :", "");
   if (!name || !name.trim()) return;
   const id = uid("g");
   commit(st => st.gammes.push({ id, name: name.trim(), sheet: "", folderCol: "", qtyCol: "", tasks: [] }));
-  currentGammeId = id;
-  render();
-};
+  openGamme(id);
+}
+$("btnBackGammes").onclick = () => { gammeView = "list"; render(); };
 $("btnRenameGamme").onclick = () => {
   const g = currentGamme();
   const name = prompt("Nouveau nom de la gamme :", g.name);
@@ -1210,6 +1267,8 @@ $("btnDelGamme").onclick = () => {
     st.gammes = st.gammes.filter(x => x.id !== g.id);
     for (const s of st.sources) if (s.gamme === g.id) s.gamme = "";
   });
+  gammeView = "list";
+  render();
 };
 
 /* ================= Calcul des temps d'une gamme ================= */
@@ -1896,7 +1955,11 @@ $("btnNew").onclick = async () => {
   await saveAs();
 };
 $("btnSaveAs").onclick = saveAs;
-for (const t of document.querySelectorAll(".tab")) t.onclick = () => showPage(t.dataset.page);
+for (const t of document.querySelectorAll(".tab")) t.onclick = () => {
+  // L'onglet Temps gammes s'ouvre toujours sur le récapitulatif.
+  if (t.dataset.page === "gammes" && gammeView !== "list") { gammeView = "list"; render(); }
+  showPage(t.dataset.page);
+};
 
 for (const f of FONTS) {
   const o = document.createElement("option");
