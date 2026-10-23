@@ -27,6 +27,8 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
+Sous le ruban, les onglets : **Prépa OF** à gauche (onglet affiché à l'ouverture) ; **Fichiers sources**, **Temps gammes** et **Paramètres** à droite.
+
 Laissez la souris **2 secondes** sur un bouton pour voir une bulle d'aide (nom, rôle, raccourci).
 
 ## 3. Le classeur projet (.xlsx)
