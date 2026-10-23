@@ -219,6 +219,66 @@ table.tbl { width: 100%; border-collapse: collapse; }
 .tbl-wrap.tall { max-height: calc(100vh - 290px); }
 #page-prepa { max-width: none; }
 #page-prepa .tbl { font-size: .92em; }
+.th-in { display: inline-flex; align-items: center; gap: 4px; }
+.fbtn {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 0;
+  flex: 0 0 20px;
+}
+.fbtn:hover { border-color: var(--accent); color: var(--accent); }
+.fbtn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.fbtn svg.i { width: 12px; height: 12px; }
+.fpop {
+  position: fixed;
+  z-index: 950;
+  width: 270px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow), 0 12px 32px rgba(0, 0, 0, .18);
+  padding: 8px;
+  display: none;
+  font-size: .92em;
+  font-weight: 400;
+  color: var(--text);
+}
+.fpop.show { display: block; }
+.fpop .fitem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+.fpop .fitem:hover { background: var(--surface-2); }
+.fpop .fitem:disabled { opacity: .4; cursor: default; background: none; }
+.fpop hr { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
+.fpop input[type="text"] { width: 100%; margin: 4px 0 6px; }
+.fpop .flist {
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 0;
+}
+.fpop .flist label { display: flex; align-items: center; gap: 8px; padding: 3px 10px; cursor: pointer; white-space: nowrap; }
+.fpop .flist label:hover { background: var(--surface-2); }
+.fpop .flist label.all { font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 2px; padding-bottom: 5px; }
+.fpop .fbtns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 #page-prepa .tbl td, #page-prepa .tbl th { white-space: nowrap; padding: 5px 8px; }
 #page-prepa .tbl tr > :last-child {
   position: sticky;
@@ -471,6 +531,8 @@ table.tbl { width: 100%; border-collapse: collapse; }
           data-tip-name="Date de fin" data-tip-role="Dernier jour de la plage (colonne Début opé)">
         <button class="btn" id="prepaReset"
           data-tip-name="Plage par défaut" data-tip-role="Revient à la plage du jour : 15 jours avant à 30 jours après">Plage par défaut</button>
+        <button class="btn" id="prepaClearFilters" style="display:none"
+          data-tip-name="Effacer les filtres" data-tip-role="Supprime les filtres de toutes les colonnes">Effacer les filtres</button>
         <span class="spacer"></span>
         <span id="prepaSummary"></span>
       </div>
@@ -539,6 +601,7 @@ table.tbl { width: 100%; border-collapse: collapse; }
     <span id="overlayText">Chargement…</span>
   </div>
 </div>
+<div class="fpop" id="fpop"></div>
 <div class="tip" id="tip"></div>
 <div class="toast" id="toast"></div>
 
@@ -743,6 +806,7 @@ const ICON = {
   trash: '<svg class="i" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
   up: '<svg class="i" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>',
   down: '<svg class="i" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>',
+  filter: '<svg class="i" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
   folder: '<svg class="i" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>'
 };
 
@@ -1275,7 +1339,9 @@ function dayOf(v) {
 function fmtDate(d) { return d ? d.toLocaleDateString("fr-FR") : ""; }
 function fmtHours(sec) { return (sec / 3600).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-const prepaUI = { from: localISO(addDays(new Date(), -15)), to: localISO(addDays(new Date(), 30)), sort: "debut", dir: 1 };
+// filters[colonne] = Set des valeurs affichées conservées (comme les cases à cocher d'Excel).
+const prepaUI = { from: localISO(addDays(new Date(), -15)), to: localISO(addDays(new Date(), 30)), sort: "debut", dir: 1, filters: {} };
+const EMPTY_LABEL = "(Vides)";
 let prepaCache = { key: null, list: null, error: null };
 
 // Construit la liste complète des OF (toutes dates) ; mise en cache tant que la source et la gamme ne changent pas.
@@ -1367,7 +1433,11 @@ function renderPrepa() {
   }
   const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
   const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
-  const rows = res.list.filter(x => x.debut && (!from || x.debut >= from) && (!to || x.debut <= to));
+  const inRange = res.list.filter(x => x.debut && (!from || x.debut >= from) && (!to || x.debut <= to));
+  prepaInRange = inRange;
+  const rows = applyColumnFilters(inRange);
+  const nFilters = Object.keys(prepaUI.filters).length;
+  $("prepaClearFilters").style.display = nFilters ? "" : "none";
   const col = PREPA_COLUMNS.find(c => c.k === prepaUI.sort) || PREPA_COLUMNS[9];
   rows.sort((a, b) => {
     const va = a[col.k], vb = b[col.k];
@@ -1381,7 +1451,7 @@ function renderPrepa() {
   const totalH = rows.reduce((a, x) => a + (x.heures || 0), 0);
   const nManq = rows.filter(x => x.manquants === "Oui").length;
   $("prepaSummary").innerHTML =
-    '<span class="badge off">' + fmtInt(rows.length) + " OF</span> " +
+    '<span class="badge off">' + fmtInt(rows.length) + " OF" + (nFilters ? " (filtrés sur " + fmtInt(inRange.length) + ")" : "") + "</span> " +
     '<span class="badge ok">' + fmtHours(totalH * 3600) + " h</span> " +
     (nManq ? '<span class="badge warn">' + nManq + " avec manquants</span>" : "");
 
@@ -1389,7 +1459,10 @@ function renderPrepa() {
   h += '<div class="card" style="padding:0"><div class="tbl-wrap tall" style="border:0"><table class="tbl"><thead><tr>' +
     PREPA_COLUMNS.map(c => '<th class="sort' + (c.num ? " num" : "") + (c.k === prepaUI.sort ? " on" : "") + '" data-sort="' + c.k + '"' +
       ' data-tip-name="' + esc(c.t) + '" data-tip-role="Cliquez pour trier sur cette colonne">' +
-      esc(c.t) + (c.k === prepaUI.sort ? (prepaUI.dir > 0 ? " ▲" : " ▼") : "") + "</th>").join("") +
+      '<span class="th-in">' + esc(c.t) + (c.k === prepaUI.sort ? (prepaUI.dir > 0 ? " ▲" : " ▼") : "") +
+      '<button class="fbtn' + (prepaUI.filters[c.k] ? " on" : "") + '" data-filter="' + c.k + '"' +
+      ' data-tip-name="Filtrer « ' + esc(c.t) + ' »" data-tip-role="Choisir les valeurs à afficher, comme dans Excel' +
+      (prepaUI.filters[c.k] ? " (filtre actif)" : "") + '">' + ICON.filter + "</button></span></th>").join("") +
     "</tr></thead><tbody>";
   for (const x of rows) {
     const dt = x.detail;
@@ -1416,7 +1489,8 @@ function renderPrepa() {
         (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && dt.unknown ? " ⚠" : "") + "</b></td>" +
       "</tr>";
   }
-  if (!rows.length) h += '<tr><td colspan="' + PREPA_COLUMNS.length + '" class="muted">Aucun OF dont le Début opé est dans cette plage.</td></tr>';
+  if (!rows.length) h += '<tr><td colspan="' + PREPA_COLUMNS.length + '" class="muted">' +
+    (inRange.length ? "Aucun OF ne correspond aux filtres." : "Aucun OF dont le Début opé est dans cette plage.") + "</td></tr>";
   h += "</tbody>";
   if (rows.length) h += '<tfoot><tr><td colspan="' + (PREPA_COLUMNS.length - 1) + '">Total (' + fmtInt(rows.length) + ' OF)</td><td class="num">' + fmtHours(totalH * 3600) + "</td></tr></tfoot>";
   $("prepaBody").innerHTML = h + "</table></div></div>";
@@ -1430,12 +1504,126 @@ $("prepaReset").onclick = () => {
   renderPrepa();
 };
 $("prepaBody").addEventListener("click", e => {
+  const fb = e.target.closest("[data-filter]");
+  if (fb) { e.stopPropagation(); openFilter(fb.dataset.filter, fb); return; }
   const th = e.target.closest("th[data-sort]");
   if (!th) return;
   if (prepaUI.sort === th.dataset.sort) prepaUI.dir = -prepaUI.dir;
   else { prepaUI.sort = th.dataset.sort; prepaUI.dir = 1; }
   renderPrepa();
 });
+
+/* ---------- Filtres de colonnes (type Excel) ---------- */
+let prepaInRange = [];
+
+function cellText(c, x) {
+  const v = x[c.k];
+  if (c.date) return v ? fmtDate(v) : EMPTY_LABEL;
+  if (c.k === "heures") return v == null ? EMPTY_LABEL : fmtHours(v * 3600);
+  if (c.num) return v == null ? EMPTY_LABEL : fmtInt(v);
+  return v === "" || v == null ? EMPTY_LABEL : String(v);
+}
+
+function applyColumnFilters(list, exceptKey) {
+  const active = PREPA_COLUMNS.filter(c => prepaUI.filters[c.k] && c.k !== exceptKey);
+  if (!active.length) return list.slice();
+  return list.filter(x => active.every(c => prepaUI.filters[c.k].has(cellText(c, x))));
+}
+
+// Valeurs distinctes d'une colonne, parmi les lignes retenues par les AUTRES filtres (comme Excel).
+function distinctValues(c) {
+  const seen = new Map();
+  for (const x of applyColumnFilters(prepaInRange, c.k)) {
+    const t = cellText(c, x);
+    if (!seen.has(t)) seen.set(t, x[c.k]);
+  }
+  // Une valeur cochée qui n'existe plus reste visible pour pouvoir la décocher.
+  if (prepaUI.filters[c.k]) for (const t of prepaUI.filters[c.k]) if (!seen.has(t)) seen.set(t, null);
+  return [...seen.entries()].sort((a, b) => {
+    if (a[0] === EMPTY_LABEL) return 1;
+    if (b[0] === EMPTY_LABEL) return -1;
+    if ((c.num || c.date) && a[1] != null && b[1] != null) return a[1] - b[1];
+    return a[0].localeCompare(b[0], "fr", { numeric: true });
+  }).map(e => e[0]);
+}
+
+let fpopKey = null;
+function closeFilter() { $("fpop").classList.remove("show"); fpopKey = null; }
+
+function openFilter(key, anchor) {
+  if (fpopKey === key) return closeFilter();
+  const c = PREPA_COLUMNS.find(x => x.k === key);
+  const values = distinctValues(c);
+  const current = prepaUI.filters[key];
+  const checked = new Set(current ? values.filter(v => current.has(v)) : values);
+  fpopKey = key;
+  hideTip();
+
+  const pop = $("fpop");
+  pop.innerHTML =
+    '<button class="fitem" data-fa="asc">Trier ' + (c.num || c.date ? "du plus petit au plus grand" : "de A à Z") + "</button>" +
+    '<button class="fitem" data-fa="desc">Trier ' + (c.num || c.date ? "du plus grand au plus petit" : "de Z à A") + "</button>" +
+    "<hr>" +
+    '<button class="fitem" data-fa="clear"' + (current ? "" : " disabled") + ">Effacer le filtre de « " + esc(c.t) + " »</button>" +
+    '<input type="text" id="fsearch" placeholder="Rechercher">' +
+    '<div class="flist" id="flist"></div>' +
+    '<div class="fbtns"><button class="btn" data-fa="cancel">Annuler</button><button class="btn primary" data-fa="ok">OK</button></div>';
+
+  const list = $("flist");
+  function drawList() {
+    const q = stripAccents($("fsearch").value);
+    const vis = values.filter(v => !q || stripAccents(v).includes(q));
+    const allOn = vis.length && vis.every(v => checked.has(v));
+    list.innerHTML = (vis.length
+      ? '<label class="all"><input type="checkbox" data-all' + (allOn ? " checked" : "") + "> " +
+        (q ? "(Sélectionner tous les résultats)" : "(Sélectionner tout)") + "</label>" +
+        vis.map(v => '<label><input type="checkbox" data-v="' + esc(v) + '"' + (checked.has(v) ? " checked" : "") + "> " + esc(v) + "</label>").join("")
+      : '<div class="muted" style="padding:6px 10px">Aucune valeur</div>');
+    const all = list.querySelector("[data-all]");
+    if (all) all.indeterminate = !allOn && vis.some(v => checked.has(v));
+    return vis;
+  }
+  let visible = drawList();
+  $("fsearch").oninput = () => {
+    // Comme Excel : une recherche ne conserve que les résultats trouvés.
+    visible = drawList();
+  };
+  list.onchange = e => {
+    const el = e.target;
+    if (el.hasAttribute("data-all")) { for (const v of visible) el.checked ? checked.add(v) : checked.delete(v); }
+    else el.checked ? checked.add(el.dataset.v) : checked.delete(el.dataset.v);
+    visible = drawList();
+  };
+  pop.onclick = e => {
+    const b = e.target.closest("[data-fa]");
+    if (!b || b.disabled) return;
+    const a = b.dataset.fa;
+    if (a === "asc" || a === "desc") { prepaUI.sort = key; prepaUI.dir = a === "asc" ? 1 : -1; }
+    if (a === "clear") delete prepaUI.filters[key];
+    if (a === "ok") {
+      const q = $("fsearch").value.trim();
+      const keep = q ? visible.filter(v => checked.has(v)) : values.filter(v => checked.has(v));
+      if (!keep.length) return toast("Cochez au moins une valeur.", true);
+      if (!q && keep.length === values.length) delete prepaUI.filters[key];
+      else prepaUI.filters[key] = new Set(keep);
+    }
+    closeFilter();
+    if (a !== "cancel") renderPrepa();
+  };
+
+  pop.classList.add("show");
+  const r = anchor.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
+  pop.style.top = (r.bottom + h + 12 > innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + "px";
+  $("fsearch").focus();
+}
+
+document.addEventListener("mousedown", e => {
+  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]")) closeFilter();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape" && fpopKey) closeFilter(); });
+$("prepaClearFilters").onclick = () => { prepaUI.filters = {}; closeFilter(); renderPrepa(); };
 
 /* ================= Classeur projet (.xlsx) ================= */
 function stateToWorkbook() {
