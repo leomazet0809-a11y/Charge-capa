@@ -164,7 +164,7 @@ h2 { font-size: 1.05em; margin: 0 0 12px; font-weight: 600; }
 .btn:hover { border-color: var(--accent); color: var(--accent); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.primary:hover { filter: brightness(1.08); color: #fff; }
-select, input[type="number"], input[type="text"] {
+select, input[type="number"], input[type="text"], input[type="date"] {
   border: 1px solid var(--border);
   background: var(--surface);
   border-radius: 8px;
@@ -213,6 +213,21 @@ table.tbl { width: 100%; border-collapse: collapse; }
   z-index: 1;
 }
 .tbl tr:last-child td { border-bottom: 0; }
+.tbl th.sort { cursor: pointer; user-select: none; }
+.tbl th.sort:hover { color: var(--text); }
+.tbl th.sort.on { color: var(--accent); }
+.tbl-wrap.tall { max-height: calc(100vh - 290px); }
+#page-prepa { max-width: none; }
+#page-prepa .tbl { font-size: .92em; }
+#page-prepa .tbl td, #page-prepa .tbl th { white-space: nowrap; padding: 5px 8px; }
+#page-prepa .tbl tr > :last-child {
+  position: sticky;
+  right: 0;
+  background: var(--surface);
+  box-shadow: -1px 0 0 var(--border);
+}
+#page-prepa .tbl thead tr > :last-child { background: var(--surface-2); z-index: 2; }
+#page-prepa .tbl tfoot tr > :last-child { background: var(--surface-2); }
 .tbl tbody tr:hover td { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
 .tbl td.num, .tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .tbl tfoot td { background: var(--surface-2); font-weight: 600; }
@@ -446,7 +461,21 @@ table.tbl { width: 100%; border-collapse: collapse; }
 
   <section class="page" id="page-prepa">
     <h1>Prépa OF</h1>
-    <div class="card placeholder muted">Cet onglet arrive dans un prochain lot.</div>
+    <div class="card">
+      <div class="toolbar" style="margin-bottom:0">
+        <label class="muted" for="prepaFrom">Début opé du</label>
+        <input type="date" id="prepaFrom"
+          data-tip-name="Date de début" data-tip-role="Premier jour de la plage (colonne Début opé)">
+        <label class="muted" for="prepaTo">au</label>
+        <input type="date" id="prepaTo"
+          data-tip-name="Date de fin" data-tip-role="Dernier jour de la plage (colonne Début opé)">
+        <button class="btn" id="prepaReset"
+          data-tip-name="Plage par défaut" data-tip-role="Revient à la plage du jour : 15 jours avant à 30 jours après">Plage par défaut</button>
+        <span class="spacer"></span>
+        <span id="prepaSummary"></span>
+      </div>
+    </div>
+    <div id="prepaBody"></div>
   </section>
 
   <section class="page" id="page-settings">
@@ -649,6 +678,7 @@ function render() {
   applyAppearance();
   renderSources();
   renderGammes();
+  renderPrepa();
   if (fk) {
     const el = document.querySelector('[data-fk="' + CSS.escape(fk) + '"]');
     if (el) el.focus();
@@ -1117,6 +1147,295 @@ $("btnDelGamme").onclick = () => {
     for (const s of st.sources) if (s.gamme === g.id) s.gamme = "";
   });
 };
+
+/* ================= Calcul des temps d'une gamme ================= */
+function normText(v) {
+  return v == null ? "" : String(v).trim();
+}
+function stripAccents(v) {
+  return normText(v).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+// Prépare un calculateur de temps (en secondes) par dossier pour une gamme.
+// Retourne null si l'onglet ou les colonnes de la gamme sont introuvables.
+function buildGammeTimer(g, lineSrcId) {
+  const d = srcData[lineSrcId];
+  const sh = d && d.sheets && d.sheets[g.sheet];
+  if (!sh) return { error: "Onglet « " + g.sheet + " » introuvable dans le fichier source." };
+  const iFolder = sh.headers.indexOf(g.folderCol);
+  const iQty = sh.headers.indexOf(g.qtyCol);
+  if (iFolder < 0) return { error: "Colonne dossier « " + g.folderCol + " » introuvable." };
+  if (iQty < 0) return { error: "Colonne quantité « " + g.qtyCol + " » introuvable." };
+
+  const sums = { Forfait: 0, Ligne: 0, "Quantité": 0 };
+  for (const t of g.tasks) if (t.a in sums) sums[t.a] += Number(t.sec) || 0;
+
+  // Pour chaque tâche Calcul : fonction ligne -> valeur, et table valeur -> secondes.
+  const calcs = g.tasks.filter(t => t.a === "Calcul" && t.calc).map(t => {
+    const c = t.calc;
+    const table = new Map(c.values.map(v => [normText(v.v), Number(v.sec) || 0]));
+    const srcId = c.sourceId || lineSrcId;
+    const cd = srcData[srcId];
+    let valueOf = () => "";
+    if (c.column && cd && cd.sheets) {
+      const sheetName = cd.sheets[c.sheet] ? c.sheet : (srcId === lineSrcId && !c.sheet ? g.sheet : null);
+      const csh = sheetName && cd.sheets[sheetName];
+      const iCol = csh ? csh.headers.indexOf(c.column) : -1;
+      if (iCol >= 0) {
+        if (srcId === lineSrcId && sheetName === g.sheet) {
+          valueOf = row => normText(row[iCol]);
+        } else {
+          // Autre fichier ou autre onglet : correspondance via les colonnes de liaison.
+          const iLocal = sh.headers.indexOf(c.linkLocal);
+          const iRemote = csh.headers.indexOf(c.linkRemote);
+          if (iLocal >= 0 && iRemote >= 0) {
+            const map = new Map();
+            for (const r of csh.rows) {
+              const k = normText(r[iRemote]);
+              if (k && !map.has(k)) map.set(k, normText(r[iCol]));
+            }
+            valueOf = row => map.get(normText(row[iLocal])) || "";
+          }
+        }
+      }
+    }
+    return { name: t.name, label: c.label || "Valeur", table, valueOf };
+  });
+
+  const byFolder = new Map();
+  for (const r of sh.rows) {
+    const k = normText(r[iFolder]);
+    if (!k) continue;
+    if (!byFolder.has(k)) byFolder.set(k, []);
+    byFolder.get(k).push(r);
+  }
+
+  function timeOf(folder) {
+    const rows = byFolder.get(folder) || [];
+    let qty = 0, calcSec = 0, unknown = 0;
+    for (const r of rows) {
+      const q = Number(r[iQty]) || 0;
+      qty += q;
+      for (const c of calcs) {
+        const v = c.valueOf(r);
+        if (c.table.has(v)) calcSec += c.table.get(v) * q;
+        else unknown++;
+      }
+    }
+    const parts = {
+      forfait: sums.Forfait,
+      ligne: sums.Ligne * rows.length,
+      quantite: sums["Quantité"] * qty,
+      calcul: calcSec
+    };
+    return { lines: rows.length, qty, unknown, parts, total: parts.forfait + parts.ligne + parts.quantite + parts.calcul };
+  }
+  return { timeOf, rowsOf: f => byFolder.get(f) || [], sheet: sh };
+}
+
+/* ================= Prépa OF ================= */
+const PREPA = {
+  activity: "prepa-of",
+  ofSheet: "OF",
+  opsSheet: "OF - Opérations",
+  cols: ["OF", "Commande liée", "Article PF", "Lot PF", "Qté PF", "Statut allocation", "Palette", "Statut opé",
+    "Début opé", "Type", "Fiche suiveuse", "Bon de sortie matière", "Manquants"],
+  opsCols: ["OF", "Désignation opé", "Date sortie 2"]
+};
+const PREPA_COLUMNS = [
+  { k: "atelier", t: "Atelier" },
+  { k: "of", t: "OF" },
+  { k: "cde", t: "Commande liée" },
+  { k: "article", t: "Article PF" },
+  { k: "qtePF", t: "Qté PF", num: true },
+  { k: "palType", t: "Type palette" },
+  { k: "alloc", t: "Statut allocation" },
+  { k: "palette", t: "Palette" },
+  { k: "statutOpe", t: "Statut opé" },
+  { k: "debut", t: "Début opé", date: true },
+  { k: "type", t: "Type" },
+  { k: "fiche", t: "Fiche suiveuse" },
+  { k: "bsm", t: "Bon de sortie matière" },
+  { k: "manquants", t: "Manquants" },
+  { k: "sortie2", t: "Date sortie 2", date: true },
+  { k: "heures", t: "Temps (h)", num: true }
+];
+
+function localISO(d) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+// Les dates Excel peuvent arriver décalées de quelques minutes : on arrondit au jour le plus proche.
+function dayOf(v) {
+  if (!(v instanceof Date) || isNaN(v)) return null;
+  const x = new Date(v.getFullYear(), v.getMonth(), v.getDate());
+  if (v.getHours() >= 12) x.setDate(x.getDate() + 1);
+  return x;
+}
+function fmtDate(d) { return d ? d.toLocaleDateString("fr-FR") : ""; }
+function fmtHours(sec) { return (sec / 3600).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+const prepaUI = { from: localISO(addDays(new Date(), -15)), to: localISO(addDays(new Date(), 30)), sort: "debut", dir: 1 };
+let prepaCache = { key: null, list: null, error: null };
+
+// Construit la liste complète des OF (toutes dates) ; mise en cache tant que la source et la gamme ne changent pas.
+function prepaList() {
+  const src = state.sources.find(s => s.activity === PREPA.activity && s.fileName);
+  if (!src) return { error: "Aucun fichier source pour l'activité Prépa OF : choisissez-le dans l'onglet Fichiers sources." };
+  const d = srcData[src.id];
+  if (!d || d.status !== "loaded" && d.status !== "changed") return { error: "Le fichier source « " + src.fileName + " » n'est pas chargé (onglet Fichiers sources)." };
+  const g = state.gammes.find(x => x.id === src.gamme);
+  const key = JSON.stringify([src.id, g || null]);
+  if (prepaCache.key === key && prepaCache.data === d) return prepaCache;
+
+  const res = { key, data: d, list: null, error: null, warning: null };
+  prepaCache = res;
+  const of = d.sheets[PREPA.ofSheet], ops = d.sheets[PREPA.opsSheet];
+  if (!of) { res.error = "Onglet « " + PREPA.ofSheet + " » introuvable dans le fichier source."; return res; }
+  if (!ops) { res.error = "Onglet « " + PREPA.opsSheet + " » introuvable dans le fichier source."; return res; }
+  const missing = PREPA.cols.filter(c => !of.headers.includes(c)).map(c => PREPA.ofSheet + " › " + c)
+    .concat(PREPA.opsCols.filter(c => !ops.headers.includes(c)).map(c => PREPA.opsSheet + " › " + c));
+  if (missing.length) { res.error = "Colonnes introuvables : " + missing.join(", "); return res; }
+  const I = Object.fromEntries(PREPA.cols.map(c => [c, of.headers.indexOf(c)]));
+  const J = Object.fromEntries(PREPA.opsCols.map(c => [c, ops.headers.indexOf(c)]));
+
+  // Opérations : présence d'un dégraissage et plus ancienne Date sortie 2 par OF.
+  const opsInfo = new Map();
+  for (const r of ops.rows) {
+    const k = normText(r[J.OF]);
+    if (!k) continue;
+    let o = opsInfo.get(k);
+    if (!o) opsInfo.set(k, o = { cryo: false, sortie2: null });
+    if (!o.cryo && stripAccents(r[J["Désignation opé"]]).includes("degr")) o.cryo = true;
+    const ds = dayOf(r[J["Date sortie 2"]]);
+    if (ds && (!o.sortie2 || ds < o.sortie2)) o.sortie2 = ds;
+  }
+
+  const timer = g ? buildGammeTimer(g, src.id) : { error: "Aucune gamme associée à Prépa OF (onglet Fichiers sources)." };
+  if (timer.error) res.warning = "Temps non calculés : " + timer.error;
+
+  const byOF = new Map();
+  for (const r of of.rows) {
+    const k = normText(r[I.OF]);
+    if (!k) continue;
+    let x = byOF.get(k);
+    if (!x) {
+      const lot = normText(r[I["Lot PF"]]).toUpperCase();
+      const o = opsInfo.get(k) || { cryo: false, sortie2: null };
+      x = {
+        atelier: lot.startsWith("M") ? "Montage" : lot.startsWith("U") ? "Usinage / sous-traitance" : "",
+        of: k,
+        cde: normText(r[I["Commande liée"]]),
+        article: normText(r[I["Article PF"]]),
+        qtePF: Number(r[I["Qté PF"]]) || 0,
+        palType: o.cryo ? "Cryo" : "Bois",
+        alloc: normText(r[I["Statut allocation"]]),
+        palette: normText(r[I.Palette]),
+        statutOpe: normText(r[I["Statut opé"]]),
+        debut: dayOf(r[I["Début opé"]]),
+        type: normText(r[I.Type]),
+        fiche: normText(r[I["Fiche suiveuse"]]),
+        bsm: normText(r[I["Bon de sortie matière"]]),
+        manquants: "Non",
+        sortie2: o.sortie2,
+        heures: null,
+        detail: null
+      };
+      byOF.set(k, x);
+    }
+    // « Manquant » (ou « Oui », valeur réelle de l'export) sur au moins une ligne -> Oui.
+    const m = stripAccents(r[I.Manquants]);
+    if (m.includes("manquant") || m === "oui") x.manquants = "Oui";
+  }
+  for (const x of byOF.values()) {
+    if (timer.error) continue;
+    x.detail = timer.timeOf(x.of);
+    x.heures = x.detail.total / 3600;
+  }
+  res.list = [...byOF.values()];
+  return res;
+}
+
+function renderPrepa() {
+  $("prepaFrom").value = prepaUI.from;
+  $("prepaTo").value = prepaUI.to;
+  const res = prepaList();
+  if (res.error) {
+    $("prepaSummary").innerHTML = "";
+    $("prepaBody").innerHTML = '<div class="card placeholder muted">' + esc(res.error) + "</div>";
+    return;
+  }
+  const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
+  const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
+  const rows = res.list.filter(x => x.debut && (!from || x.debut >= from) && (!to || x.debut <= to));
+  const col = PREPA_COLUMNS.find(c => c.k === prepaUI.sort) || PREPA_COLUMNS[9];
+  rows.sort((a, b) => {
+    const va = a[col.k], vb = b[col.k];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    const r = col.num || col.date ? va - vb : String(va).localeCompare(String(vb), "fr", { numeric: true });
+    return r * prepaUI.dir || a.of.localeCompare(b.of);
+  });
+
+  const totalH = rows.reduce((a, x) => a + (x.heures || 0), 0);
+  const nManq = rows.filter(x => x.manquants === "Oui").length;
+  $("prepaSummary").innerHTML =
+    '<span class="badge off">' + fmtInt(rows.length) + " OF</span> " +
+    '<span class="badge ok">' + fmtHours(totalH * 3600) + " h</span> " +
+    (nManq ? '<span class="badge warn">' + nManq + " avec manquants</span>" : "");
+
+  let h = res.warning ? '<div class="card muted">' + esc(res.warning) + "</div>" : "";
+  h += '<div class="card" style="padding:0"><div class="tbl-wrap tall" style="border:0"><table class="tbl"><thead><tr>' +
+    PREPA_COLUMNS.map(c => '<th class="sort' + (c.num ? " num" : "") + (c.k === prepaUI.sort ? " on" : "") + '" data-sort="' + c.k + '"' +
+      ' data-tip-name="' + esc(c.t) + '" data-tip-role="Cliquez pour trier sur cette colonne">' +
+      esc(c.t) + (c.k === prepaUI.sort ? (prepaUI.dir > 0 ? " ▲" : " ▼") : "") + "</th>").join("") +
+    "</tr></thead><tbody>";
+  for (const x of rows) {
+    const dt = x.detail;
+    const tip = dt ? "Forfait " + fmtInt(dt.parts.forfait) + " s + Ligne " + fmtInt(dt.parts.ligne) + " s (" + dt.lines + " lignes) + Quantité " +
+      fmtInt(dt.parts.quantite) + " s + Calcul " + fmtInt(dt.parts.calcul) + " s (" + fmtInt(dt.qty) + " pièces)" +
+      (dt.unknown ? " — " + dt.unknown + " ligne(s) avec une valeur absente du tableau de calcul (comptée 0 s)" : "") : "";
+    h += "<tr>" +
+      "<td>" + esc(x.atelier) + "</td>" +
+      "<td><b>" + esc(x.of) + "</b></td>" +
+      "<td>" + esc(x.cde) + "</td>" +
+      "<td>" + esc(x.article) + "</td>" +
+      '<td class="num">' + fmtInt(x.qtePF) + "</td>" +
+      '<td><span class="badge ' + (x.palType === "Cryo" ? "warn" : "off") + '">' + x.palType + "</span></td>" +
+      "<td>" + esc(x.alloc) + "</td>" +
+      "<td>" + esc(x.palette) + "</td>" +
+      "<td>" + esc(x.statutOpe) + "</td>" +
+      '<td class="nowrap">' + fmtDate(x.debut) + "</td>" +
+      "<td>" + esc(x.type) + "</td>" +
+      "<td>" + esc(x.fiche) + "</td>" +
+      "<td>" + esc(x.bsm) + "</td>" +
+      "<td>" + (x.manquants === "Oui" ? '<span class="badge err">Oui</span>' : "Non") + "</td>" +
+      '<td class="nowrap">' + fmtDate(x.sortie2) + "</td>" +
+      '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
+        (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && dt.unknown ? " ⚠" : "") + "</b></td>" +
+      "</tr>";
+  }
+  if (!rows.length) h += '<tr><td colspan="' + PREPA_COLUMNS.length + '" class="muted">Aucun OF dont le Début opé est dans cette plage.</td></tr>';
+  h += "</tbody>";
+  if (rows.length) h += '<tfoot><tr><td colspan="' + (PREPA_COLUMNS.length - 1) + '">Total (' + fmtInt(rows.length) + ' OF)</td><td class="num">' + fmtHours(totalH * 3600) + "</td></tr></tfoot>";
+  $("prepaBody").innerHTML = h + "</table></div></div>";
+}
+
+$("prepaFrom").onchange = e => { prepaUI.from = e.target.value; renderPrepa(); };
+$("prepaTo").onchange = e => { prepaUI.to = e.target.value; renderPrepa(); };
+$("prepaReset").onclick = () => {
+  prepaUI.from = localISO(addDays(new Date(), -15));
+  prepaUI.to = localISO(addDays(new Date(), 30));
+  renderPrepa();
+};
+$("prepaBody").addEventListener("click", e => {
+  const th = e.target.closest("th[data-sort]");
+  if (!th) return;
+  if (prepaUI.sort === th.dataset.sort) prepaUI.dir = -prepaUI.dir;
+  else { prepaUI.sort = th.dataset.sort; prepaUI.dir = 1; }
+  renderPrepa();
+});
 
 /* ================= Classeur projet (.xlsx) ================= */
 function stateToWorkbook() {
