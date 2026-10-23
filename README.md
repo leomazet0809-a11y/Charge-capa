@@ -101,9 +101,28 @@ Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
 La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence.
 
-## 7. Onglet à venir
+## 7. Prépa OF
 
-- **Prépa OF** : liste des OF à préparer et temps de préparation.
+Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
+
+- **Plage de dates** : par défaut du jour – 15 jours au jour + 30 jours (vraies dates). Modifiez-les librement ; **Plage par défaut** les remet.
+- **Résumé** (à droite) : nombre d'OF, total d'heures, nombre d'OF avec manquants.
+- **Tri** : cliquez sur un titre de colonne (re-cliquez pour inverser).
+- Le tableau se lit dans le fichier source de l'activité *Prépa OF* (onglets `OF` et `OF - Opérations`) : chargez-le d'abord dans **Fichiers sources**.
+
+| Colonne | Origine |
+|---|---|
+| Atelier | *Lot PF* commençant par **M** → Montage, **U** → Usinage / sous-traitance, sinon vide |
+| OF, Commande liée, Article PF, Qté PF, Statut allocation, Palette, Statut opé, Début opé, Type, Fiche suiveuse, Bon de sortie matière | Colonnes du même nom (onglet OF) |
+| Type palette | **Cryo** si une opération de l'OF contient « degr » (Dégraissage…, majuscules et accents ignorés), sinon **Bois** |
+| Manquants | **Oui** si au moins une ligne de l'OF est marquée « Manquant » (ou « Oui » dans l'export), sinon **Non** |
+| Date sortie 2 | Plus ancienne *Date sortie 2* de l'OF (onglet OF - Opérations) |
+| Temps (h) | Temps de préparation calculé avec la gamme (2 décimales) |
+
+**Calcul du Temps (h)** pour un OF = somme des temps *Forfait* + somme des temps *Ligne* × nombre de lignes + somme des temps *Quantité* × total des *Qté besoin* + pour chaque tâche *Calcul* : Σ (Tps de la valeur de la ligne × *Qté besoin* de la ligne).
+Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes dont la valeur n'est pas dans le tableau de calcul (comptées 0 s).
+
+> En attendant la base des DN, toutes les lignes prennent le temps « (vide) » du tableau DN (1 s par pièce).
 
 ---
 
