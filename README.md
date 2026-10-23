@@ -73,7 +73,11 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 
 ## 6. Temps gammes
 
-Choisissez la gamme dans la liste en haut (✎ renommer, 🗑 supprimer, **+ Nouvelle gamme**).
+L'onglet s'ouvre sur un **récapitulatif des gammes par activité** : pour chaque activité, ses gammes (associées dans *Fichiers sources*) avec le fichier source, le nombre de tâches, les totaux Forfait / Ligne / Quantité et les tableaux de calcul. Les gammes qui ne sont associées à aucune activité sont regroupées en bas.
+
+- **Cliquez sur une gamme** pour l'ouvrir et la modifier ; **← Toutes les gammes** ramène au récapitulatif.
+- **+ Nouvelle gamme** crée une gamme vide et l'ouvre directement.
+- Dans une gamme ouverte : ✎ renommer, 🗑 supprimer.
 
 **Réglages de la gamme**
 - *Onglet des lignes* : onglet du fichier source qui contient une ligne par composant (pour Prépa OF : `OF`).
