@@ -50,10 +50,59 @@ Si vous fermez l'onglet avec des modifications non enregistrées, le navigateur 
 - **Apparence** : thème *Clair*, *Sombre* ou *Comme Windows* (suit le réglage de Windows).
 - **Polices d'écriture** : choix de la police (Inter, Segoe UI, Aptos, Bahnschrift, Calibri, Arial) et de la taille du texte, avec aperçu.
 
-## 5. Onglets à venir
+## 5. Fichiers sources
 
-- **Fichiers sources** : choix des fichiers Excel/CSV servant de base de données pour chaque activité.
-- **Temps gammes** : temps des tâches par activité (Forfait, Ligne, Quantité, Calcul).
+Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** Excel (.xlsx, .xls) ou CSV et à une **gamme** de temps.
+
+| Colonne | Rôle |
+|---|---|
+| Libellé | Nom libre de la source |
+| Activité | Activité alimentée par ce fichier, ou « — Base de données » pour un fichier complémentaire (ex. future base des DN) |
+| Fichier source | Cliquez pour choisir le fichier dans un dossier Windows |
+| Date du fichier | Date de dernière modification du fichier |
+| Dernier chargement | Date à laquelle l'application a lu le fichier |
+| État | *Chargé* (nombre de lignes lues, détail par onglet dans la bulle), *Modifié* (le fichier a changé : cliquez sur Recharger), *Autoriser la lecture*, *Erreur* |
+| Gamme | Gamme de temps (onglet Temps gammes) appliquée à l'activité |
+
+- Le bouton **⟳** relit un fichier ; **Tout recharger** relit tous les fichiers.
+- Au lancement, les fichiers sont relus automatiquement si le navigateur l'autorise ; sinon cliquez sur **Autoriser la lecture**.
+- Les données lues restent dans le navigateur : elles **ne sont pas copiées** dans le classeur projet (seuls le nom du fichier et les dates le sont).
+- Pour les CSV, le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou ANSI) sont détectés automatiquement.
+
+## 6. Temps gammes
+
+Choisissez la gamme dans la liste en haut (✎ renommer, 🗑 supprimer, **+ Nouvelle gamme**).
+
+**Réglages de la gamme**
+- *Onglet des lignes* : onglet du fichier source qui contient une ligne par composant (pour Prépa OF : `OF`).
+- *Colonne dossier* : colonne qui identifie un dossier (pour Prépa OF : `OF`).
+- *Colonne quantité* : quantité de pièces de chaque ligne (pour Prépa OF : `Qté besoin`).
+
+**Tableau des tâches** : pour chaque tâche, l'affectation, la description et le temps en secondes. Les flèches changent l'ordre.
+
+| Affectation | Calcul du temps |
+|---|---|
+| Forfait | Compté **1 fois par dossier** (par OF) |
+| Ligne | Multiplié par le **nombre de lignes** du dossier |
+| Quantité | Multiplié par la **somme des quantités** du dossier |
+| Calcul | Selon un **tableau de valeurs** (voir ci-dessous) ; la colonne Tps affiche « cf tableau » |
+
+Les totaux Forfait / Ligne / Quantité s'affichent sous le tableau.
+
+**Tableau de calcul** (un par tâche « Calcul ») :
+1. Donnez un *libellé* (ex. `DN`).
+2. Choisissez le *fichier source*, l'*onglet* et la *colonne des valeurs*.
+   Si ce fichier n'est pas celui de l'activité (ex. base des DN), indiquez les deux colonnes de *liaison* (ex. `Composant OF` ↔ `Article`).
+3. **Importer les valeurs de la colonne** ajoute les valeurs trouvées (doublons supprimés) avec un temps de 0 s ; les temps déjà saisis ne sont jamais écrasés.
+4. Saisissez le **Tps (sec)** de chaque valeur. La ligne **(vide)** s'applique aux lignes sans valeur.
+
+Temps de la tâche pour une ligne = Tps (sec) de sa valeur × quantité de la ligne.
+Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
+
+La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence.
+
+## 7. Onglet à venir
+
 - **Prépa OF** : liste des OF à préparer et temps de préparation.
 
 ---
