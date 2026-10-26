@@ -80,6 +80,10 @@ button, input, select { font: inherit; color: inherit; }
   user-select: none;
 }
 .ribbon .filename.empty { color: var(--text-2); font-weight: 600; }
+.range { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.range-label { color: var(--text-2); font-size: .9em; font-weight: 500; }
+.range-sep { color: var(--text-2); }
+.range input[type="date"] { padding: 4px 8px; height: 34px; }
 .tools { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
 .tools .group {
   display: flex;
@@ -455,6 +459,18 @@ table.tbl { width: 100%; border-collapse: collapse; }
     <rect x="21" y="7" width="4" height="18" rx="1" fill="#fff" opacity=".6"/>
   </svg>
   <div class="filename" id="fileName"></div>
+  <div class="range">
+    <span class="range-label" data-tip-name="Période" data-tip-role="Plage de dates appliquée à toutes les activités (Prépa OF : colonne Début opé)">Période</span>
+    <input type="date" id="prepaFrom"
+      data-tip-name="Date de début" data-tip-role="Premier jour de la période, pour toutes les activités">
+    <span class="range-sep">→</span>
+    <input type="date" id="prepaTo"
+      data-tip-name="Date de fin" data-tip-role="Dernier jour de la période, pour toutes les activités">
+    <button class="icon-btn" id="prepaReset"
+      data-tip-name="Plage par défaut" data-tip-role="Revient à la période par défaut : 15 jours avant à 30 jours après aujourd'hui">
+      <svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 15 11 17 15 13"/></svg>
+    </button>
+  </div>
   <div class="tools">
     <div class="group">
       <span class="status" id="saveStatus" data-state="none"></span>
@@ -498,21 +514,11 @@ table.tbl { width: 100%; border-collapse: collapse; }
 
   <section class="page active" id="page-prepa">
     <h1>Prépa OF</h1>
-    <div class="card">
-      <div class="toolbar" style="margin-bottom:0">
-        <label class="muted" for="prepaFrom">Début opé du</label>
-        <input type="date" id="prepaFrom"
-          data-tip-name="Date de début" data-tip-role="Premier jour de la plage (colonne Début opé)">
-        <label class="muted" for="prepaTo">au</label>
-        <input type="date" id="prepaTo"
-          data-tip-name="Date de fin" data-tip-role="Dernier jour de la plage (colonne Début opé)">
-        <button class="btn" id="prepaReset"
-          data-tip-name="Plage par défaut" data-tip-role="Revient à la plage du jour : 15 jours avant à 30 jours après">Plage par défaut</button>
-        <button class="btn" id="prepaClearFilters" style="display:none"
-          data-tip-name="Effacer les filtres" data-tip-role="Supprime les filtres de toutes les colonnes">Effacer les filtres</button>
-        <span class="spacer"></span>
-        <span id="prepaSummary"></span>
-      </div>
+    <div class="toolbar">
+      <button class="btn" id="prepaClearFilters" style="display:none"
+        data-tip-name="Effacer les filtres" data-tip-role="Supprime les filtres de toutes les colonnes">Effacer les filtres</button>
+      <span class="spacer"></span>
+      <span id="prepaSummary"></span>
     </div>
     <div id="prepaBody"></div>
   </section>
