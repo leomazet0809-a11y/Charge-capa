@@ -422,19 +422,10 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 /* ---------- Graphique charge / capacité ---------- */
 :root { --series-1: #2a78d6; --series-2: #eb6834; }
 :root[data-theme="dark"] { --series-1: #3987e5; --series-2: #d95926; }
-.tab-chart {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin: -4px 6px -4px -4px;
-  vertical-align: middle;
-  border-radius: 6px;
-  color: var(--text-2);
-}
-.tab-chart:hover { background: var(--accent-soft); color: var(--accent); }
-.tab-chart svg.i { width: 16px; height: 16px; }
+/* Bouton graphique à gauche du titre de l'activité. */
+.chart-btn { color: var(--accent); background: var(--accent-soft); margin-right: -4px; }
+.chart-btn:hover { background: var(--accent); color: #fff; }
+.chart-btn svg.i { width: 22px; height: 22px; }
 .modal {
   position: fixed;
   inset: 0;
@@ -654,14 +645,14 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 </div>
 
 <nav class="tabs" id="tabs">
-  <button class="tab active" data-page="prepa" data-tip-name="Prépa OF" data-tip-role="Affiche la liste des OF à préparer et leur temps de préparation"><span class="tab-chart" data-chart="prepa-of"
-    data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de Prépa OF"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg></span>Prépa OF</button>
+  <button class="tab active" data-page="prepa" data-tip-name="Prépa OF" data-tip-role="Affiche la liste des OF à préparer et leur temps de préparation">Prépa OF</button>
 </nav>
 
 <main>
 
   <section class="page active" id="page-prepa">
     <div class="toolbar prepa-head">
+      <button class="icon-btn chart-btn" data-chart="prepa-of" data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de Prépa OF"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg></button>
       <h1>Prépa OF</h1>
       <div class="segmented quick-filters" id="prepaQuick">
         <button data-q="encours"
@@ -2823,11 +2814,8 @@ $("btnNew").onclick = async () => {
   await saveAs();
 };
 $("btnSaveAs").onclick = saveAs;
-for (const t of document.querySelectorAll(".tab")) t.onclick = e => {
-  showPage(t.dataset.page);
-  const c = e.target.closest("[data-chart]");
-  if (c) openChart(c.dataset.chart);
-};
+for (const t of document.querySelectorAll(".tab")) t.onclick = () => showPage(t.dataset.page);
+for (const c of document.querySelectorAll(".chart-btn")) c.onclick = () => openChart(c.dataset.chart);
 for (const b of $("subnav").children) b.onclick = () => {
   // Temps gammes s'ouvre toujours sur le récapitulatif.
   if (b.dataset.sub === "gammes" && gammeView !== "list") { gammeView = "list"; render(); }
