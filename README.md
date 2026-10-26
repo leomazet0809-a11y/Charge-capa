@@ -27,7 +27,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
-Sous le ruban, les onglets : **Prépa OF** à gauche (onglet affiché à l'ouverture) ; **Fichiers sources**, **Temps gammes** et **Paramètres** à droite.
+Sous le ruban, les onglets : **Prépa OF** à gauche (onglet affiché à l'ouverture) et **Paramètres** à droite. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, avec un menu à gauche.
 
 Laissez la souris **2 secondes** sur un bouton pour voir une bulle d'aide (nom, rôle, raccourci).
 
@@ -48,11 +48,15 @@ Si vous fermez l'onglet avec des modifications non enregistrées, le navigateur 
 
 ## 4. Paramètres
 
+L'onglet **Paramètres** (ou l'engrenage du ruban, ou Ctrl + ,) contient un menu à gauche : **Général**, **Fichiers sources** et **Temps gammes**.
+
+### 4.1 Général
+
 - **Classeur projet** : ouvrir, créer, enregistrer sous (voir ci-dessus).
 - **Apparence** : thème *Clair*, *Sombre* ou *Comme Windows* (suit le réglage de Windows).
 - **Polices d'écriture** : choix de la police (Inter, Segoe UI, Aptos, Bahnschrift, Calibri, Arial) et de la taille du texte, avec aperçu.
 
-## 5. Fichiers sources
+### 4.2 Fichiers sources
 
 Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** Excel (.xlsx, .xls) ou CSV et à une **gamme** de temps.
 
@@ -64,16 +68,16 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 | Date du fichier | Date de dernière modification du fichier |
 | Dernier chargement | Date à laquelle l'application a lu le fichier |
 | État | *Chargé* (nombre de lignes lues, détail par onglet dans la bulle), *Modifié* (le fichier a changé : cliquez sur Recharger), *Autoriser la lecture*, *Erreur* |
-| Gamme | Gamme de temps (onglet Temps gammes) appliquée à l'activité |
+| Gamme | Gamme de temps (Paramètres › Temps gammes) appliquée à l'activité |
 
 - Le bouton **⟳** relit un fichier ; **Tout recharger** relit tous les fichiers.
 - Au lancement, les fichiers sont relus automatiquement si le navigateur l'autorise ; sinon cliquez sur **Autoriser la lecture**.
 - Les données lues restent dans le navigateur : elles **ne sont pas copiées** dans le classeur projet (seuls le nom du fichier et les dates le sont).
 - Pour les CSV, le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou ANSI) sont détectés automatiquement.
 
-## 6. Temps gammes
+### 4.3 Temps gammes
 
-L'onglet s'ouvre sur un **récapitulatif des gammes par activité** : pour chaque activité, ses gammes (associées dans *Fichiers sources*) avec le fichier source, le nombre de tâches, les totaux Forfait / Ligne / Quantité et les tableaux de calcul. Les gammes qui ne sont associées à aucune activité sont regroupées en bas.
+Cette page s'ouvre sur un **récapitulatif des gammes par activité** : pour chaque activité, ses gammes (associées dans *Fichiers sources*) avec le fichier source, le nombre de tâches, les totaux Forfait / Ligne / Quantité et les tableaux de calcul. Les gammes qui ne sont associées à aucune activité sont regroupées en bas.
 
 - **Cliquez sur une gamme** pour l'ouvrir et la modifier ; **← Toutes les gammes** ramène au récapitulatif.
 - **+ Nouvelle gamme** crée une gamme vide et l'ouvre directement.
@@ -107,7 +111,7 @@ Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
 La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence.
 
-## 7. Prépa OF
+## 5. Prépa OF
 
 Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
 
@@ -115,7 +119,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 - **Résumé** (à droite) : nombre d'OF, total d'heures, nombre d'OF avec manquants.
 - **Tri** : cliquez sur un titre de colonne (re-cliquez pour inverser).
 - **Filtres comme dans Excel** : le petit entonnoir à droite de chaque titre ouvre un menu avec le tri, une zone *Rechercher* et la liste des valeurs à cocher (« (Sélectionner tout) », « (Vides) » pour les cases vides). La liste ne montre que les valeurs encore présentes avec les autres filtres. L'entonnoir devient bleu quand un filtre est actif ; **Effacer les filtres** (en haut) les supprime tous. Le résumé indique alors « n OF (filtrés sur N) ».
-- Le tableau se lit dans le fichier source de l'activité *Prépa OF* (onglets `OF` et `OF - Opérations`) : chargez-le d'abord dans **Fichiers sources**.
+- Le tableau se lit dans le fichier source de l'activité *Prépa OF* (onglets `OF` et `OF - Opérations`) : chargez-le d'abord dans **Paramètres › Fichiers sources**.
 
 | Colonne | Origine |
 |---|---|
