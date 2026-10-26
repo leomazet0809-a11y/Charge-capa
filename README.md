@@ -22,15 +22,14 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 |---|---|---|
 | Logo + nom en gras | Nom du classeur projet ouvert | – |
 | Période (Du → Au) | Plage de dates commune à toutes les activités ; le bouton calendrier remet la période par défaut (J – 15 à J + 30) | – |
-| Pastille d'état | ✔ vert : enregistré · ● orange : modifications non enregistrées · ⟳ : enregistrement en cours · ⚠ rouge : échec | – |
 | Flèche retour | Annule la dernière modification | Ctrl + Z |
-| Disquette | Enregistre le projet | Ctrl + S |
+| Disquette | Enregistre le projet. **Verte** : tout est enregistré ; **orange** : modifications non enregistrées, pas encore de classeur ou dernier enregistrement en échec (la bulle précise le cas) | Ctrl + S |
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
 Sous le ruban, les onglets d'activité : **Prépa OF** (onglet affiché à l'ouverture). Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
-Laissez la souris **2 secondes** sur un bouton pour voir une bulle d'aide (nom, rôle, raccourci).
+Laissez la souris **2 secondes** sur n'importe quel élément cliquable (bouton, liste, case, champ, onglet…) pour voir une bulle d'aide indiquant sa fonction (et son raccourci s'il en a un).
 
 **Adaptation à l'écran** : l'application s'ajuste à la taille de la fenêtre (grand écran, portable, tablette). Le tableau Prépa OF occupe toute la hauteur disponible et défile seul ; sur petit écran, le libellé « Période » est masqué, le menu des Paramètres passe au-dessus du contenu, et sur téléphone le logo et le bouton plein écran sont masqués.
 

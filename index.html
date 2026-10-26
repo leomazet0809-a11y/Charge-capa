@@ -109,12 +109,11 @@ button, input, select { font: inherit; color: inherit; }
 .icon-btn:hover { background: var(--surface); color: var(--text); }
 .icon-btn:disabled { opacity: .35; cursor: default; background: transparent; }
 .icon-btn.active { color: var(--accent); background: var(--accent-soft); }
-.status { cursor: default; }
-.status[data-state="saved"] { color: var(--ok); }
-.status[data-state="dirty"] { color: var(--warn); }
-.status[data-state="saving"] { color: var(--accent); }
-.status[data-state="saving"] svg { animation: spin 1s linear infinite; }
-.status[data-state="error"] { color: var(--err); }
+/* Disquette : verte quand tout est enregistré, orange sinon. */
+#btnSave, #btnSave:hover { color: var(--warn); }
+#btnSave[data-state="saved"], #btnSave[data-state="saved"]:hover { color: var(--ok); }
+#btnSave[data-state="saving"] svg { animation: pulse 0.8s ease-in-out infinite alternate; }
+@keyframes pulse { to { opacity: .35; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -625,9 +624,6 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
   </div>
   <div class="tools">
     <div class="group">
-      <span class="status" id="saveStatus" data-state="none"></span>
-    </div>
-    <div class="group">
       <button class="icon-btn" id="btnUndo" disabled
         data-tip-name="Annuler" data-tip-role="Annule la dernière modification" data-tip-key="Ctrl + Z">
         <svg class="i" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
@@ -653,12 +649,12 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 </div>
 <div class="banner" id="bannerReopen">
   <span>Reprendre le projet <b id="reopenName"></b> ?</span>
-  <button class="btn primary" id="btnReopen">Ouvrir</button>
-  <button class="btn" id="btnReopenNo">Ignorer</button>
+  <button class="btn primary" id="btnReopen" data-tip-name="Ouvrir le projet" data-tip-role="Rouvre le dernier classeur projet utilisé (le navigateur demande votre accord)">Ouvrir</button>
+  <button class="btn" id="btnReopenNo" data-tip-name="Ignorer" data-tip-role="Masque ce bandeau et continue sans rouvrir le projet">Ignorer</button>
 </div>
 
 <nav class="tabs" id="tabs">
-  <button class="tab active" data-page="prepa"><span class="tab-chart" data-chart="prepa-of"
+  <button class="tab active" data-page="prepa" data-tip-name="Prépa OF" data-tip-role="Affiche la liste des OF à préparer et leur temps de préparation"><span class="tab-chart" data-chart="prepa-of"
     data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de Prépa OF"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg></span>Prépa OF</button>
 </nav>
 
@@ -731,9 +727,9 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
       <div class="row">
         <label>Thème</label>
         <div class="segmented" id="themeSeg">
-          <button data-v="light">Clair</button>
-          <button data-v="dark">Sombre</button>
-          <button data-v="auto">Comme Windows</button>
+          <button data-v="light" data-tip-name="Thème clair" data-tip-role="Affiche l'application sur fond clair">Clair</button>
+          <button data-v="dark" data-tip-name="Thème sombre" data-tip-role="Affiche l'application sur fond sombre">Sombre</button>
+          <button data-v="auto" data-tip-name="Comme Windows" data-tip-role="Suit automatiquement le thème clair ou sombre de Windows">Comme Windows</button>
         </div>
       </div>
     </div>
@@ -742,11 +738,11 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
       <h2>Polices d'écriture</h2>
       <div class="row">
         <label for="selFont">Police</label>
-        <select id="selFont"></select>
+        <select id="selFont" data-tip-name="Police" data-tip-role="Choisit la police d'écriture de toute l'application"></select>
       </div>
       <div class="row">
         <label for="selSize">Taille du texte</label>
-        <select id="selSize">
+        <select id="selSize" data-tip-name="Taille du texte" data-tip-role="Agrandit ou réduit le texte de toute l'application">
           <option value="12">Petite (12)</option>
           <option value="13">Réduite (13)</option>
           <option value="14">Normale (14)</option>
@@ -1055,27 +1051,22 @@ function render() {
   $("projName").textContent = projectHandle ? projectHandle.name : "Aucun classeur choisi";
 }
 
-const STATUS = {
-  none: { tip: ["Non enregistré", "Aucun classeur projet n'est encore choisi"],
-    svg: '<circle cx="12" cy="12" r="9" stroke-dasharray="3 3"/>' },
-  saved: { tip: ["Enregistré", "Toutes les modifications sont enregistrées"],
-    svg: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' },
-  dirty: { tip: ["Modifications non enregistrées", "Cliquez sur Enregistrer ou faites Ctrl + S"],
-    svg: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/>' },
-  saving: { tip: ["Enregistrement…", "Écriture du classeur en cours"],
-    svg: '<path d="M21 12a9 9 0 1 1-6.22-8.56"/>' },
-  error: { tip: ["Échec de l'enregistrement", "Le classeur est peut-être ouvert dans Excel"],
-    svg: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' }
+// L'état de l'enregistrement se lit sur la disquette : verte = enregistré, orange = à enregistrer.
+const SAVE_TIPS = {
+  none: ["Enregistrer – non enregistré", "Aucun classeur projet n’est encore choisi : cliquez pour le créer"],
+  saved: ["Enregistrer – à jour", "Toutes les modifications sont enregistrées dans le classeur projet"],
+  dirty: ["Enregistrer – modifications en attente", "Des modifications ne sont pas encore enregistrées : cliquez pour les enregistrer"],
+  saving: ["Enregistrement…", "Écriture du classeur projet en cours"],
+  error: ["Enregistrer – échec", "Le dernier enregistrement a échoué (classeur ouvert dans Excel ?) : fermez-le puis réessayez"]
 };
 
 function setSaveState(s) {
   if (s === "dirty") editVersion++;
   saveState = s;
-  const el = $("saveStatus");
+  const el = $("btnSave");
   el.dataset.state = s;
-  el.dataset.tipName = STATUS[s].tip[0];
-  el.dataset.tipRole = STATUS[s].tip[1];
-  el.innerHTML = '<svg class="i" viewBox="0 0 24 24">' + STATUS[s].svg + "</svg>";
+  el.dataset.tipName = SAVE_TIPS[s][0];
+  el.dataset.tipRole = SAVE_TIPS[s][1];
 }
 
 /* ================= Outils d'affichage ================= */
@@ -1165,7 +1156,7 @@ function renderResources() {
   }
   body.innerHTML = state.resources.map((r, i) => "<tr>" +
     '<td class="num muted">' + (i + 1) + "</td>" +
-    '<td><input type="text" data-f="res.name" data-rid="' + esc(r.id) + '" data-fk="res.name.' + esc(r.id) + '" value="' + esc(r.name) + '" placeholder="Nom de la ressource"></td>' +
+    '<td><input type="text" data-f="res.name" data-rid="' + esc(r.id) + '" data-fk="res.name.' + esc(r.id) + '" value="' + esc(r.name) + '" placeholder="Nom de la ressource" data-tip-name="Ressource" data-tip-role="Nom de la ressource (cliquez pour le modifier)"></td>' +
     '<td class="num">' + assignCount(r.id) + "</td>" +
     '<td class="act">' +
       '<button class="mini" data-act="r-up" data-i="' + i + '"' + (i === 0 ? " disabled" : "") + ' data-tip-name="Monter" data-tip-role="Déplace la ressource vers le haut de la liste">' + ICON.up + "</button>" +
@@ -1230,7 +1221,7 @@ function renderCapacityRow() {
     '<td class="act"><button class="mini" data-act="src-reload" data-sid="' + CAP_ID + '"' + (c.fileName ? "" : " disabled") +
       ' data-tip-name="Recharger" data-tip-role="Relit le fichier de capacité depuis son dossier Windows">' + ICON.reload + "</button>" +
     '<button class="mini danger" data-act="cap-clear"' + (c.fileName ? "" : " disabled") +
-      ' data-tip-name="Retirer le fichier" data-tip-role="Retire le fichier de capacité (le fichier n\'est pas supprimé)">' + ICON.trash + "</button></td></tr>";
+      ' data-tip-name="Retirer le fichier" data-tip-role="Retire le fichier de capacité (le fichier n’est pas supprimé)">' + ICON.trash + "</button></td></tr>";
 }
 
 function renderSourceRows() {
@@ -1241,23 +1232,23 @@ function renderSourceRows() {
     const gamOpts = '<option value="">—</option>' + state.gammes.map(g =>
       '<option value="' + esc(g.id) + '"' + (g.id === s.gamme ? " selected" : "") + ">" + esc(g.name) + "</option>").join("");
     return "<tr>" +
-      '<td><input type="text" data-f="src.label" data-sid="' + sid + '" data-fk="src.label.' + sid + '" value="' + esc(s.label) + '" placeholder="Nom de la source"></td>' +
-      '<td><select data-f="src.activity" data-sid="' + sid + '" data-fk="src.activity.' + sid + '">' + actOpts + "</select></td>" +
+      '<td><input type="text" data-f="src.label" data-sid="' + sid + '" data-fk="src.label.' + sid + '" value="' + esc(s.label) + '" placeholder="Nom de la source" data-tip-name="Libellé" data-tip-role="Nom libre de cette source (cliquez pour le modifier)"></td>' +
+      '<td><select data-f="src.activity" data-sid="' + sid + '" data-fk="src.activity.' + sid + '" data-tip-name="Activité" data-tip-role="Activité alimentée par ce fichier, ou « Base de données » pour un fichier complémentaire">' + actOpts + "</select></td>" +
       '<td><button class="btn small" data-act="src-pick" data-sid="' + sid + '" data-tip-name="Choisir le fichier" data-tip-role="Sélectionne le fichier Excel ou CSV dans un dossier Windows">' +
         (s.fileName ? "<b>" + esc(s.fileName) + "</b>" : "Choisir un fichier…") + "</button></td>" +
       '<td class="small nowrap">' + fmtDateTime(s.fileDate) + "</td>" +
       '<td class="small nowrap">' + fmtDateTime(s.loadedAt) + "</td>" +
       "<td>" + sourceBadge(s) + "</td>" +
-      '<td><select data-f="src.gamme" data-sid="' + sid + '" data-fk="src.gamme.' + sid + '"' + (s.activity ? "" : " disabled") + ">" + gamOpts + "</select></td>" +
+      '<td><select data-f="src.gamme" data-sid="' + sid + '" data-fk="src.gamme.' + sid + '" data-tip-name="Gamme" data-tip-role="Gamme de temps appliquée à l’activité de cette source"' + (s.activity ? "" : " disabled") + ">" + gamOpts + "</select></td>" +
       "<td>" + (s.activity
-        ? '<button class="btn small" data-act="cap-pick" data-sid="' + sid + '" data-tip-name="Capacité de l\'activité" data-tip-role="' +
+        ? '<button class="btn small" data-act="cap-pick" data-sid="' + sid + '" data-tip-name="Capacité de l’activité" data-tip-role="' +
           esc((s.cap && s.cap.length ? s.cap.join(" ; ") : "Aucun groupe choisi") + " — cliquez pour choisir les groupes et niveaux") + '">' +
           (s.cap && s.cap.length ? esc(capSummary(s.cap)) : "Choisir…") + "</button>"
         : '<span class="muted">–</span>') + "</td>" +
       '<td class="act">' +
         '<button class="mini" data-act="src-reload" data-sid="' + sid + '"' + (s.fileName ? "" : " disabled") +
           ' data-tip-name="Recharger" data-tip-role="Relit le fichier depuis son dossier Windows">' + ICON.reload + "</button>" +
-        '<button class="mini danger" data-act="src-del" data-sid="' + sid + '" data-tip-name="Supprimer la source" data-tip-role="Retire cette ligne (le fichier n\'est pas supprimé)">' + ICON.trash + "</button>" +
+        '<button class="mini danger" data-act="src-del" data-sid="' + sid + '" data-tip-name="Supprimer la source" data-tip-role="Retire cette ligne (le fichier n’est pas supprimé)">' + ICON.trash + "</button>" +
       "</td></tr>";
   }).join("");
 }
@@ -1331,14 +1322,14 @@ function openCapPicker(sid, anchor) {
   const pop = $("fpop");
   const draw = () => {
     pop.innerHTML = '<div class="small muted" style="padding:4px 6px 8px">Groupes et niveaux de capacité pour « ' + esc(s.label || "cette activité") + " »</div>" +
-      (sortedGroups.length ? '<div class="flist" style="max-height:320px">' + sortedGroups.map(([g, ks]) => {
+      (sortedGroups.length ? '<div class="flist" style="max-height:320px" data-tip-name="Groupes et niveaux" data-tip-role="Cochez un groupe pour prendre tous ses niveaux, ou cochez les niveaux un par un">' + sortedGroups.map(([g, ks]) => {
         const all = ks.every(k => checked.has(k)), some = ks.some(k => checked.has(k));
         return '<label class="all"><input type="checkbox" data-g="' + esc(g) + '"' + (all ? " checked" : "") + (some && !all ? " data-ind" : "") + "> " + esc(g) + "</label>" +
           ks.map(k => '<label style="padding-left:28px"><input type="checkbox" data-k="' + esc(k) + '"' + (checked.has(k) ? " checked" : "") + "> " +
             esc(k.slice(k.indexOf(" › ") + 3)) + "</label>").join("");
       }).join("") + "</div>"
         : '<div class="muted" style="padding:6px">Chargez d\'abord le fichier de capacité (en bas de cette page).</div>') +
-      '<div class="fbtns"><button class="btn" data-fa="cancel">Annuler</button><button class="btn primary" data-fa="ok">OK</button></div>';
+      '<div class="fbtns"><button class="btn" data-fa="cancel" data-tip-name="Annuler" data-tip-role="Ferme la liste sans rien changer">Annuler</button><button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-role="Applique les groupes et niveaux cochés à cette activité">OK</button></div>';
     for (const el of pop.querySelectorAll("[data-ind]")) el.indeterminate = true;
   };
   draw();
@@ -1532,9 +1523,9 @@ function renderGammes() {
   const lineCols = src ? columnsOf(src.id, g.sheet) : null;
 
   let h = '<div class="grid2">' +
-    '<label class="field"><span>Source des lignes</span><input type="text" disabled value="' +
+    '<label class="field" data-tip-name="Source des lignes" data-tip-role="Fichier source de l’activité associée à cette gamme (choisi dans Fichiers sources)"><span>Source des lignes</span><input type="text" disabled value="' +
       esc(src ? (src.label || src.fileName || "Source sans nom") : "Aucune (voir Paramètres › Fichiers sources)") + '"></label>' +
-    '<label class="field"><span>Onglet des lignes</span>' + pickField({ "data-f": "g.sheet", "data-fk": "g.sheet" }, g.sheet, lineSheets) + "</label>" +
+    '<label class="field" data-tip-name="Onglet des lignes" data-tip-role="Onglet du fichier source contenant une ligne par composant"><span>Onglet des lignes</span>' + pickField({ "data-f": "g.sheet", "data-fk": "g.sheet" }, g.sheet, lineSheets) + "</label>" +
     '<label class="field" data-tip-name="Colonne dossier" data-tip-role="Regroupe les lignes par dossier : une valeur = un dossier (ici un OF)"><span>Colonne dossier</span>' +
       pickField({ "data-f": "g.folderCol", "data-fk": "g.folderCol" }, g.folderCol, lineCols) + "</label>" +
     '<label class="field" data-tip-name="Colonne quantité" data-tip-role="Quantité de pièces de chaque ligne (affectations Quantité et Calcul)"><span>Colonne quantité</span>' +
@@ -1549,10 +1540,10 @@ function renderGammes() {
     h += "<tr>" +
       '<td class="num muted">' + (i + 1) + "</td>" +
       '<td style="width:150px" data-tip-name="' + esc(t.a) + '" data-tip-role="' + esc(AFFECT_HELP[t.a]) + '"><select data-f="t.a" data-ti="' + i + '" data-fk="t.a.' + i + '">' + opts + "</select></td>" +
-      '<td><input type="text" data-f="t.name" data-ti="' + i + '" data-fk="t.name.' + i + '" value="' + esc(t.name) + '" placeholder="Description de la tâche"></td>' +
+      '<td><input type="text" data-f="t.name" data-ti="' + i + '" data-fk="t.name.' + i + '" value="' + esc(t.name) + '" placeholder="Description de la tâche" data-tip-name="Tâche" data-tip-role="Description de la tâche (cliquez pour la modifier)"></td>' +
       '<td class="num" style="width:130px">' + (t.a === "Calcul"
-        ? '<span class="linkish" data-act="goto-calc" data-ti="' + i + '">cf tableau</span>'
-        : '<input type="number" min="0" step="any" data-f="t.sec" data-ti="' + i + '" data-fk="t.sec.' + i + '" value="' + esc(t.sec) + '">') + "</td>" +
+        ? '<span class="linkish" data-act="goto-calc" data-ti="' + i + '" data-tip-name="cf tableau" data-tip-role="Descend jusqu’au tableau de calcul de cette tâche">cf tableau</span>'
+        : '<input type="number" min="0" step="any" data-f="t.sec" data-ti="' + i + '" data-fk="t.sec.' + i + '" value="' + esc(t.sec) + '" data-tip-name="Tps (sec)" data-tip-role="Temps de la tâche en secondes">') + "</td>" +
       '<td class="act">' +
         '<button class="mini" data-act="t-up" data-ti="' + i + '"' + (i === 0 ? " disabled" : "") + ' data-tip-name="Monter" data-tip-role="Déplace la tâche vers le haut">' + ICON.up + "</button>" +
         '<button class="mini" data-act="t-down" data-ti="' + i + '"' + (i === g.tasks.length - 1 ? " disabled" : "") + ' data-tip-name="Descendre" data-tip-role="Déplace la tâche vers le bas">' + ICON.down + "</button>" +
@@ -1589,7 +1580,7 @@ function renderGammesList() {
   if (free.length) groups.push({ title: "Gammes non associées à une activité", gammes: free, empty: "" });
 
   let h = '<div class="toolbar"><span class="muted">Cliquez sur une gamme pour l\'ouvrir et la modifier.</span><span class="spacer"></span>' +
-    '<button class="btn primary" data-act="g-new" data-tip-name="Nouvelle gamme" data-tip-role="Crée une gamme vide, puis l\'ouvre pour la remplir">+ Nouvelle gamme</button></div>';
+    '<button class="btn primary" data-act="g-new" data-tip-name="Nouvelle gamme" data-tip-role="Crée une gamme vide, puis l’ouvre pour la remplir">+ Nouvelle gamme</button></div>';
   for (const gr of groups) {
     h += '<div class="card"><h2>' + esc(gr.title) + "</h2>";
     if (!gr.gammes.length) { h += '<p class="muted" style="margin:0">' + esc(gr.empty) + "</p></div>"; continue; }
@@ -1637,10 +1628,10 @@ function renderCalcCard(g, t, i, lineSrc) {
     '<p class="muted small" style="margin:-6px 0 14px">Temps de la tâche = Tps (sec) de la valeur trouvée pour la ligne × quantité de la ligne (' +
       esc(g.qtyCol || "colonne quantité") + "). Une ligne sans valeur prend le temps de la ligne « (vide) ».</p>" +
     '<div class="grid2">' +
-      '<label class="field"><span>Libellé de la colonne</span><input type="text"' + attrs({ ...k("c.label"), value: c.label, placeholder: "ex. DN" }) + "></label>" +
-      '<label class="field"><span>Fichier source</span><select' + attrs(k("c.sourceId")) + ">" + srcOpts + "</select></label>" +
-      '<label class="field"><span>Onglet</span>' + pickField(k("c.sheet"), c.sheet, sheets, sheets ? "— choisir —" : "Nom de l'onglet") + "</label>" +
-      '<label class="field"><span>Colonne des valeurs</span>' + pickField(k("c.column"), c.column, cols, cols ? "— choisir —" : "Nom de la colonne") + "</label>" +
+      '<label class="field" data-tip-name="Libellé de la colonne" data-tip-role="Nom affiché en tête du tableau de valeurs (ex. DN)"><span>Libellé de la colonne</span><input type="text"' + attrs({ ...k("c.label"), value: c.label, placeholder: "ex. DN" }) + "></label>" +
+      '<label class="field" data-tip-name="Fichier source" data-tip-role="Fichier où lire la colonne des valeurs"><span>Fichier source</span><select' + attrs(k("c.sourceId")) + ">" + srcOpts + "</select></label>" +
+      '<label class="field" data-tip-name="Onglet" data-tip-role="Onglet du fichier source où se trouve la colonne des valeurs"><span>Onglet</span>' + pickField(k("c.sheet"), c.sheet, sheets, sheets ? "— choisir —" : "Nom de l'onglet") + "</label>" +
+      '<label class="field" data-tip-name="Colonne des valeurs" data-tip-role="Colonne dont les valeurs (ex. DN) déterminent le temps de chaque ligne"><span>Colonne des valeurs</span>' + pickField(k("c.column"), c.column, cols, cols ? "— choisir —" : "Nom de la colonne") + "</label>" +
     "</div>";
   if (external) {
     h += '<div class="grid2">' +
@@ -1659,8 +1650,8 @@ function renderCalcCard(g, t, i, lineSrc) {
     '</th><th class="num">Tps (sec)</th><th class="act"></th></tr></thead><tbody>';
   c.values.forEach((v, j) => {
     h += "<tr>" +
-      '<td><input type="text"' + attrs({ "data-f": "v.v", "data-ti": i, "data-vi": j, "data-fk": "v.v." + i + "." + j, value: v.v, placeholder: "(vide)" }) + "></td>" +
-      '<td class="num"><input type="number" min="0" step="any"' + attrs({ "data-f": "v.sec", "data-ti": i, "data-vi": j, "data-fk": "v.sec." + i + "." + j, value: v.sec }) + "></td>" +
+      '<td><input type="text"' + attrs({ "data-f": "v.v", "data-ti": i, "data-vi": j, "data-fk": "v.v." + i + "." + j, value: v.v, placeholder: "(vide)", "data-tip-name": "Valeur", "data-tip-role": "Valeur de la colonne (vide = lignes sans valeur)" }) + "></td>" +
+      '<td class="num"><input type="number" min="0" step="any"' + attrs({ "data-f": "v.sec", "data-ti": i, "data-vi": j, "data-fk": "v.sec." + i + "." + j, value: v.sec, "data-tip-name": "Tps (sec)", "data-tip-role": "Temps en secondes par pièce pour cette valeur" }) + "></td>" +
       '<td class="act"><button class="mini danger" data-act="v-del" data-ti="' + i + '" data-vi="' + j + '" data-tip-name="Supprimer la valeur" data-tip-role="Retire cette ligne du tableau">' + ICON.trash + "</button></td></tr>";
   });
   if (!c.values.length) h += '<tr><td colspan="3" class="muted">Aucune valeur.</td></tr>';
@@ -2105,7 +2096,8 @@ let prepaRows = []; // lignes affichées (période + filtres), reprises par le g
 function resourceSelect(of, current) {
   const known = state.resources.some(r => r.id === current);
   return '<select class="res-sel" data-of="' + esc(of) + '" data-fk="assign.' + esc(of) + '"' +
-    (state.resources.length ? "" : ' disabled data-tip-name="Aucune ressource" data-tip-role="Créez la liste dans Paramètres › Ressources"') + ">" +
+    (state.resources.length ? ' data-tip-name="Ressource" data-tip-role="Affecte cet OF à une ressource (« — » pour retirer l’affectation)"'
+      : ' disabled data-tip-name="Aucune ressource" data-tip-role="Créez la liste dans Paramètres › Ressources"') + ">" +
     '<option value="">—</option>' +
     state.resources.map(r => '<option value="' + esc(r.id) + '"' + (r.id === current ? " selected" : "") + ">" + esc(r.name) + "</option>").join("") +
     (current && !known ? '<option value="" selected>(supprimée)</option>' : "") +
@@ -2167,13 +2159,13 @@ function openFilter(key, anchor) {
 
   const pop = $("fpop");
   pop.innerHTML =
-    '<button class="fitem" data-fa="asc">Trier ' + (c.num || c.date ? "du plus petit au plus grand" : "de A à Z") + "</button>" +
-    '<button class="fitem" data-fa="desc">Trier ' + (c.num || c.date ? "du plus grand au plus petit" : "de Z à A") + "</button>" +
+    '<button class="fitem" data-fa="asc" data-tip-name="Tri croissant" data-tip-role="Trie le tableau sur cette colonne">Trier ' + (c.num || c.date ? "du plus petit au plus grand" : "de A à Z") + "</button>" +
+    '<button class="fitem" data-fa="desc" data-tip-name="Tri décroissant" data-tip-role="Trie le tableau sur cette colonne, dans l’autre sens">Trier ' + (c.num || c.date ? "du plus grand au plus petit" : "de Z à A") + "</button>" +
     "<hr>" +
-    '<button class="fitem" data-fa="clear"' + (current ? "" : " disabled") + ">Effacer le filtre de « " + esc(c.t) + " »</button>" +
-    '<input type="text" id="fsearch" placeholder="Rechercher">' +
-    '<div class="flist" id="flist"></div>' +
-    '<div class="fbtns"><button class="btn" data-fa="cancel">Annuler</button><button class="btn primary" data-fa="ok">OK</button></div>';
+    '<button class="fitem" data-fa="clear" data-tip-name="Effacer le filtre" data-tip-role="Affiche à nouveau toutes les valeurs de cette colonne"' + (current ? "" : " disabled") + ">Effacer le filtre de « " + esc(c.t) + " »</button>" +
+    '<input type="text" id="fsearch" placeholder="Rechercher" data-tip-name="Rechercher" data-tip-role="Tapez une partie du texte pour réduire la liste des valeurs">' +
+    '<div class="flist" id="flist" data-tip-name="Valeurs" data-tip-role="Cochez les valeurs à afficher dans le tableau"></div>' +
+    '<div class="fbtns"><button class="btn" data-fa="cancel" data-tip-name="Annuler" data-tip-role="Ferme le menu sans changer le filtre">Annuler</button><button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-role="Applique le filtre avec les valeurs cochées">OK</button></div>';
 
   const list = $("flist");
   function drawList() {
