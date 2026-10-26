@@ -70,11 +70,18 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 | Dernier chargement | Date à laquelle l'application a lu le fichier |
 | État | *Chargé* (nombre de lignes lues, détail par onglet dans la bulle), *Modifié* (le fichier a changé : cliquez sur Recharger), *Autoriser la lecture*, *Erreur* |
 | Gamme | Gamme de temps (Paramètres › Temps gammes) appliquée à l'activité |
+| Capacité | Groupes et niveaux du fichier de capacité pris en compte pour l'activité (bouton → cases à cocher par groupe, « OK ») |
 
 - Le bouton **⟳** relit un fichier ; **Tout recharger** relit tous les fichiers.
 - Au lancement, les fichiers sont relus automatiquement si le navigateur l'autorise ; sinon cliquez sur **Autoriser la lecture**.
 - Les données lues restent dans le navigateur : elles **ne sont pas copiées** dans le classeur projet (seuls le nom du fichier et les dates le sont).
 - Pour les CSV, le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou ANSI) sont détectés automatiquement.
+
+**Capacité de travail** (encadré sous les sources d'activités) : une **source unique** pour toutes les activités.
+- Fichier Excel ou CSV contenant au moins les colonnes **date**, **groupe**, **Niveau** et **Heure productivité** (une ligne par personne et par jour).
+- Mêmes boutons que les autres sources (choisir, recharger, retirer) ; l'état indique le nombre de lignes, de groupes/niveaux et la période couverte.
+- Les noms mal encodés de l'export (ex. « Pr\u00e9parations ») sont corrigés automatiquement et regroupés avec « Préparations ».
+- Dans chaque source d'activité, la colonne **Capacité** permet de cocher un ou plusieurs couples *Groupe › Niveau* (cocher un groupe coche tous ses niveaux).
 
 ### 4.3 Temps gammes
 
@@ -113,6 +120,12 @@ Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence.
 
 ## 5. Prépa OF
+
+**Graphique charge / capacité** : la petite icône de graphique à gauche du nom de l'onglet *Prépa OF* ouvre un panneau (Échap ou ✕ pour le fermer) :
+- **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là ;
+- **Courbe** : capacité du jour = somme des *Heure productivité* des groupes/niveaux choisis pour l'activité ;
+- tous les jours de la période du ruban (week-ends grisés) ; le graphique suit aussi les **filtres de colonnes** du tableau ;
+- en haut : charge totale, capacité totale, taux de charge ; laissez la souris 2 s sur un jour pour le détail ; « Valeurs par jour » affiche le tableau des chiffres.
 
 Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
 
