@@ -44,7 +44,7 @@ Tout votre paramétrage est enregistré dans un **classeur Excel** dont vous cho
 
 Au lancement suivant, l'application propose de **reprendre le dernier projet** : cliquez sur **Ouvrir** puis acceptez l'autorisation du navigateur (c'est une sécurité de Chrome/Edge, elle est demandée une fois par session).
 
-⚠ **Fermez le classeur projet dans Excel avant d'enregistrer** : Windows bloque l'écriture d'un fichier ouvert dans Excel. La pastille d'état passe alors en rouge ; fermez Excel et refaites Ctrl + S.
+⚠ **Fermez le classeur projet dans Excel avant d'enregistrer** : Windows bloque l'écriture d'un fichier ouvert dans Excel. La disquette reste alors orange ; fermez Excel et refaites Ctrl + S.
 
 **Rappel d'enregistrement** : si vous quittez l'application (autre onglet, autre fenêtre, navigateur réduit) alors que des modifications ne sont pas enregistrées, une fenêtre **« Modifications non enregistrées »** s'affiche à votre retour :
 - **Enregistrer** enregistre dans le classeur projet (ou demande où le créer s'il n'existe pas encore) ;
