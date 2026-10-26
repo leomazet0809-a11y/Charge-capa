@@ -457,6 +457,10 @@ table.tbl { width: 100%; border-collapse: collapse; }
 #chartSvg { width: 100%; display: block; }
 #chartSvg text { fill: var(--text-2); font-size: 11px; font-family: var(--font); }
 #chartSvg .grid { stroke: var(--border); stroke-width: 1; }
+#chartSvg .sep { stroke: var(--border); stroke-width: 1; }
+#chartSvg .msep { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 2 4; opacity: .5; }
+#chartSvg text.wk { font-weight: 600; }
+#chartSvg text.mo { fill: var(--text); font-weight: 600; font-size: 12px; }
 #chartSvg .wkend { fill: var(--surface-2); }
 #chartSvg .bar { fill: var(--series-1); }
 #chartSvg .cap { fill: none; stroke: var(--series-2); stroke-width: 2; stroke-linejoin: round; }
@@ -482,7 +486,7 @@ table.tbl { width: 100%; border-collapse: collapse; }
   transition: opacity .08s;
 }
 .chart-tip.show { opacity: 1; }
-.chart-tip .tip-day { color: var(--text-2); margin-bottom: 4px; text-transform: capitalize; }
+.chart-tip .tip-day { color: var(--text-2); margin-bottom: 4px; }
 .chart-tip .tip-row { display: flex; align-items: center; gap: 8px; line-height: 1.6; }
 .chart-tip .tip-row b { font-variant-numeric: tabular-nums; min-width: 70px; text-align: right; }
 .chart-tip .tip-row > span:last-child { color: var(--text-2); }
@@ -777,6 +781,12 @@ table.tbl { width: 100%; border-collapse: collapse; }
       <h2 id="chartTitle" style="margin:0"></h2>
       <span class="muted small" id="chartSub"></span>
       <span class="spacer" style="flex:1"></span>
+      <div class="segmented" id="chartGran" data-tip-name="Affichage" data-tip-role="Regroupe la charge et la capacité par jour, semaine, mois ou année">
+        <button data-v="day">Jour</button>
+        <button data-v="week">Semaine</button>
+        <button data-v="month">Mois</button>
+        <button data-v="year">Année</button>
+      </div>
       <button class="icon-btn" id="chartClose" data-tip-name="Fermer" data-tip-role="Ferme le graphique" data-tip-key="Échap">
         <svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -2045,6 +2055,7 @@ function openChart(activity) {
 }
 function closeChart() { chartOpen = null; $("chartModal").classList.remove("show"); hideTip(); }
 $("chartClose").onclick = closeChart;
+for (const btn of $("chartGran").children) btn.onclick = () => { chartUI.gran = btn.dataset.v; renderChart(); };
 $("chartModal").addEventListener("mousedown", e => { if (e.target.id === "chartModal") closeChart(); });
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape" || fpopKey) return;
@@ -2052,6 +2063,16 @@ document.addEventListener("keydown", e => {
   else if (settingsOpen()) closeSettings();
 });
 window.addEventListener("resize", () => { if (chartOpen) renderChart(); });
+
+// Numéro de semaine ISO 8601 (lundi = premier jour, semaine 1 = celle du premier jeudi).
+function isoWeek(d) {
+  const t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  t.setDate(t.getDate() + 3 - (t.getDay() + 6) % 7);
+  const year = t.getFullYear();
+  const jan4 = new Date(year, 0, 4);
+  const week = 1 + Math.round(((t - jan4) / 864e5 - 3 + (jan4.getDay() + 6) % 7) / 7);
+  return { year, week, key: year * 100 + week };
+}
 
 function niceStep(max, n) {
   const raw = max / n, p = Math.pow(10, Math.floor(Math.log10(raw)));
@@ -2062,7 +2083,8 @@ const fmtH = h => h.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumF
 
 function renderChart() {
   const actName = (ACTIVITIES.find(a => a.id === chartOpen) || {}).name || "";
-  $("chartTitle").textContent = actName + " — charge et capacité par jour";
+  $("chartTitle").textContent = actName + " — charge et capacité " + GRANS[chartUI.gran].title;
+  for (const btn of $("chartGran").children) btn.classList.toggle("on", btn.dataset.v === chartUI.gran);
   const body = $("chartBody");
   const res = prepaList();
   if (res.error) { $("chartSub").textContent = ""; body.innerHTML = '<p class="muted">' + esc(res.error) + "</p>"; return; }
@@ -2080,7 +2102,8 @@ function renderChart() {
   // Tous les jours de la période.
   const days = [];
   for (let d = new Date(from); d <= to; d = addDays(d, 1)) days.push(new Date(d));
-  if (days.length > 400) { body.innerHTML = '<p class="muted">Période trop longue pour le graphique (400 jours maximum).</p>'; return; }
+  if (days.length > 3700) { body.innerHTML = '<p class="muted">Période trop longue pour le graphique (10 ans maximum).</p>'; return; }
+  if (days.length > 400 && chartUI.gran === "day") { body.innerHTML = '<p class="muted">Période trop longue pour l\'affichage par jour : choisissez Semaine, Mois ou Année.</p>'; return; }
   const load = new Map();
   for (const x of prepaRows) if (x.debut && x.heures != null) {
     const k = localISO(x.debut);
@@ -2107,24 +2130,86 @@ function renderChart() {
   if (hasCap) h += '<div class="small muted" style="margin:0 0 4px">Capacité : ' + esc(sel.join(" ; ")) + "</div>";
   h += '<div class="chart-legend"><span><span class="k-bar"></span>Charge (Temps h)</span>' +
     (hasCap ? '<span><span class="k-line"></span>Capacité (Heure productivité)</span>' : "") + "</div>";
-  h += '<div class="chart-wrap"><svg id="chartSvg" role="img" aria-label="Charge et capacité par jour"></svg><div class="chart-tip" id="chartTip"></div></div>';
+  h += '<div class="chart-wrap"><svg id="chartSvg" role="img" aria-label="Charge et capacité"></svg><div class="chart-tip" id="chartTip"></div></div>';
   body.innerHTML = h;
 
-  // ----- dessin SVG
-  const svg = $("chartSvg");
+  // ----- regroupement selon l'affichage choisi (jour, semaine, mois, année)
+  const buckets = groupChartData(data, chartUI.gran);
+  drawChart($("chartSvg"), buckets, hasCap, chartUI.gran);
+}
+
+const GRANS = {
+  day: { label: "Jour", title: "par jour", key: d => localISO(d) },
+  week: { label: "Semaine", title: "par semaine", key: d => isoWeek(d).key },
+  month: { label: "Mois", title: "par mois", key: d => d.getFullYear() * 12 + d.getMonth() },
+  year: { label: "Année", title: "par année", key: d => d.getFullYear() }
+};
+const chartUI = { gran: "day" };
+const fmtDM = d => String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
+const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
+
+// Additionne charge et capacité des jours de la période par semaine, mois ou année.
+function groupChartData(days, gran) {
+  const out = [];
+  for (const x of days) {
+    const k = GRANS[gran].key(x.d);
+    let b = out.length && out[out.length - 1].k === k ? out[out.length - 1] : null;
+    if (!b) out.push(b = { k, d: x.d, last: x.d, load: 0, cap: x.cap == null ? null : 0, n: 0 });
+    b.last = x.d;
+    b.load += x.load;
+    if (x.cap != null) b.cap = (b.cap || 0) + x.cap;
+    b.n++;
+  }
+  for (const b of out) {
+    const range = " (" + fmtDM(b.d) + " → " + fmtDate(b.last) + ")";
+    if (gran === "day") b.title = cap1(b.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" })) + " · semaine " + isoWeek(b.d).week;
+    if (gran === "week") b.title = "Semaine " + isoWeek(b.d).week + " – " + isoWeek(b.d).year + range;
+    if (gran === "month") b.title = cap1(b.d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })) + range;
+    if (gran === "year") b.title = "Année " + b.d.getFullYear() + range;
+  }
+  return out;
+}
+
+function drawChart(svg, data, hasCap, gran) {
   const W = Math.max(480, svg.clientWidth || 900), H = Math.max(260, Math.min(420, innerHeight * 0.45));
-  const M = { l: 48, r: 12, t: 12, b: 34 };
+  // Lignes de l'axe des dates : la première nomme chaque barre, les suivantes regroupent.
+  const monthLabel = (d, w) => {
+    const long = d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    const short = d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
+    return w >= long.length * 7 ? long : w >= short.length * 6.5 ? short : "";
+  };
+  const ROWS = {
+    day: [
+      { each: b => String(b.d.getDate()), min: 22 },
+      { seg: b => isoWeek(b.d).key, label: (b, w) => w >= 26 ? "S" + isoWeek(b.d).week : w >= 14 ? String(isoWeek(b.d).week) : "", cls: "wk" },
+      { seg: b => b.d.getFullYear() * 12 + b.d.getMonth(), label: (b, w) => monthLabel(b.d, w), cls: "mo", plotSep: true }
+    ],
+    week: [
+      { each: b => "S" + isoWeek(b.d).week, min: 30, cls: "wk" },
+      { seg: b => b.d.getFullYear() * 12 + b.d.getMonth(), label: (b, w) => monthLabel(b.d, w), cls: "mo", plotSep: true }
+    ],
+    month: [
+      { each: b => b.d.toLocaleDateString("fr-FR", { month: "short" }), min: 34 },
+      { seg: b => b.d.getFullYear(), label: (b, w) => w >= 34 ? String(b.d.getFullYear()) : "", cls: "mo", plotSep: true }
+    ],
+    year: [
+      { each: b => String(b.d.getFullYear()), min: 34, cls: "mo" }
+    ]
+  }[gran];
+  const M = { l: 48, r: 12, t: 12, b: 16 + ROWS.length * 22 };
   const iw = W - M.l - M.r, ih = H - M.t - M.b;
   const maxV = Math.max(1, ...data.map(x => Math.max(x.load, x.cap || 0)));
   const step = niceStep(maxV, 5), top = Math.ceil(maxV / step) * step;
   const y = v => M.t + ih - v / top * ih;
   const band = iw / data.length;
-  const bw = Math.max(2, Math.min(36, band - 2));
-  const xc = i => M.l + band * i + band / 2;
+  const bw = Math.max(2, Math.min(gran === "day" ? 36 : 64, band * (gran === "day" ? 1 : 0.7) - 2));
+  const xs = i => M.l + band * i;
+  const xc = i => xs(i) + band / 2;
+  const yBase = M.t + ih;
   let g = "";
-  data.forEach((x, i) => {
+  if (gran === "day") data.forEach((x, i) => {
     const wd = x.d.getDay();
-    if (wd === 0 || wd === 6) g += '<rect class="wkend" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + ih + '"/>';
+    if (wd === 0 || wd === 6) g += '<rect class="wkend" x="' + xs(i) + '" y="' + M.t + '" width="' + band + '" height="' + ih + '"/>';
   });
   for (let v = 0; v <= top + 1e-9; v += step) {
     g += '<line class="grid" x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>' +
@@ -2139,21 +2224,40 @@ function renderChart() {
       "H" + (x0 + bw - r) + "Q" + (x0 + bw) + "," + y0 + " " + (x0 + bw) + "," + (y0 + r) + "V" + y(0) + 'Z"/>';
   });
   if (hasCap) {
-    g += '<polyline class="cap" points="' + data.map((x, i) => xc(i) + "," + y(x.cap)).join(" ") + '"/>';
-    if (band >= 10) data.forEach((x, i) => { g += '<circle class="dot" data-i="' + i + '" cx="' + xc(i) + '" cy="' + y(x.cap) + '" r="4"/>'; });
+    g += '<polyline class="cap" points="' + data.map((x, i) => xc(i) + "," + y(x.cap || 0)).join(" ") + '"/>';
+    if (band >= 10) data.forEach((x, i) => { g += '<circle class="dot" data-i="' + i + '" cx="' + xc(i) + '" cy="' + y(x.cap || 0) + '" r="4"/>'; });
   }
-  // Étiquettes de jours, espacées pour ne pas se chevaucher.
-  const every = Math.max(1, Math.ceil(44 / band));
-  data.forEach((x, i) => {
-    if (i % every) return;
-    g += '<text x="' + xc(i) + '" y="' + (H - M.b + 16) + '" text-anchor="middle">' +
-      String(x.d.getDate()).padStart(2, "0") + "/" + String(x.d.getMonth() + 1).padStart(2, "0") + "</text>";
+  // Axe des dates.
+  ROWS.forEach((row, r) => {
+    const yy = yBase + 15 + r * 22;
+    if (row.each) {
+      const every = Math.max(1, Math.ceil(row.min / band));
+      data.forEach((x, i) => {
+        if (i % every) return;
+        g += '<text' + (row.cls ? ' class="' + row.cls + '"' : "") + ' x="' + xc(i) + '" y="' + yy + '" text-anchor="middle">' + esc(row.each(x)) + "</text>";
+      });
+      return;
+    }
+    const segs = [];
+    data.forEach((x, i) => {
+      const k = row.seg(x);
+      if (!segs.length || segs[segs.length - 1].k !== k) segs.push({ k, a: i, b: i, x });
+      else segs[segs.length - 1].b = i;
+    });
+    segs.forEach((sg, n) => {
+      const x0 = xs(sg.a), w = xs(sg.b + 1) - x0;
+      if (row.plotSep && n > 0) g += '<line class="msep" x1="' + x0 + '" x2="' + x0 + '" y1="' + M.t + '" y2="' + yBase + '"/>';
+      g += '<line class="sep" x1="' + x0 + '" x2="' + x0 + '" y1="' + (yy - 16) + '" y2="' + (yy + 6) + '"/>';
+      const label = row.label(sg.x, w);
+      if (label) g += '<text class="' + row.cls + '" x="' + (x0 + w / 2) + '" y="' + yy + '" text-anchor="middle">' + esc(label) + "</text>";
+    });
+    g += '<line class="sep" x1="' + xs(data.length) + '" x2="' + xs(data.length) + '" y1="' + (yy - 16) + '" y2="' + (yy + 6) + '"/>';
   });
-  // Zones de survol : une par jour, sur toute la hauteur (plus larges que la barre et le point).
+  // Zones de survol : une par barre, sur toute la hauteur (plus larges que la barre et le point).
   data.forEach((x, i) => {
-    g += '<rect class="hit" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + ih + '"/>';
+    g += '<rect class="hit" data-i="' + i + '" x="' + xs(i) + '" y="' + M.t + '" width="' + band + '" height="' + ih + '"/>';
   });
-  g += '<line class="xhair" id="chartXhair" y1="' + M.t + '" y2="' + (M.t + ih) + '" x1="0" x2="0"/>';
+  g += '<line class="xhair" id="chartXhair" y1="' + M.t + '" y2="' + yBase + '" x1="0" x2="0"/>';
   svg.setAttribute("viewBox", "0 0 " + W + " " + H);
   svg.setAttribute("height", H);
   svg.innerHTML = g;
@@ -2190,7 +2294,7 @@ function bindChartHover(svg, data, hasCap, xc, W) {
       tip.replaceChildren();
       const head = document.createElement("div");
       head.className = "tip-day";
-      head.textContent = x.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" });
+      head.textContent = x.title;
       tip.append(head, row("k-bar", fmtH(x.load) + " h", "Charge"));
       if (hasCap) {
         tip.append(row("k-line", fmtH(x.cap) + " h", "Capacité"));
