@@ -27,11 +27,11 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
-Sous le ruban, les onglets d'activité : **Prépa OF** (onglet affiché à l'ouverture). Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
+Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*, *Ressources*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
 Laissez la souris **2 secondes** sur n'importe quel élément cliquable (bouton, liste, case, champ, onglet…) pour voir une bulle d'aide indiquant sa fonction (et son raccourci s'il en a un).
 
-**Adaptation à l'écran** : l'application s'ajuste à la taille de la fenêtre (grand écran, portable, tablette). Le tableau Prépa OF occupe toute la hauteur disponible et défile seul ; sur petit écran, le libellé « Période » est masqué, le menu des Paramètres passe au-dessus du contenu, et sur téléphone le logo et le bouton plein écran sont masqués.
+**Adaptation à l'écran** : l'application s'ajuste à la taille de la fenêtre (grand écran, portable, tablette). Le tableau de chaque activité occupe toute la hauteur disponible et défile seul ; sur petit écran, le libellé « Période » est masqué, le menu des Paramètres passe au-dessus du contenu, et sur téléphone le logo et le bouton plein écran sont masqués.
 
 ## 3. Le classeur projet (.xlsx)
 
@@ -71,14 +71,15 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 | Libellé | Nom libre de la source |
 | Activité | Activité alimentée par ce fichier, ou « — Base de données » pour un fichier complémentaire (ex. future base des DN) |
 | Fichier source | Cliquez pour choisir le fichier dans un dossier Windows |
-| Date du fichier | Date de dernière modification du fichier |
+| Date du fichier | Date de **dernière modification du fichier** sur le disque : elle indique de quand datent les données sources. En orange si le fichier est plus récent que les données chargées |
 | Dernier chargement | Date à laquelle l'application a lu le fichier |
-| État | *Chargé* (nombre de lignes lues, détail par onglet dans la bulle), *Modifié* (le fichier a changé : cliquez sur Recharger), *Autoriser la lecture*, *Erreur* |
+| État | *Chargé* (nombre de lignes lues, détail par onglet dans la bulle), **À actualiser** (le fichier a été modifié depuis le chargement : l'application n'affiche pas les dernières données ; cliquez sur le bouton pour recharger), *Autoriser la lecture*, *Erreur* |
 | Gamme | Gamme de temps (Paramètres › Temps gammes) appliquée à l'activité |
 | Capacité | Groupes et niveaux du fichier de capacité pris en compte pour l'activité (bouton → cases à cocher par groupe, « OK ») |
 
 - Le bouton **⟳** relit un fichier ; **Tout recharger** relit tous les fichiers.
 - Au lancement, les fichiers sont relus automatiquement si le navigateur l'autorise ; sinon cliquez sur **Autoriser la lecture**.
+- La date des fichiers est revérifiée **chaque minute** et à chaque retour sur l'application : un fichier enregistré entre-temps passe **À actualiser**.
 - Les données lues restent dans le navigateur : elles **ne sont pas copiées** dans le classeur projet (seuls le nom du fichier et les dates le sont).
 - Pour les CSV, le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou ANSI) sont détectés automatiquement.
 
@@ -100,6 +101,8 @@ Cette page s'ouvre sur un **récapitulatif des gammes par activité** : pour cha
 - *Onglet des lignes* : onglet du fichier source qui contient une ligne par composant (pour Prépa OF : `OF`).
 - *Colonne dossier* : colonne qui identifie un dossier (pour Prépa OF : `OF`).
 - *Colonne quantité* : quantité de pièces de chaque ligne (pour Prépa OF : `Qté besoin`).
+- *Découper par date* (facultatif) : un dossier est découpé en autant de dossiers que de dates différentes dans cette colonne (pour Prépa Expéd : `Date expédition`, un dossier = une commande pour une date).
+- *Exclure les lignes dont la colonne… commence par…* (facultatif) : ces lignes ne comptent pas dans le temps (pour Prépa Expéd : colonne `Article`, préfixe `9`). Un dossier sans aucune ligne comptée a un temps de 0.
 
 **Tableau des tâches** : pour chaque tâche, l'affectation, la description et le temps en secondes. Les flèches changent l'ordre.
 
@@ -122,16 +125,33 @@ Les totaux Forfait / Ligne / Quantité s'affichent sous le tableau.
 Temps de la tâche pour une ligne = Tps (sec) de sa valeur × quantité de la ligne.
 Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
-La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence.
+La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée).
 
 ### 4.4 Ressources
 
 Liste des ressources (préparateurs, postes…) auxquelles l'ordonnanceur affecte les dossiers, librement paramétrable :
 - **+ Ajouter une ressource**, puis saisissez son nom ; les flèches changent l'ordre de la liste ;
+- les mêmes ressources servent à toutes les activités (Prépa OF, Prépa Expéd) ;
 - la colonne **OF affectés** indique combien de dossiers sont affectés à chaque ressource ;
 - renommer une ressource met à jour toutes ses affectations ; la supprimer remet ses OF « non affectés » (après confirmation).
 
-## 5. Prépa OF
+## 5. Charge globale
+
+Premier onglet, à gauche des activités : **un seul graphique** qui additionne la charge et la capacité de toutes les activités sur la période du ruban.
+- **Barres empilées** : une couleur par activité (Prépa OF, Prépa Expéd) ; la hauteur totale est la charge totale du jour ;
+- **Courbe** : capacité des groupes / niveaux choisis pour les activités (un groupe choisi pour deux activités n'est compté qu'une fois) ;
+- en haut : charge totale, charge de chaque activité, capacité totale et taux de charge ;
+- boutons **Jour / Semaine / Mois / Année**, axe des dates et survol comme le graphique d'une activité ; le survol détaille la charge de chaque activité ;
+- chaque activité y compte les lignes affichées dans son tableau : ses **filtres** (En cours, filtres de colonnes) s'appliquent aussi ici (rappelé à côté du titre).
+
+## 6. Taille des tableaux
+
+À droite des boutons rapides de chaque activité :
+- **A−** / **A+** réduisent ou agrandissent le texte du tableau (de 50 % à 160 %) ; le bouton du milieu affiche la taille et revient à **100 %** ;
+- **Ajuster** choisit la plus grande taille qui fait tenir toutes les colonnes dans la largeur de l'écran.
+La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce poste** (pas dans le classeur projet).
+
+## 7. Prépa OF
 
 **Graphique charge / capacité** : le bouton de graphique placé à gauche du grand titre *Prépa OF* (dans la page) ouvre un panneau (Échap ou ✕ pour le fermer) :
 - **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là ;
@@ -167,6 +187,27 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes dont la valeur n'est pas dans le tableau de calcul (comptées 0 s).
 
 > En attendant la base des DN, toutes les lignes prennent le temps « (vide) » du tableau DN (1 s par pièce).
+
+## 8. Prépa Expéd
+
+Liste des commandes à préparer pour l'expédition : **une ligne par commande et par date d'expédition** (une commande livrée à deux dates donne deux lignes). Source : onglet `Commandes ventes` du fichier de l'activité *Prépa Expéd* (Paramètres › Fichiers sources).
+
+Période, tri, filtres Excel, boutons rapides, total, affectation des ressources, graphique et taille du tableau fonctionnent comme pour Prépa OF :
+- la période porte sur la **Date expédition** ;
+- **En cours** masque les commandes-dates entièrement soldées (Soldée = Oui) ; **Tout** retire tous les filtres.
+
+| Colonne | Origine |
+|---|---|
+| Commande, Client, Gestionnaire, Mode livraison, Type, Référence commande | Colonnes du même nom ; si les lignes d'une commande-date ont des valeurs différentes, toutes sont affichées, séparées par « / » |
+| RFF | En **pastille rouge** si une valeur est « Oui » |
+| Validée | En **pastille rouge** si une valeur est « Non » |
+| Manquants | **Oui** en rouge si au moins une ligne a des manquants, sinon Non |
+| Date expédition | En **pastille rouge** si elle est antérieure à aujourd'hui |
+| Adresse livraison | Nom client livraison, Adresse livraison 1, puis Adresse livraison 2, 3, Code postal, Ville et Pays, sur plusieurs lignes en petit |
+| Instruction livraison | En petit, sur plusieurs lignes |
+| Soldée | **Oui** si tous les articles de la commande-date sont « Soldé », sinon **Non** |
+| Temps (h) | Temps de préparation calculé avec la gamme *Prépa Expéd* sur toutes les lignes (soldées comprises), **sauf les articles commençant par 9** ; quantité = *Qté commandée US* |
+| Ressource | Affectation à une ressource, enregistrée dans le classeur projet |
 
 ---
 

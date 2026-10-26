@@ -252,17 +252,21 @@ table.tbl { width: 100%; border-collapse: collapse; }
 .tbl th.sort:hover { color: var(--text); }
 .tbl th.sort.on { color: var(--accent); }
 /* Prépa OF occupe toute la hauteur disponible ; seul le tableau défile. */
-main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: column; }
-#page-prepa.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; width: 100%; }
+main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: column; }
+.act-page.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; width: 100%; }
 .prepa-head { margin-bottom: 10px; }
 .prepa-head h1 { margin: 0; }
 .quick-filters button { font-weight: 500; }
-#prepaBody { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-#prepaBody > .card.muted { flex: 0 0 auto; }
+.act-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.act-body > .card.muted { flex: 0 0 auto; }
 .prepa-card { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0; margin-bottom: 0; overflow: hidden; }
 .tbl-wrap.tall { flex: 1 1 auto; min-height: 0; border: 0; border-radius: 12px; }
-#page-prepa { max-width: none; }
-#page-prepa .tbl { font-size: .92em; }
+.act-page { max-width: none; }
+.act-page .tbl { font-size: calc(.92em * var(--tbl-zoom, 1)); }
+.zoom-ctl .zoom-val { min-width: 4.2em; font-variant-numeric: tabular-nums; }
+.badge-btn { border: 0; cursor: pointer; font-family: inherit; }
+.badge-btn:hover { filter: brightness(.95); }
+td.stale { color: var(--warn); font-weight: 600; }
 .th-in { display: inline-flex; align-items: center; gap: 4px; }
 .fbtn {
   width: 20px;
@@ -323,22 +327,26 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 .fpop .flist label:hover { background: var(--surface-2); }
 .fpop .flist label.all { font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 2px; padding-bottom: 5px; }
 .fpop .fbtns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-#page-prepa .tbl td, #page-prepa .tbl th { white-space: nowrap; padding: 5px 8px; }
+.act-page .tbl td, .act-page .tbl th { white-space: nowrap; padding: .4em .6em; }
+/* Cellules multi-lignes en petit (adresse, instructions). */
+.act-page .tbl td.wrap { white-space: normal; font-size: .82em; line-height: 1.3; min-width: 14em; max-width: 22em; vertical-align: top; }
 /* Colonne Ressource toujours visible à droite (Temps (h) défile avec les autres). */
-#page-prepa .tbl tr > :last-child {
+.act-page .tbl tr > :last-child {
   position: sticky;
   right: 0;
-  width: 180px;
-  min-width: 180px;
-  max-width: 180px;
+  width: 13em;
+  min-width: 13em;
+  max-width: 13em;
   background: var(--surface);
   box-shadow: -1px 0 0 var(--border);
 }
-#page-prepa .tbl tbody tr > td:only-child { position: static; width: auto; max-width: none; box-shadow: none; }
-#page-prepa .tbl thead tr > :last-child { background: var(--surface-2); z-index: 2; }
-#page-prepa .tbl tfoot tr > :last-child { background: var(--surface-2); }
+.act-page .tbl tbody tr > td:only-child { position: static; width: auto; max-width: none; box-shadow: none; }
+.act-page .tbl thead tr > :last-child { background: var(--surface-2); z-index: 2; }
+.act-page .tbl tfoot tr > :last-child { background: var(--surface-2); }
 .res-cell { padding-top: 2px !important; padding-bottom: 2px !important; }
-.res-sel { width: 100%; padding: 3px 6px; border-radius: 6px; }
+.res-sel { width: 100%; padding: .2em .45em; border-radius: 6px; font-size: 1em; }
+.act-page .fbtn { width: 1.45em; height: 1.45em; flex-basis: 1.45em; }
+.act-page .fbtn svg.i { width: .95em; height: .95em; }
 .res-sel:not(:disabled) { cursor: pointer; }
 .tbl tbody tr:hover td { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
 .tbl td.num, .tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -420,8 +428,8 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 .overlay svg { animation: spin 1s linear infinite; color: var(--accent); }
 
 /* ---------- Graphique charge / capacité ---------- */
-:root { --series-1: #2a78d6; --series-2: #eb6834; }
-:root[data-theme="dark"] { --series-1: #3987e5; --series-2: #d95926; }
+:root { --series-1: #2a78d6; --series-2: #eb6834; --series-3: #14a38b; }
+:root[data-theme="dark"] { --series-1: #3987e5; --series-2: #d95926; --series-3: #2bb59b; }
 /* Bouton graphique à gauche du titre de l'activité. */
 .chart-btn { color: var(--accent); background: var(--accent-soft); margin-right: -4px; }
 .chart-btn:hover { background: var(--accent); color: #fff; }
@@ -472,22 +480,25 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 .chart-stat { background: var(--surface-2); border-radius: 10px; padding: 8px 14px; }
 .chart-stat .v { font-size: 1.3em; font-weight: 700; font-variant-numeric: tabular-nums; }
 .chart-stat .l { color: var(--text-2); font-size: .85em; }
-#chartSvg { width: 100%; display: block; }
-#chartSvg text { fill: var(--text-2); font-size: 11px; font-family: var(--font); }
-#chartSvg .grid { stroke: var(--border); stroke-width: 1; }
-#chartSvg .sep { stroke: var(--border); stroke-width: 1; }
-#chartSvg .msep { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 2 4; opacity: .5; }
-#chartSvg text.wk { font-weight: 600; }
-#chartSvg text.mo { fill: var(--text); font-weight: 600; font-size: 12px; }
-#chartSvg .wkend { fill: var(--surface-2); }
-#chartSvg .bar { fill: var(--series-1); }
-#chartSvg .cap { fill: none; stroke: var(--series-2); stroke-width: 2; stroke-linejoin: round; }
-#chartSvg .dot { fill: var(--series-2); stroke: var(--surface); stroke-width: 2; }
-#chartSvg .hit { fill: transparent; }
-#chartSvg .hit:hover { fill: color-mix(in srgb, var(--text) 5%, transparent); }
-#chartSvg .bar.on { fill: color-mix(in srgb, var(--series-1) 78%, var(--surface)); }
-#chartSvg .xhair { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; display: none; pointer-events: none; }
-#chartSvg .bar, #chartSvg .dot, #chartSvg .cap { pointer-events: none; }
+.chart-svg { width: 100%; display: block; }
+.chart-svg text { fill: var(--text-2); font-size: 11px; font-family: var(--font); }
+.chart-svg .grid { stroke: var(--border); stroke-width: 1; }
+.chart-svg .sep { stroke: var(--border); stroke-width: 1; }
+.chart-svg .msep { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 2 4; opacity: .5; }
+.chart-svg text.wk { font-weight: 600; }
+.chart-svg text.mo { fill: var(--text); font-weight: 600; font-size: 12px; }
+.chart-svg .wkend { fill: var(--surface-2); }
+.chart-svg .bar { fill: var(--series-1); }
+.chart-svg .cap { fill: none; stroke: var(--series-2); stroke-width: 2; stroke-linejoin: round; }
+.chart-svg .dot { fill: var(--series-2); stroke: var(--surface); stroke-width: 2; }
+.chart-svg .hit { fill: transparent; }
+.chart-svg .hit:hover { fill: color-mix(in srgb, var(--text) 5%, transparent); }
+.chart-svg .bar.on { fill: color-mix(in srgb, var(--series-1) 78%, var(--surface)); }
+.chart-svg .bar.s1 { fill: var(--series-3); }
+.chart-svg .bar.s1.on { fill: color-mix(in srgb, var(--series-3) 78%, var(--surface)); }
+.chart-legend .k-bar.s1, .chart-tip .k-bar.s1 { background: var(--series-3); }
+.chart-svg .xhair { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; display: none; pointer-events: none; }
+.chart-svg .bar, .chart-svg .dot, .chart-svg .cap { pointer-events: none; }
 .chart-wrap { position: relative; }
 .chart-tip {
   position: absolute;
@@ -645,12 +656,29 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 </div>
 
 <nav class="tabs" id="tabs">
+  <button class="tab" data-page="global" data-tip-name="Charge globale" data-tip-role="Graphique de la charge (Temps h) et de la capacité cumulées de toutes les activités">Charge globale</button>
   <button class="tab active" data-page="prepa" data-tip-name="Prépa OF" data-tip-role="Affiche la liste des OF à préparer et leur temps de préparation">Prépa OF</button>
+  <button class="tab" data-page="exped" data-tip-name="Prépa Expéd" data-tip-role="Affiche les commandes à préparer pour l’expédition (une ligne par commande et date d’expédition)">Prépa Expéd</button>
 </nav>
 
 <main>
 
-  <section class="page active" id="page-prepa">
+  <section class="page" id="page-global">
+    <div class="toolbar prepa-head">
+      <h1>Charge globale</h1>
+      <span class="muted small" id="globalSub"></span>
+      <span class="spacer"></span>
+      <div class="segmented chart-gran" id="globalGran" data-tip-name="Affichage" data-tip-role="Regroupe la charge et la capacité par jour, semaine, mois ou année">
+        <button data-v="day" data-tip-name="Jour" data-tip-role="Une barre par jour">Jour</button>
+        <button data-v="week" data-tip-name="Semaine" data-tip-role="Une barre par semaine">Semaine</button>
+        <button data-v="month" data-tip-name="Mois" data-tip-role="Une barre par mois">Mois</button>
+        <button data-v="year" data-tip-name="Année" data-tip-role="Une barre par année">Année</button>
+      </div>
+    </div>
+    <div class="card" id="globalBody"></div>
+  </section>
+
+  <section class="page act-page active" id="page-prepa">
     <div class="toolbar prepa-head">
       <button class="icon-btn chart-btn" data-chart="prepa-of" data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de Prépa OF"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg></button>
       <h1>Prépa OF</h1>
@@ -660,8 +688,36 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
         <button data-q="tout"
           data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
       </div>
+      <span class="spacer"></span>
+      <div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">
+        <button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>
+        <button data-z="0" class="zoom-val" data-tip-name="Taille normale" data-tip-role="Revient à la taille de texte normale (100 %)">100 %</button>
+        <button data-z="1" data-tip-name="Agrandir" data-tip-role="Augmente la taille du texte du tableau">A+</button>
+        <button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>
+      </div>
     </div>
-    <div id="prepaBody"></div>
+    <div class="act-body" id="prepaBody"></div>
+  </section>
+
+  <section class="page act-page" id="page-exped">
+    <div class="toolbar prepa-head">
+      <button class="icon-btn chart-btn" data-chart="prepa-exped" data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de Prépa Expéd"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg></button>
+      <h1>Prépa Expéd</h1>
+      <div class="segmented quick-filters" id="expedQuick">
+        <button data-q="encours"
+          data-tip-name="En cours" data-tip-role="Affiche seulement les commandes-dates qui ne sont pas entièrement soldées">En cours</button>
+        <button data-q="tout"
+          data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
+      </div>
+      <span class="spacer"></span>
+      <div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">
+        <button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>
+        <button data-z="0" class="zoom-val" data-tip-name="Taille normale" data-tip-role="Revient à la taille de texte normale (100 %)">100 %</button>
+        <button data-z="1" data-tip-name="Agrandir" data-tip-role="Augmente la taille du texte du tableau">A+</button>
+        <button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>
+      </div>
+    </div>
+    <div class="act-body" id="expedBody"></div>
   </section>
 
 </main>
@@ -894,7 +950,7 @@ const FONTS = [
   { name: "Calibri", css: 'Calibri, "Segoe UI", sans-serif' },
   { name: "Arial", css: 'Arial, sans-serif' }
 ];
-const ACTIVITIES = [{ id: "prepa-of", name: "Prépa OF" }];
+const ACTIVITIES = [{ id: "prepa-of", name: "Prépa OF" }, { id: "prepa-exped", name: "Prépa Expéd" }];
 const AFFECTATIONS = ["Forfait", "Ligne", "Quantité", "Calcul"];
 const AFFECT_HELP = {
   Forfait: "Compté 1 seule fois par dossier (OF)",
@@ -934,10 +990,60 @@ function defaultGammePrepa() {
   };
 }
 
+// Gamme « Prépa Expéd » : un dossier = une commande pour une date d'expédition ; articles « 9… » (certificats) hors temps.
+function defaultGammeExped() {
+  const t = (a, name, sec) => ({ a, name, sec });
+  return {
+    id: "g-prepa-exped",
+    name: "Prépa Expéd",
+    sheet: "Commandes ventes",
+    folderCol: "Commande",
+    qtyCol: "Qté commandée US",
+    splitCol: "Date expédition",
+    exclCol: "Article",
+    exclPrefix: "9",
+    tasks: [
+      t("Forfait", "Allocations X3", 90),
+      t("Forfait", "Impression BP", 20),
+      t("Ligne", "Prendre connaissance de la ligne de picking", 10),
+      t("Ligne", "Se rendre devant l'emplacement", 40),
+      t("Ligne", "Sortir le contenant", 60),
+      t("Ligne", "Vérifier le lot", 10),
+      t("Quantité", "Compter et déposer les pièces dans la préparation", 5),
+      t("Ligne", "Ranger le contenant", 60),
+      t("Ligne", "Rechercher les vannes au Montage", 120),
+      t("Forfait", "Changement de lot X3", 90),
+      t("Forfait", "Chercher les cartons", 120),
+      t("Quantité", "Scanner", 1),
+      t("Quantité", "Déposer les vannes dans le carton", 30),
+      t("Forfait", "Fermer / scotcher / cercler le carton", 360),
+      t("Forfait", "Écrire dimensions et poids sur les colis", 180),
+      t("Forfait", "RFF", 60),
+      t("Forfait", "Dépose préparation complète", 120)
+    ]
+  };
+}
+
+const DEFAULT_SOURCES = [
+  { id: "s-prepa-of", label: "Charge de travail", activity: "prepa-of", gamme: "g-prepa-of", fileName: "", fileDate: null, loadedAt: null, cap: [] },
+  { id: "s-prepa-exped", label: "Commandes ventes", activity: "prepa-exped", gamme: "g-prepa-exped", fileName: "", fileDate: null, loadedAt: null, cap: [] }
+];
+
+// Ajoute la gamme et la source d'une activité absente d'un projet plus ancien.
+function ensureActivityDefaults(st) {
+  const gammes = { "g-prepa-of": defaultGammePrepa, "g-prepa-exped": defaultGammeExped };
+  for (const src of DEFAULT_SOURCES) {
+    if (st.sources.some(s => s.activity === src.activity)) continue;
+    if (!st.gammes.some(g => g.id === src.gamme)) st.gammes.push(gammes[src.gamme]());
+    st.sources.push(clone(src));
+  }
+  return st;
+}
+
 const DEFAULT_STATE = {
   settings: { theme: "auto", font: "Inter", fontSize: 14 },
-  sources: [{ id: "s-prepa-of", label: "Charge de travail", activity: "prepa-of", gamme: "g-prepa-of", fileName: "", fileDate: null, loadedAt: null, cap: [] }],
-  gammes: [defaultGammePrepa()],
+  sources: clone(DEFAULT_SOURCES),
+  gammes: [defaultGammePrepa(), defaultGammeExped()],
   // Source unique de capacité de travail (Heure productivité par jour, groupe et niveau).
   capacity: { fileName: "", fileDate: null, loadedAt: null },
   // Ressources (préparateurs, postes…) et affectation des dossiers : assign[activité][dossier] = id ressource.
@@ -968,14 +1074,14 @@ function uid(prefix) { return prefix + "-" + Date.now().toString(36) + Math.rand
 function normalizeState(s) {
   const d = clone(DEFAULT_STATE);
   if (!s || typeof s !== "object") return d;
-  return {
+  return ensureActivityDefaults({
     settings: { ...d.settings, ...(s.settings || {}) },
     sources: Array.isArray(s.sources) ? s.sources : d.sources,
     gammes: Array.isArray(s.gammes) && s.gammes.length ? s.gammes : d.gammes,
     capacity: { ...d.capacity, ...(s.capacity || {}) },
     resources: Array.isArray(s.resources) ? s.resources : [],
     assign: s.assign && typeof s.assign === "object" ? s.assign : {}
-  };
+  });
 }
 
 function loadCachedState() {
@@ -1000,14 +1106,15 @@ function commit(mutator) {
 }
 
 // Les filtres du tableau s'annulent aussi, sans toucher au projet (ils ne sont pas enregistrés).
-function filtersSnapshot() {
-  return { filters: Object.fromEntries(Object.entries(prepaUI.filters).map(([k, v]) => [k, [...v]])), enCours: prepaUI.enCours };
+function filtersSnapshot(act) {
+  const ui = actUI[act];
+  return { act, filters: Object.fromEntries(Object.entries(ui.filters).map(([k, v]) => [k, [...v]])), enCours: ui.enCours };
 }
 function sameFilters(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
-function changeFilters(mutator) {
-  const before = filtersSnapshot();
+function changeFilters(act, mutator) {
+  const before = filtersSnapshot(act);
   mutator();
-  if (sameFilters(before, filtersSnapshot())) return;
+  if (sameFilters(before, filtersSnapshot(act))) return;
   undoStack.push({ filters: before });
   if (undoStack.length > 100) undoStack.shift();
   $("btnUndo").disabled = false;
@@ -1017,8 +1124,9 @@ function undo() {
   if (!undoStack.length) return;
   const last = undoStack.pop();
   if (typeof last === "object") {
-    prepaUI.filters = Object.fromEntries(Object.entries(last.filters.filters).map(([k, v]) => [k, new Set(v)]));
-    prepaUI.enCours = last.filters.enCours;
+    const ui = actUI[last.filters.act];
+    ui.filters = Object.fromEntries(Object.entries(last.filters.filters).map(([k, v]) => [k, new Set(v)]));
+    ui.enCours = last.filters.enCours;
     closeFilter();
     render();
     toast("Filtre annulé");
@@ -1133,6 +1241,14 @@ function sourceOfGamme(gid) {
   return state.sources.find(s => s.gamme === gid && s.activity) || null;
 }
 
+// Date de dernière modification du fichier sur le disque ; signalée si plus récente que les données chargées.
+function fileDateCell(s) {
+  const d = srcData[s.id], disk = d && d.diskDate || s.fileDate;
+  const stale = d && d.status === "changed";
+  return '<td class="small nowrap' + (stale ? " stale" : "") + '" data-tip-name="Date du fichier" data-tip-role="' +
+    esc("Dernière modification du fichier source" + (stale ? " — données chargées du " + fmtDateTime(s.fileDate) : "")) + '">' + fmtDateTime(disk) + "</td>";
+}
+
 function sourceBadge(s) {
   const d = srcData[s.id];
   if (!s.fileName) return '<span class="badge off">Aucun fichier</span>';
@@ -1140,7 +1256,8 @@ function sourceBadge(s) {
   if (d.status === "perm") return '<button class="btn small" data-act="src-allow" data-sid="' + esc(s.id) + '"' +
     ' data-tip-name="Autoriser" data-tip-role="Le navigateur demande votre accord pour relire ce fichier">Autoriser la lecture</button>';
   if (d.status === "error") return '<span class="badge err" data-tip-name="Erreur de lecture" data-tip-role="' + esc(d.error) + '">Erreur</span>';
-  if (d.status === "changed") return '<span class="badge warn" data-tip-name="Fichier modifié" data-tip-role="Le fichier a changé depuis le chargement : cliquez sur Recharger">Modifié</span>';
+  if (d.status === "changed") return '<button class="badge warn badge-btn" data-act="src-reload" data-sid="' + esc(s.id) + '" data-tip-name="À actualiser"' +
+    ' data-tip-role="Le fichier a été modifié depuis le chargement : l’application n’affiche pas les dernières données. Cliquez pour recharger">À actualiser</button>';
   if (d.cap) {
     const c = d.cap;
     return '<span class="badge ok" data-tip-name="Capacité chargée" data-tip-role="' + esc(fmtInt(c.rows) + " lignes · " + c.keys.size +
@@ -1229,7 +1346,7 @@ function renderCapacityRow() {
   $("tblCapacity").tBodies[0].innerHTML = "<tr>" +
     '<td><button class="btn small" data-act="src-pick" data-sid="' + CAP_ID + '" data-tip-name="Choisir le fichier de capacité" data-tip-role="Sélectionne le fichier Excel ou CSV de capacité dans un dossier Windows">' +
       (c.fileName ? "<b>" + esc(c.fileName) + "</b>" : "Choisir un fichier…") + "</button></td>" +
-    '<td class="small nowrap">' + fmtDateTime(c.fileDate) + "</td>" +
+    fileDateCell(rec) +
     '<td class="small nowrap">' + fmtDateTime(c.loadedAt) + "</td>" +
     "<td>" + sourceBadge(rec) + "</td>" +
     '<td class="act"><button class="mini" data-act="src-reload" data-sid="' + CAP_ID + '"' + (c.fileName ? "" : " disabled") +
@@ -1250,7 +1367,7 @@ function renderSourceRows() {
       '<td><select data-f="src.activity" data-sid="' + sid + '" data-fk="src.activity.' + sid + '" data-tip-name="Activité" data-tip-role="Activité alimentée par ce fichier, ou « Base de données » pour un fichier complémentaire">' + actOpts + "</select></td>" +
       '<td><button class="btn small" data-act="src-pick" data-sid="' + sid + '" data-tip-name="Choisir le fichier" data-tip-role="Sélectionne le fichier Excel ou CSV dans un dossier Windows">' +
         (s.fileName ? "<b>" + esc(s.fileName) + "</b>" : "Choisir un fichier…") + "</button></td>" +
-      '<td class="small nowrap">' + fmtDateTime(s.fileDate) + "</td>" +
+      fileDateCell(s) +
       '<td class="small nowrap">' + fmtDateTime(s.loadedAt) + "</td>" +
       "<td>" + sourceBadge(s) + "</td>" +
       '<td><select data-f="src.gamme" data-sid="' + sid + '" data-fk="src.gamme.' + sid + '" data-tip-name="Gamme" data-tip-role="Gamme de temps appliquée à l’activité de cette source"' + (s.activity ? "" : " disabled") + ">" + gamOpts + "</select></td>" +
@@ -1454,18 +1571,29 @@ async function loadAllSources(ask) {
   for (const id of allSourceIds()) if (srcRec(state, id).fileName) await loadSource(id, ask);
 }
 
-// Au retour sur l'application, signale les fichiers modifiés depuis leur chargement.
-window.addEventListener("focus", async () => {
-  for (const id of allSourceIds()) {
-    const s = srcRec(state, id), d = srcData[id];
-    if (!d || d.status !== "loaded") continue;
-    try {
-      const h = await idbGet("src:" + id);
-      const f = await h.getFile();
-      if (f.lastModified !== s.fileDate) { d.status = "changed"; render(); }
-    } catch (e) { /* fichier inaccessible : on le signalera au prochain chargement */ }
-  }
-});
+// Vérifie la date des fichiers sources : au retour sur l'application et chaque minute.
+// Un fichier modifié depuis son chargement passe « À actualiser ».
+let checkingDates = false;
+async function checkSourceDates() {
+  if (checkingDates) return;
+  checkingDates = true;
+  let changed = false;
+  try {
+    for (const id of allSourceIds()) {
+      const s = srcRec(state, id), d = srcData[id];
+      if (!s || !d || d.status !== "loaded" && d.status !== "changed") continue;
+      try {
+        const h = await idbGet("src:" + id);
+        const f = await h.getFile();
+        if (d.diskDate !== f.lastModified) { d.diskDate = f.lastModified; changed = true; }
+        if (d.status === "loaded" && f.lastModified !== s.fileDate) { d.status = "changed"; changed = true; }
+      } catch (e) { /* fichier inaccessible : on le signalera au prochain chargement */ }
+    }
+  } finally { checkingDates = false; }
+  if (changed) render();
+}
+window.addEventListener("focus", checkSourceDates);
+setInterval(() => { if (!document.hidden) checkSourceDates(); }, 60000);
 
 $("tblSources").addEventListener("change", e => {
   const el = e.target, f = el.dataset.f, sid = el.dataset.sid;
@@ -1544,6 +1672,12 @@ function renderGammes() {
       pickField({ "data-f": "g.folderCol", "data-fk": "g.folderCol" }, g.folderCol, lineCols) + "</label>" +
     '<label class="field" data-tip-name="Colonne quantité" data-tip-role="Quantité de pièces de chaque ligne (affectations Quantité et Calcul)"><span>Colonne quantité</span>' +
       pickField({ "data-f": "g.qtyCol", "data-fk": "g.qtyCol" }, g.qtyCol, lineCols) + "</label>" +
+    '<label class="field" data-tip-name="Découper par date" data-tip-role="Facultatif : un dossier est découpé en autant de dossiers que de dates différentes dans cette colonne (ex. Date expédition)"><span>Découper par date (facultatif)</span>' +
+      pickField({ "data-f": "g.splitCol", "data-fk": "g.splitCol" }, g.splitCol || "", lineCols, "— Aucun découpage —") + "</label>" +
+    '<label class="field" data-tip-name="Colonne d’exclusion" data-tip-role="Facultatif : les lignes dont cette colonne commence par le préfixe ci-contre ne comptent pas dans le temps"><span>Exclure les lignes dont la colonne… (facultatif)</span>' +
+      pickField({ "data-f": "g.exclCol", "data-fk": "g.exclCol" }, g.exclCol || "", lineCols, "— Aucune exclusion —") + "</label>" +
+    '<label class="field" data-tip-name="Préfixe exclu" data-tip-role="Début de valeur à exclure du calcul du temps (ex. 9 pour les articles 9…)"><span>…commence par</span>' +
+      '<input type="text" data-f="g.exclPrefix" data-fk="g.exclPrefix" value="' + esc(g.exclPrefix || "") + '"></label>' +
     "</div>";
 
   const sums = { Forfait: 0, Ligne: 0, "Quantité": 0 };
@@ -1721,6 +1855,9 @@ $("page-gammes").addEventListener("change", e => {
       case "g.sheet": g.sheet = el.value; break;
       case "g.folderCol": g.folderCol = el.value; break;
       case "g.qtyCol": g.qtyCol = el.value; break;
+      case "g.splitCol": g.splitCol = el.value; break;
+      case "g.exclCol": g.exclCol = el.value; break;
+      case "g.exclPrefix": g.exclPrefix = el.value.trim(); break;
       case "t.a":
         t.a = el.value;
         if (t.a === "Calcul" && !t.calc) t.calc = calcDefault();
@@ -1843,10 +1980,16 @@ function buildGammeTimer(g, lineSrcId) {
     return { name: t.name, label: c.label || "Valeur", table, valueOf };
   });
 
+  // Option : un dossier par date (ex. commande + date d'expédition) et lignes exclues du temps (ex. articles « 9… »).
+  const iSplit = g.splitCol ? sh.headers.indexOf(g.splitCol) : -1;
+  const iExcl = g.exclCol && g.exclPrefix ? sh.headers.indexOf(g.exclCol) : -1;
+  const exclPrefix = stripAccents(g.exclPrefix || "");
   const byFolder = new Map();
   for (const r of sh.rows) {
-    const k = normText(r[iFolder]);
+    let k = normText(r[iFolder]);
     if (!k) continue;
+    if (iSplit >= 0) { const d = dayOf(r[iSplit]); k += "|" + (d ? localISO(d) : ""); }
+    if (iExcl >= 0 && stripAccents(r[iExcl]).startsWith(exclPrefix)) continue;
     if (!byFolder.has(k)) byFolder.set(k, []);
     byFolder.get(k).push(r);
   }
@@ -1864,7 +2007,7 @@ function buildGammeTimer(g, lineSrcId) {
       }
     }
     const parts = {
-      forfait: sums.Forfait,
+      forfait: rows.length ? sums.Forfait : 0,
       ligne: sums.Ligne * rows.length,
       quantite: sums["Quantité"] * qty,
       calcul: calcSec
@@ -1874,34 +2017,9 @@ function buildGammeTimer(g, lineSrcId) {
   return { timeOf, rowsOf: f => byFolder.get(f) || [], sheet: sh };
 }
 
-/* ================= Prépa OF ================= */
-const PREPA = {
-  activity: "prepa-of",
-  ofSheet: "OF",
-  opsSheet: "OF - Opérations",
-  cols: ["OF", "Commande liée", "Article PF", "Lot PF", "Qté PF", "Statut allocation", "Palette", "Statut opé",
-    "Début opé", "Type", "Fiche suiveuse", "Bon de sortie matière", "Manquants"],
-  opsCols: ["OF", "Désignation opé", "Date sortie 2"]
-};
-const PREPA_COLUMNS = [
-  { k: "atelier", t: "Atelier" },
-  { k: "of", t: "OF" },
-  { k: "cde", t: "Commande liée" },
-  { k: "article", t: "Article PF" },
-  { k: "qtePF", t: "Qté PF", num: true },
-  { k: "palType", t: "Type palette" },
-  { k: "alloc", t: "Statut allocation" },
-  { k: "palette", t: "Palette" },
-  { k: "statutOpe", t: "Statut opé" },
-  { k: "debut", t: "Début opé", date: true },
-  { k: "type", t: "Type" },
-  { k: "fiche", t: "Fiche suiveuse" },
-  { k: "bsm", t: "Bon de sortie matière" },
-  { k: "manquants", t: "Manquants" },
-  { k: "sortie2", t: "Date sortie 2", date: true },
-  { k: "heures", t: "Temps (h)", num: true },
-  { k: "ressource", t: "Ressource" }
-];
+/* ================= Activités : moteur commun des tableaux ================= */
+// Chaque activité décrit son fichier, ses colonnes et sa construction ; le moteur gère
+// période, tri, filtres Excel, boutons rapides, ressources, total et graphique.
 
 function localISO(d) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -1918,175 +2036,292 @@ function dayOf(v) {
 function fmtDate(d) { return d ? d.toLocaleDateString("fr-FR") : ""; }
 function fmtHours(sec) { return (sec / 3600).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-// filters[colonne] = Set des valeurs affichées conservées (comme les cases à cocher d'Excel).
-// enCours = filtre rapide « Statut opé différent de Soldée », appliqué avant les filtres de colonnes.
-const prepaUI = { from: localISO(addDays(new Date(), -15)), to: localISO(addDays(new Date(), 30)), sort: "debut", dir: 1, filters: {}, enCours: false };
-const isSoldee = x => stripAccents(x.statutOpe) === "soldee";
 const EMPTY_LABEL = "(Vides)";
-let prepaCache = { key: null, list: null, error: null };
+// Période du ruban, commune à toutes les activités.
+const prepaUI = { from: localISO(addDays(new Date(), -15)), to: localISO(addDays(new Date(), 30)) };
 
-// Construit la liste complète des OF (toutes dates) ; mise en cache tant que la source et la gamme ne changent pas.
-function prepaList() {
-  const src = state.sources.find(s => s.activity === PREPA.activity && s.fileName);
-  if (!src) return { error: "Aucun fichier source pour l'activité Prépa OF : choisissez-le dans Paramètres › Fichiers sources." };
+// Rendus de cellule réutilisables.
+const redBadge = (text, name, role) => '<span class="badge err"' + (name ? ' data-tip-name="' + esc(name) + '" data-tip-role="' + esc(role) + '"' : "") + ">" + esc(text) + "</span>";
+const lateDate = (d, label) => d && d < today0()
+  ? redBadge(fmtDate(d), label + " dépassé(e)", "Date antérieure à aujourd’hui") : fmtDate(d);
+const multiLine = v => esc(v).replace(/\n/g, "<br>");
+// Valeurs distinctes non vides d'une colonne sur plusieurs lignes, séparées par « / ».
+function joinDistinct(rows, i) {
+  const seen = [];
+  for (const r of rows) { const v = normText(r[i]); if (v && !seen.includes(v)) seen.push(v); }
+  return seen.join(" / ");
+}
+
+const ACT_DEFS = {
+  "prepa-of": {
+    page: "prepa", name: "Prépa OF", unit: "OF", dateKey: "debut", dateLabel: "Début opé",
+    isDone: x => stripAccents(x.statutOpe) === "soldee",
+    sheets: { OF: ["OF", "Commande liée", "Article PF", "Lot PF", "Qté PF", "Statut allocation", "Palette", "Statut opé",
+      "Début opé", "Type", "Fiche suiveuse", "Bon de sortie matière", "Manquants"],
+      "OF - Opérations": ["OF", "Désignation opé", "Date sortie 2"] },
+    columns: [
+      { k: "atelier", t: "Atelier" },
+      { k: "of", t: "OF", cell: x => "<b>" + esc(x.of) + "</b>" },
+      { k: "cde", t: "Commande liée" },
+      { k: "article", t: "Article PF" },
+      { k: "qtePF", t: "Qté PF", num: true },
+      { k: "palType", t: "Type palette", cell: x => '<span class="badge ' + (x.palType === "Cryo" ? "warn" : "off") + '">' + x.palType + "</span>" },
+      { k: "alloc", t: "Statut allocation" },
+      { k: "palette", t: "Palette" },
+      { k: "statutOpe", t: "Statut opé" },
+      { k: "debut", t: "Début opé", date: true, cell: x => lateDate(x.debut, "Début opé") },
+      { k: "type", t: "Type" },
+      { k: "fiche", t: "Fiche suiveuse" },
+      { k: "bsm", t: "Bon de sortie matière" },
+      { k: "manquants", t: "Manquants", cell: x => x.manquants === "Oui" ? redBadge("Oui") : "Non" },
+      { k: "sortie2", t: "Date sortie 2", date: true }
+    ],
+    build(sh) {
+      const of = sh.OF.sheet, I = sh.OF.idx, ops = sh["OF - Opérations"].sheet, J = sh["OF - Opérations"].idx;
+      // Opérations : présence d'un dégraissage et plus ancienne Date sortie 2 par OF.
+      const opsInfo = new Map();
+      for (const r of ops.rows) {
+        const k = normText(r[J.OF]);
+        if (!k) continue;
+        let o = opsInfo.get(k);
+        if (!o) opsInfo.set(k, o = { cryo: false, sortie2: null });
+        if (!o.cryo && stripAccents(r[J["Désignation opé"]]).includes("degr")) o.cryo = true;
+        const ds = dayOf(r[J["Date sortie 2"]]);
+        if (ds && (!o.sortie2 || ds < o.sortie2)) o.sortie2 = ds;
+      }
+      const byOF = new Map();
+      for (const r of of.rows) {
+        const k = normText(r[I.OF]);
+        if (!k) continue;
+        let x = byOF.get(k);
+        if (!x) {
+          const lot = normText(r[I["Lot PF"]]).toUpperCase();
+          const o = opsInfo.get(k) || { cryo: false, sortie2: null };
+          x = {
+            id: k, timeKey: k,
+            atelier: lot.startsWith("M") ? "Montage" : lot.startsWith("U") ? "Usinage / sous-traitance" : "",
+            of: k,
+            cde: normText(r[I["Commande liée"]]),
+            article: normText(r[I["Article PF"]]),
+            qtePF: Number(r[I["Qté PF"]]) || 0,
+            palType: o.cryo ? "Cryo" : "Bois",
+            alloc: normText(r[I["Statut allocation"]]),
+            palette: normText(r[I.Palette]),
+            statutOpe: normText(r[I["Statut opé"]]),
+            debut: dayOf(r[I["Début opé"]]),
+            type: normText(r[I.Type]),
+            fiche: normText(r[I["Fiche suiveuse"]]),
+            bsm: normText(r[I["Bon de sortie matière"]]),
+            manquants: "Non",
+            sortie2: o.sortie2
+          };
+          byOF.set(k, x);
+        }
+        // « Manquant » (ou « Oui », valeur réelle de l'export) sur au moins une ligne -> Oui.
+        const m = stripAccents(r[I.Manquants]);
+        if (m.includes("manquant") || m === "oui") x.manquants = "Oui";
+      }
+      return [...byOF.values()];
+    }
+  },
+
+  "prepa-exped": {
+    page: "exped", name: "Prépa Expéd", unit: "commande(s)", dateKey: "dateExp", dateLabel: "Date expédition",
+    isDone: x => x.soldee === "Oui",
+    sheets: { "Commandes ventes": ["Commande", "Référence commande", "Client", "Gestionnaire", "Mode livraison", "Instruction livraison",
+      "Type", "RFF", "Validée", "Article", "Qté commandée US", "Date expédition", "Soldée", "Manquants",
+      "Nom client livraison", "Adresse livraison 1", "Adresse livraison 2", "Adresse livraison 3",
+      "Ville livraison", "Code postal livraison", "Pays livraison"] },
+    columns: [
+      { k: "commande", t: "Commande", cell: x => "<b>" + esc(x.commande) + "</b>" },
+      { k: "client", t: "Client" },
+      { k: "gest", t: "Gestionnaire" },
+      { k: "mode", t: "Mode livraison" },
+      { k: "type", t: "Type" },
+      { k: "rff", t: "RFF", cell: x => /(^|\/ )oui( \/|$)/i.test(x.rff) ? redBadge(x.rff, "RFF", "Commande avec RFF") : esc(x.rff) },
+      { k: "validee", t: "Validée", cell: x => /(^|\/ )non( \/|$)/i.test(x.validee) ? redBadge(x.validee, "Non validée", "Au moins une ligne de la commande n’est pas validée") : esc(x.validee) },
+      { k: "manquants", t: "Manquants", cell: x => x.manquants === "Oui" ? redBadge("Oui") : "Non" },
+      { k: "dateExp", t: "Date expédition", date: true, cell: x => lateDate(x.dateExp, "Date d’expédition") },
+      { k: "adresse", t: "Adresse livraison", wrap: true, cell: x => multiLine(x.adresse), text: x => x.adresse.replace(/\n+/g, ", ") || EMPTY_LABEL },
+      { k: "refCde", t: "Référence commande" },
+      { k: "instruction", t: "Instruction livraison", wrap: true, cell: x => multiLine(x.instruction), text: x => x.instruction.replace(/\s*\n+\s*/g, " ") || EMPTY_LABEL },
+      { k: "soldee", t: "Soldée" }
+    ],
+    build(sh) {
+      const cv = sh["Commandes ventes"].sheet, I = sh["Commandes ventes"].idx;
+      // Un dossier = une commande pour une date d'expédition.
+      const groups = new Map();
+      for (const r of cv.rows) {
+        const cde = normText(r[I.Commande]);
+        if (!cde) continue;
+        const d = dayOf(r[I["Date expédition"]]);
+        const k = cde + "|" + (d ? localISO(d) : "");
+        let gr = groups.get(k);
+        if (!gr) groups.set(k, gr = { cde, d, rows: [] });
+        gr.rows.push(r);
+      }
+      const address = r => [normText(r[I["Nom client livraison"]]), normText(r[I["Adresse livraison 1"]]),
+        [r[I["Adresse livraison 2"]], r[I["Adresse livraison 3"]], r[I["Code postal livraison"]], r[I["Ville livraison"]], r[I["Pays livraison"]]]
+          .map(normText).filter(Boolean).join(" ")].filter(Boolean).join("\n");
+      const out = [];
+      for (const [k, gr] of groups) {
+        const R = gr.rows;
+        const adresses = [];
+        for (const r of R) { const a = address(r); if (a && !adresses.includes(a)) adresses.push(a); }
+        out.push({
+          id: k, timeKey: k,
+          commande: gr.cde,
+          client: joinDistinct(R, I.Client),
+          gest: joinDistinct(R, I.Gestionnaire),
+          mode: joinDistinct(R, I["Mode livraison"]),
+          type: joinDistinct(R, I.Type),
+          rff: joinDistinct(R, I.RFF),
+          validee: joinDistinct(R, I["Validée"]),
+          manquants: R.some(r => { const m = stripAccents(r[I.Manquants]); return m === "oui" || m.includes("manquant"); }) ? "Oui" : "Non",
+          dateExp: gr.d,
+          adresse: adresses.join("\n\n"),
+          refCde: joinDistinct(R, I["Référence commande"]),
+          instruction: joinDistinct(R, I["Instruction livraison"]),
+          // Soldée = tous les articles de la commande-date sont « Soldé ».
+          soldee: R.every(r => stripAccents(r[I["Soldée"]]) === "solde") ? "Oui" : "Non"
+        });
+      }
+      return out;
+    }
+  }
+};
+
+// Colonnes communes ajoutées à droite de chaque activité.
+function actColumns(act) {
+  return ACT_DEFS[act].columns.concat([
+    { k: "heures", t: "Temps (h)", num: true, heures: true },
+    { k: "ressource", t: "Ressource" }
+  ]);
+}
+
+const actUI = {};
+const actCache = {};
+const actRows = {};     // lignes affichées (période + filtres) par activité, reprises par le graphique
+const actInRange = {};  // lignes de la période (après « En cours ») servant aux listes de filtre
+for (const [id, def] of Object.entries(ACT_DEFS)) actUI[id] = { sort: def.dateKey, dir: 1, filters: {}, enCours: false };
+const actOfPage = page => Object.keys(ACT_DEFS).find(a => ACT_DEFS[a].page === page);
+
+// Construit la liste complète des dossiers (toutes dates) ; mise en cache tant que la source et la gamme ne changent pas.
+function actList(act) {
+  const def = ACT_DEFS[act];
+  const src = state.sources.find(s => s.activity === act && s.fileName);
+  if (!src) return { error: "Aucun fichier source pour l'activité " + def.name + " : choisissez-le dans Paramètres › Fichiers sources." };
   const d = srcData[src.id];
   if (!d || d.status !== "loaded" && d.status !== "changed") return { error: "Le fichier source « " + src.fileName + " » n'est pas chargé (Paramètres › Fichiers sources)." };
   const g = state.gammes.find(x => x.id === src.gamme);
   const key = JSON.stringify([src.id, g || null]);
-  if (prepaCache.key === key && prepaCache.data === d) return prepaCache;
+  const cache = actCache[act];
+  if (cache && cache.key === key && cache.data === d) return cache;
 
   const res = { key, data: d, list: null, error: null, warning: null };
-  prepaCache = res;
-  const of = d.sheets[PREPA.ofSheet], ops = d.sheets[PREPA.opsSheet];
-  if (!of) { res.error = "Onglet « " + PREPA.ofSheet + " » introuvable dans le fichier source."; return res; }
-  if (!ops) { res.error = "Onglet « " + PREPA.opsSheet + " » introuvable dans le fichier source."; return res; }
-  const missing = PREPA.cols.filter(c => !of.headers.includes(c)).map(c => PREPA.ofSheet + " › " + c)
-    .concat(PREPA.opsCols.filter(c => !ops.headers.includes(c)).map(c => PREPA.opsSheet + " › " + c));
+  actCache[act] = res;
+  const sh = {}, missing = [];
+  for (const [name, cols] of Object.entries(def.sheets)) {
+    const sheet = d.sheets[name];
+    if (!sheet) { res.error = "Onglet « " + name + " » introuvable dans le fichier source."; return res; }
+    for (const c of cols) if (!sheet.headers.includes(c)) missing.push(name + " › " + c);
+    sh[name] = { sheet, idx: Object.fromEntries(cols.map(c => [c, sheet.headers.indexOf(c)])) };
+  }
   if (missing.length) { res.error = "Colonnes introuvables : " + missing.join(", "); return res; }
-  const I = Object.fromEntries(PREPA.cols.map(c => [c, of.headers.indexOf(c)]));
-  const J = Object.fromEntries(PREPA.opsCols.map(c => [c, ops.headers.indexOf(c)]));
 
-  // Opérations : présence d'un dégraissage et plus ancienne Date sortie 2 par OF.
-  const opsInfo = new Map();
-  for (const r of ops.rows) {
-    const k = normText(r[J.OF]);
-    if (!k) continue;
-    let o = opsInfo.get(k);
-    if (!o) opsInfo.set(k, o = { cryo: false, sortie2: null });
-    if (!o.cryo && stripAccents(r[J["Désignation opé"]]).includes("degr")) o.cryo = true;
-    const ds = dayOf(r[J["Date sortie 2"]]);
-    if (ds && (!o.sortie2 || ds < o.sortie2)) o.sortie2 = ds;
-  }
-
-  const timer = g ? buildGammeTimer(g, src.id) : { error: "Aucune gamme associée à Prépa OF (Paramètres › Fichiers sources)." };
+  const timer = g ? buildGammeTimer(g, src.id) : { error: "Aucune gamme associée à " + def.name + " (Paramètres › Fichiers sources)." };
   if (timer.error) res.warning = "Temps non calculés : " + timer.error;
-
-  const byOF = new Map();
-  for (const r of of.rows) {
-    const k = normText(r[I.OF]);
-    if (!k) continue;
-    let x = byOF.get(k);
-    if (!x) {
-      const lot = normText(r[I["Lot PF"]]).toUpperCase();
-      const o = opsInfo.get(k) || { cryo: false, sortie2: null };
-      x = {
-        atelier: lot.startsWith("M") ? "Montage" : lot.startsWith("U") ? "Usinage / sous-traitance" : "",
-        of: k,
-        cde: normText(r[I["Commande liée"]]),
-        article: normText(r[I["Article PF"]]),
-        qtePF: Number(r[I["Qté PF"]]) || 0,
-        palType: o.cryo ? "Cryo" : "Bois",
-        alloc: normText(r[I["Statut allocation"]]),
-        palette: normText(r[I.Palette]),
-        statutOpe: normText(r[I["Statut opé"]]),
-        debut: dayOf(r[I["Début opé"]]),
-        type: normText(r[I.Type]),
-        fiche: normText(r[I["Fiche suiveuse"]]),
-        bsm: normText(r[I["Bon de sortie matière"]]),
-        manquants: "Non",
-        sortie2: o.sortie2,
-        heures: null,
-        detail: null
-      };
-      byOF.set(k, x);
-    }
-    // « Manquant » (ou « Oui », valeur réelle de l'export) sur au moins une ligne -> Oui.
-    const m = stripAccents(r[I.Manquants]);
-    if (m.includes("manquant") || m === "oui") x.manquants = "Oui";
-  }
-  for (const x of byOF.values()) {
+  res.list = def.build(sh);
+  for (const x of res.list) {
+    x.heures = null; x.detail = null;
     if (timer.error) continue;
-    x.detail = timer.timeOf(x.of);
+    x.detail = timer.timeOf(x.timeKey);
     x.heures = x.detail.total / 3600;
   }
-  res.list = [...byOF.values()];
   return res;
 }
 
 function renderPrepa() {
-  renderPrepaTable();
+  for (const act of Object.keys(ACT_DEFS)) renderActTable(act);
   if (chartOpen) renderChart();
+  renderGlobal();
 }
 
-function renderPrepaTable() {
+function cellHtml(c, x) {
+  if (c.cell) return c.cell(x);
+  const v = x[c.k];
+  if (c.date) return fmtDate(v);
+  if (c.num) return v == null ? "" : fmtInt(v);
+  return esc(v);
+}
+
+function renderActTable(act) {
+  const def = ACT_DEFS[act], ui = actUI[act], cols = actColumns(act);
+  const body = $(def.page + "Body"), quick = $(def.page + "Quick");
   $("prepaFrom").value = prepaUI.from;
   $("prepaTo").value = prepaUI.to;
-  const res = prepaList();
+  const res = actList(act);
   if (res.error) {
-    $("prepaBody").innerHTML = '<div class="card placeholder muted">' + esc(res.error) + "</div>";
+    actRows[act] = []; actInRange[act] = [];
+    body.innerHTML = '<div class="card placeholder muted">' + esc(res.error) + "</div>";
     return;
   }
   const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
   const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
-  const assigned = state.assign[PREPA.activity] || {};
-  for (const x of res.list) x.ressource = resourceName(assigned[x.of]);
-  const inPeriod = res.list.filter(x => x.debut && (!from || x.debut >= from) && (!to || x.debut <= to));
-  const inRange = prepaUI.enCours ? inPeriod.filter(x => !isSoldee(x)) : inPeriod;
-  prepaInRange = inRange;
-  const rows = applyColumnFilters(inRange);
-  prepaRows = rows;
-  const nFilters = Object.keys(prepaUI.filters).length + (prepaUI.enCours ? 1 : 0);
-  for (const b of $("prepaQuick").children) {
-    b.classList.toggle("on", b.dataset.q === "encours" ? prepaUI.enCours : !nFilters);
-  }
-  const col = PREPA_COLUMNS.find(c => c.k === prepaUI.sort) || PREPA_COLUMNS[9];
+  const assigned = state.assign[act] || {};
+  for (const x of res.list) x.ressource = resourceName(assigned[x.id]);
+  const dk = def.dateKey;
+  const inPeriod = res.list.filter(x => x[dk] && (!from || x[dk] >= from) && (!to || x[dk] <= to));
+  const inRange = ui.enCours ? inPeriod.filter(x => !def.isDone(x)) : inPeriod;
+  actInRange[act] = inRange;
+  const rows = applyColumnFilters(act, inRange);
+  actRows[act] = rows;
+  const nFilters = Object.keys(ui.filters).length + (ui.enCours ? 1 : 0);
+  for (const b of quick.children) b.classList.toggle("on", b.dataset.q === "encours" ? ui.enCours : !nFilters);
+  const col = cols.find(c => c.k === ui.sort) || cols.find(c => c.k === dk);
   rows.sort((a, b) => {
     const va = a[col.k], vb = b[col.k];
     if (va == null && vb == null) return 0;
     if (va == null) return 1;
     if (vb == null) return -1;
     const r = col.num || col.date ? va - vb : String(va).localeCompare(String(vb), "fr", { numeric: true });
-    return r * prepaUI.dir || a.of.localeCompare(b.of);
+    return r * ui.dir || a.id.localeCompare(b.id);
   });
 
   const totalH = rows.reduce((a, x) => a + (x.heures || 0), 0);
-
   let h = res.warning ? '<div class="card muted">' + esc(res.warning) + "</div>" : "";
   h += '<div class="card prepa-card"><div class="tbl-wrap tall"><table class="tbl"><thead><tr>' +
-    PREPA_COLUMNS.map(c => '<th class="sort' + (c.num ? " num" : "") + (c.k === prepaUI.sort ? " on" : "") + '" data-sort="' + c.k + '"' +
+    cols.map(c => '<th class="sort' + (c.num ? " num" : "") + (c.k === ui.sort ? " on" : "") + '" data-sort="' + c.k + '"' +
       ' data-tip-name="' + esc(c.t) + '" data-tip-role="Cliquez pour trier sur cette colonne">' +
-      '<span class="th-in">' + esc(c.t) + (c.k === prepaUI.sort ? (prepaUI.dir > 0 ? " ▲" : " ▼") : "") +
-      '<button class="fbtn' + (prepaUI.filters[c.k] ? " on" : "") + '" data-filter="' + c.k + '"' +
+      '<span class="th-in">' + esc(c.t) + (c.k === ui.sort ? (ui.dir > 0 ? " ▲" : " ▼") : "") +
+      '<button class="fbtn' + (ui.filters[c.k] ? " on" : "") + '" data-filter="' + c.k + '"' +
       ' data-tip-name="Filtrer « ' + esc(c.t) + ' »" data-tip-role="Choisir les valeurs à afficher, comme dans Excel' +
-      (prepaUI.filters[c.k] ? " (filtre actif)" : "") + '">' + ICON.filter + "</button></span></th>").join("") +
+      (ui.filters[c.k] ? " (filtre actif)" : "") + '">' + ICON.filter + "</button></span></th>").join("") +
     "</tr></thead><tbody>";
   for (const x of rows) {
     const dt = x.detail;
     const tip = dt ? "Forfait " + fmtInt(dt.parts.forfait) + " s + Ligne " + fmtInt(dt.parts.ligne) + " s (" + dt.lines + " lignes) + Quantité " +
       fmtInt(dt.parts.quantite) + " s + Calcul " + fmtInt(dt.parts.calcul) + " s (" + fmtInt(dt.qty) + " pièces)" +
       (dt.unknown ? " — " + dt.unknown + " ligne(s) avec une valeur absente du tableau de calcul (comptée 0 s)" : "") : "";
-    h += "<tr>" +
-      "<td>" + esc(x.atelier) + "</td>" +
-      "<td><b>" + esc(x.of) + "</b></td>" +
-      "<td>" + esc(x.cde) + "</td>" +
-      "<td>" + esc(x.article) + "</td>" +
-      '<td class="num">' + fmtInt(x.qtePF) + "</td>" +
-      '<td><span class="badge ' + (x.palType === "Cryo" ? "warn" : "off") + '">' + x.palType + "</span></td>" +
-      "<td>" + esc(x.alloc) + "</td>" +
-      "<td>" + esc(x.palette) + "</td>" +
-      "<td>" + esc(x.statutOpe) + "</td>" +
-      '<td class="nowrap">' + (x.debut && x.debut < today0()
-        ? '<span class="badge err" data-tip-name="Début opé dépassé" data-tip-role="Le Début opé de cet OF est antérieur à aujourd’hui">' + fmtDate(x.debut) + "</span>"
-        : fmtDate(x.debut)) + "</td>" +
-      "<td>" + esc(x.type) + "</td>" +
-      "<td>" + esc(x.fiche) + "</td>" +
-      "<td>" + esc(x.bsm) + "</td>" +
-      "<td>" + (x.manquants === "Oui" ? '<span class="badge err">Oui</span>' : "Non") + "</td>" +
-      '<td class="nowrap">' + fmtDate(x.sortie2) + "</td>" +
-      '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
-        (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && dt.unknown ? " ⚠" : "") + "</b></td>" +
-      '<td class="res-cell">' + resourceSelect(x.of, assigned[x.of]) + "</td>" +
-      "</tr>";
+    h += "<tr>";
+    for (const c of cols) {
+      if (c.heures) h += '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
+        (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && dt.unknown ? " ⚠" : "") + "</b></td>";
+      else if (c.k === "ressource") h += '<td class="res-cell">' + resourceSelect(act, x.id, assigned[x.id]) + "</td>";
+      else h += "<td" + (c.num ? ' class="num"' : c.wrap ? ' class="wrap"' : c.date ? ' class="nowrap"' : "") + ">" + cellHtml(c, x) + "</td>";
+    }
+    h += "</tr>";
   }
-  if (!rows.length) h += '<tr><td colspan="' + PREPA_COLUMNS.length + '" class="muted">' +
-    (inPeriod.length ? "Aucun OF ne correspond aux filtres." : "Aucun OF dont le Début opé est dans cette plage.") + "</td></tr>";
+  if (!rows.length) h += '<tr><td colspan="' + cols.length + '" class="muted">' +
+    (inPeriod.length ? "Aucune ligne ne correspond aux filtres." : "Aucune ligne dont la " + def.dateLabel + " est dans cette plage.") + "</td></tr>";
   h += "</tbody>";
   if (rows.length) {
     const nAff = rows.filter(x => x.ressource).length;
-    h += '<tfoot><tr><td colspan="' + (PREPA_COLUMNS.length - 2) + '">Total (' + fmtInt(rows.length) + " OF" + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ')</td><td class="num">' + fmtHours(totalH * 3600) + "</td>" +
+    h += '<tfoot><tr><td colspan="' + (cols.length - 2) + '">Total (' + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") +
+      ')</td><td class="num">' + fmtHours(totalH * 3600) + "</td>" +
       '<td class="res-cell muted">' + fmtInt(nAff) + " / " + fmtInt(rows.length) + " affectés</td></tr></tfoot>";
   }
-  $("prepaBody").innerHTML = h + "</table></div></div>";
+  body.innerHTML = h + "</table></div></div>";
 }
 
 $("prepaFrom").onchange = e => { prepaUI.from = e.target.value; renderPrepa(); };
@@ -2096,24 +2331,11 @@ $("prepaReset").onclick = () => {
   prepaUI.to = localISO(addDays(new Date(), 30));
   renderPrepa();
 };
-$("prepaBody").addEventListener("click", e => {
-  const fb = e.target.closest("[data-filter]");
-  if (fb) { e.stopPropagation(); openFilter(fb.dataset.filter, fb); return; }
-  const th = e.target.closest("th[data-sort]");
-  if (!th) return;
-  if (prepaUI.sort === th.dataset.sort) prepaUI.dir = -prepaUI.dir;
-  else { prepaUI.sort = th.dataset.sort; prepaUI.dir = 1; }
-  renderPrepa();
-});
 
-/* ---------- Filtres de colonnes (type Excel) ---------- */
-let prepaInRange = [];
-let prepaRows = []; // lignes affichées (période + filtres), reprises par le graphique
-
-function resourceSelect(of, current) {
+function resourceSelect(act, id, current) {
   const known = state.resources.some(r => r.id === current);
-  return '<select class="res-sel" data-of="' + esc(of) + '" data-fk="assign.' + esc(of) + '"' +
-    (state.resources.length ? ' data-tip-name="Ressource" data-tip-role="Affecte cet OF à une ressource (« — » pour retirer l’affectation)"'
+  return '<select class="res-sel" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
+    (state.resources.length ? ' data-tip-name="Ressource" data-tip-role="Affecte cette ligne à une ressource (« — » pour retirer l’affectation)"'
       : ' disabled data-tip-name="Aucune ressource" data-tip-role="Créez la liste dans Paramètres › Ressources"') + ">" +
     '<option value="">—</option>' +
     state.resources.map(r => '<option value="' + esc(r.id) + '"' + (r.id === current ? " selected" : "") + ">" + esc(r.name) + "</option>").join("") +
@@ -2121,39 +2343,94 @@ function resourceSelect(of, current) {
     "</select>";
 }
 
-$("prepaBody").addEventListener("change", e => {
-  const el = e.target.closest(".res-sel");
-  if (!el) return;
-  const of = el.dataset.of, v = el.value;
-  commit(st => {
-    const m = st.assign[PREPA.activity] || (st.assign[PREPA.activity] = {});
-    if (v) m[of] = v; else delete m[of];
+// Événements des pages d'activité : tri, filtre, affectation, boutons rapides.
+for (const [act, def] of Object.entries(ACT_DEFS)) {
+  const body = $(def.page + "Body"), ui = actUI[act];
+  body.addEventListener("click", e => {
+    const fb = e.target.closest("[data-filter]");
+    if (fb) { e.stopPropagation(); openFilter(act, fb.dataset.filter, fb); return; }
+    const th = e.target.closest("th[data-sort]");
+    if (!th) return;
+    if (ui.sort === th.dataset.sort) ui.dir = -ui.dir;
+    else { ui.sort = th.dataset.sort; ui.dir = 1; }
+    renderPrepa();
   });
-});
+  body.addEventListener("change", e => {
+    const el = e.target.closest(".res-sel");
+    if (!el) return;
+    const id = el.dataset.id, v = el.value;
+    commit(st => {
+      const m = st.assign[act] || (st.assign[act] = {});
+      if (v) m[id] = v; else delete m[id];
+    });
+  });
+  $(def.page + "Quick").onclick = e => {
+    const b = e.target.closest("[data-q]");
+    if (!b) return;
+    changeFilters(act, () => {
+      if (b.dataset.q === "encours") ui.enCours = !ui.enCours;
+      else { ui.enCours = false; ui.filters = {}; }
+    });
+    closeFilter();
+    renderPrepa();
+  };
+}
 
+/* ---------- Taille du texte des tableaux (mémorisée sur ce poste) ---------- */
+const ZOOM_MIN = 0.5, ZOOM_MAX = 1.6;
+let tblZoom = 1;
+try { tblZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(localStorage.getItem("cc.tableZoom")) || 1)); } catch (e) { /* stockage indisponible */ }
+function setTableZoom(z) {
+  tblZoom = Math.round(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z)) * 100) / 100;
+  document.documentElement.style.setProperty("--tbl-zoom", tblZoom);
+  for (const el of document.querySelectorAll(".zoom-val")) el.textContent = Math.round(tblZoom * 100) + " %";
+  try { localStorage.setItem("cc.tableZoom", tblZoom); } catch (e) { /* stockage indisponible */ }
+}
+// Plus grande taille (au pas de 5 %) qui fait tenir toutes les colonnes dans la largeur visible.
+function fitTableZoom(page) {
+  const wrap = page.querySelector(".tbl-wrap"), tbl = wrap && wrap.querySelector("table");
+  if (!tbl) return toast("Aucun tableau à ajuster.", true);
+  let z = ZOOM_MAX;
+  setTableZoom(z);
+  while (z > ZOOM_MIN && tbl.scrollWidth > wrap.clientWidth) setTableZoom(z = z - 0.05);
+  if (tbl.scrollWidth > wrap.clientWidth) toast("Même à " + Math.round(ZOOM_MIN * 100) + " %, le tableau dépasse la largeur de l’écran : faites défiler horizontalement.");
+}
+setTableZoom(tblZoom);
+for (const ctl of document.querySelectorAll(".zoom-ctl")) ctl.onclick = e => {
+  const b = e.target.closest("[data-z]");
+  if (!b) return;
+  const z = b.dataset.z;
+  if (z === "fit") fitTableZoom(ctl.closest(".page"));
+  else setTableZoom(z === "0" ? 1 : tblZoom + Number(z) * 0.1);
+};
+
+/* ---------- Filtres de colonnes (type Excel) ---------- */
 function cellText(c, x) {
+  if (c.text) return c.text(x);
   const v = x[c.k];
   if (c.date) return v ? fmtDate(v) : EMPTY_LABEL;
-  if (c.k === "heures") return v == null ? EMPTY_LABEL : fmtHours(v * 3600);
+  if (c.heures) return v == null ? EMPTY_LABEL : fmtHours(v * 3600);
   if (c.num) return v == null ? EMPTY_LABEL : fmtInt(v);
   return v === "" || v == null ? EMPTY_LABEL : String(v);
 }
 
-function applyColumnFilters(list, exceptKey) {
-  const active = PREPA_COLUMNS.filter(c => prepaUI.filters[c.k] && c.k !== exceptKey);
+function applyColumnFilters(act, list, exceptKey) {
+  const f = actUI[act].filters;
+  const active = actColumns(act).filter(c => f[c.k] && c.k !== exceptKey);
   if (!active.length) return list.slice();
-  return list.filter(x => active.every(c => prepaUI.filters[c.k].has(cellText(c, x))));
+  return list.filter(x => active.every(c => f[c.k].has(cellText(c, x))));
 }
 
 // Valeurs distinctes d'une colonne, parmi les lignes retenues par les AUTRES filtres (comme Excel).
-function distinctValues(c) {
+function distinctValues(act, c) {
   const seen = new Map();
-  for (const x of applyColumnFilters(prepaInRange, c.k)) {
+  for (const x of applyColumnFilters(act, actInRange[act] || [], c.k)) {
     const t = cellText(c, x);
     if (!seen.has(t)) seen.set(t, x[c.k]);
   }
   // Une valeur cochée qui n'existe plus reste visible pour pouvoir la décocher.
-  if (prepaUI.filters[c.k]) for (const t of prepaUI.filters[c.k]) if (!seen.has(t)) seen.set(t, null);
+  const cur = actUI[act].filters[c.k];
+  if (cur) for (const t of cur) if (!seen.has(t)) seen.set(t, null);
   return [...seen.entries()].sort((a, b) => {
     if (a[0] === EMPTY_LABEL) return 1;
     if (b[0] === EMPTY_LABEL) return -1;
@@ -2165,13 +2442,14 @@ function distinctValues(c) {
 let fpopKey = null;
 function closeFilter() { $("fpop").classList.remove("show"); fpopKey = null; }
 
-function openFilter(key, anchor) {
-  if (fpopKey === key) return closeFilter();
-  const c = PREPA_COLUMNS.find(x => x.k === key);
-  const values = distinctValues(c);
-  const current = prepaUI.filters[key];
+function openFilter(act, key, anchor) {
+  if (fpopKey === act + ":" + key) return closeFilter();
+  const ui = actUI[act];
+  const c = actColumns(act).find(x => x.k === key);
+  const values = distinctValues(act, c);
+  const current = ui.filters[key];
   const checked = new Set(current ? values.filter(v => current.has(v)) : values);
-  fpopKey = key;
+  fpopKey = act + ":" + key;
   hideTip();
 
   const pop = $("fpop");
@@ -2213,15 +2491,15 @@ function openFilter(key, anchor) {
     const b = e.target.closest("[data-fa]");
     if (!b || b.disabled) return;
     const a = b.dataset.fa;
-    if (a === "asc" || a === "desc") { prepaUI.sort = key; prepaUI.dir = a === "asc" ? 1 : -1; }
-    if (a === "clear") changeFilters(() => { delete prepaUI.filters[key]; });
+    if (a === "asc" || a === "desc") { ui.sort = key; ui.dir = a === "asc" ? 1 : -1; }
+    if (a === "clear") changeFilters(act, () => { delete ui.filters[key]; });
     if (a === "ok") {
       const q = $("fsearch").value.trim();
       const keep = q ? visible.filter(v => checked.has(v)) : values.filter(v => checked.has(v));
       if (!keep.length) return toast("Cochez au moins une valeur.", true);
-      changeFilters(() => {
-        if (!q && keep.length === values.length) delete prepaUI.filters[key];
-        else prepaUI.filters[key] = new Set(keep);
+      changeFilters(act, () => {
+        if (!q && keep.length === values.length) delete ui.filters[key];
+        else ui.filters[key] = new Set(keep);
       });
     }
     closeFilter();
@@ -2243,16 +2521,6 @@ document.addEventListener("keydown", e => {
   // Échap ferme d'abord le menu de filtre, sans fermer la fenêtre qui le contient.
   if (e.key === "Escape" && fpopKey) { closeFilter(); e.stopImmediatePropagation(); }
 });
-$("prepaQuick").onclick = e => {
-  const b = e.target.closest("[data-q]");
-  if (!b) return;
-  changeFilters(() => {
-    if (b.dataset.q === "encours") prepaUI.enCours = !prepaUI.enCours;
-    else { prepaUI.enCours = false; prepaUI.filters = {}; }
-  });
-  closeFilter();
-  renderPrepa();
-};
 
 /* ---------- Graphique journalier charge / capacité ---------- */
 let chartOpen = null; // id de l'activité dont le graphique est affiché
@@ -2272,7 +2540,7 @@ document.addEventListener("keydown", e => {
   if (chartOpen) closeChart();
   else if (settingsOpen()) closeSettings();
 });
-window.addEventListener("resize", () => { if (chartOpen) renderChart(); });
+window.addEventListener("resize", () => { if (chartOpen) renderChart(); renderGlobal(); });
 
 // Numéro de semaine ISO 8601 (lundi = premier jour, semaine 1 = celle du premier jeudi).
 function isoWeek(d) {
@@ -2291,63 +2559,95 @@ function niceStep(max, n) {
 }
 const fmtH = h => h.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-function renderChart() {
-  const actName = (ACTIVITIES.find(a => a.id === chartOpen) || {}).name || "";
-  $("chartTitle").textContent = actName + " — charge et capacité " + GRANS[chartUI.gran].title;
-  for (const btn of $("chartGran").children) btn.classList.toggle("on", btn.dataset.v === chartUI.gran);
-  const body = $("chartBody");
-  const res = prepaList();
-  if (res.error) { $("chartSub").textContent = ""; body.innerHTML = '<p class="muted">' + esc(res.error) + "</p>"; return; }
-
-  const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
-  const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
-  if (!from || !to || to < from) { body.innerHTML = '<p class="muted">Choisissez une période valide dans le ruban.</p>'; return; }
-  const nFilters = Object.keys(prepaUI.filters).length;
-  $("chartSub").textContent = "du " + fmtDate(from) + " au " + fmtDate(to) + (prepaUI.enCours ? " · OF en cours" : "") +
-    (nFilters ? " · " + nFilters + " filtre(s) de colonne appliqué(s)" : "");
-
-  const src = state.sources.find(s => s.activity === chartOpen && s.fileName);
-  const sel = (src && src.cap) || [];
+// Charge par jour des activités (lignes affichées : période et filtres de chaque activité)
+// et capacité de leurs groupes / niveaux (un groupe commun à deux activités n'est compté qu'une fois).
+function chartModel(acts, from, to) {
   const capLoaded = !!(srcData[CAP_ID] && srcData[CAP_ID].cap);
-
-  // Tous les jours de la période.
-  const days = [];
-  for (let d = new Date(from); d <= to; d = addDays(d, 1)) days.push(new Date(d));
-  if (days.length > 3700) { body.innerHTML = '<p class="muted">Période trop longue pour le graphique (10 ans maximum).</p>'; return; }
-  if (days.length > 400 && chartUI.gran === "day") { body.innerHTML = '<p class="muted">Période trop longue pour l\'affichage par jour : choisissez Semaine, Mois ou Année.</p>'; return; }
-  const load = new Map();
-  for (const x of prepaRows) if (x.debut && x.heures != null) {
-    const k = localISO(x.debut);
-    load.set(k, (load.get(k) || 0) + x.heures);
+  const sel = [], errors = [];
+  for (const act of acts) {
+    const src = state.sources.find(s => s.activity === act && s.fileName);
+    for (const c of (src && src.cap) || []) if (!sel.includes(c)) sel.push(c);
+    const res = actList(act);
+    if (res.error) errors.push(ACT_DEFS[act].name + " : " + res.error);
   }
+  const loads = acts.map(act => {
+    const m = new Map(), dk = ACT_DEFS[act].dateKey;
+    for (const x of actRows[act] || []) if (x[dk] && x.heures != null) {
+      const k = localISO(x[dk]);
+      m.set(k, (m.get(k) || 0) + x.heures);
+    }
+    return m;
+  });
+  const days = [];
+  for (let d = new Date(from); d <= to && days.length <= 3700; d = addDays(d, 1)) days.push(new Date(d));
   const data = days.map(d => {
     const iso = localISO(d);
-    return { d, iso, load: load.get(iso) || 0, cap: capLoaded && sel.length ? capacityOn(iso, sel) : null };
+    const parts = loads.map(m => m.get(iso) || 0);
+    return { d, iso, parts, load: parts.reduce((a, v) => a + v, 0), cap: capLoaded && sel.length ? capacityOn(iso, sel) : null };
   });
+  return { data, sel, capLoaded, errors };
+}
+
+// Dessine un graphique charge / capacité dans une vue (fenêtre d'une activité ou onglet Charge globale).
+function renderChartView(v, acts, single) {
+  for (const btn of v.gran.children) btn.classList.toggle("on", btn.dataset.v === chartUI.gran);
+  const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
+  const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
+  if (!from || !to || to < from) { v.sub.textContent = ""; v.body.innerHTML = '<p class="muted">Choisissez une période valide dans le ruban.</p>'; return; }
+  const days = Math.round((to - from) / 864e5) + 1;
+  if (days > 3700) { v.body.innerHTML = '<p class="muted">Période trop longue pour le graphique (10 ans maximum).</p>'; return; }
+  if (days > 400 && chartUI.gran === "day") { v.body.innerHTML = '<p class="muted">Période trop longue pour l\'affichage par jour : choisissez Semaine, Mois ou Année.</p>'; return; }
+
+  const m = chartModel(acts, from, to);
+  if (m.errors.length === acts.length) { v.sub.textContent = ""; v.body.innerHTML = m.errors.map(e => '<p class="muted">' + esc(e) + "</p>").join(""); return; }
+  const filt = acts.filter(a => Object.keys(actUI[a].filters).length || actUI[a].enCours).map(a => ACT_DEFS[a].name);
+  v.sub.textContent = "du " + fmtDate(from) + " au " + fmtDate(to) +
+    (filt.length ? " · filtres appliqués" + (single ? "" : " (" + filt.join(", ") + ")") : "");
+
+  const data = m.data, sel = m.sel;
   const hasCap = data.some(x => x.cap != null);
   const totL = data.reduce((a, x) => a + x.load, 0);
   const totC = data.reduce((a, x) => a + (x.cap || 0), 0);
+  const series = acts.length > 1 ? acts.map(a => ACT_DEFS[a].name) : null;
 
-  let notice = "";
-  if (!capLoaded) notice = "Aucun fichier de capacité chargé : seule la charge est affichée (Paramètres › Fichiers sources › Capacité de travail).";
-  else if (!sel.length) notice = "Aucun groupe / niveau de capacité choisi pour cette activité (Paramètres › Fichiers sources, colonne « Capacité »).";
+  const notices = m.errors.slice();
+  if (!m.capLoaded) notices.push("Aucun fichier de capacité chargé : seule la charge est affichée (Paramètres › Fichiers sources › Capacité de travail).");
+  else if (!sel.length) notices.push("Aucun groupe / niveau de capacité choisi pour " + (single ? "cette activité" : "les activités") + " (Paramètres › Fichiers sources, colonne « Capacité »).");
 
   let h = '<div class="chart-stats">' +
-    '<div class="chart-stat"><div class="v">' + fmtH(totL) + ' h</div><div class="l">Charge (Temps h)</div></div>' +
-    (hasCap ? '<div class="chart-stat"><div class="v">' + fmtH(totC) + ' h</div><div class="l">Capacité (Heure productivité)</div></div>' +
-      '<div class="chart-stat"><div class="v">' + (totC ? Math.round(totL / totC * 100) + " %" : "–") + '</div><div class="l">Taux de charge</div></div>' : "") +
-    "</div>";
-  if (notice) h += '<p class="muted small" style="margin:4px 0">' + esc(notice) + "</p>";
+    '<div class="chart-stat"><div class="v">' + fmtH(totL) + ' h</div><div class="l">Charge (Temps h)</div></div>';
+  if (series) series.forEach((n, j) => {
+    const t = data.reduce((a, x) => a + x.parts[j], 0);
+    h += '<div class="chart-stat"><div class="v">' + fmtH(t) + ' h</div><div class="l">' + esc(n) + "</div></div>";
+  });
+  if (hasCap) h += '<div class="chart-stat"><div class="v">' + fmtH(totC) + ' h</div><div class="l">Capacité (Heure productivité)</div></div>' +
+    '<div class="chart-stat"><div class="v">' + (totC ? Math.round(totL / totC * 100) + " %" : "–") + '</div><div class="l">Taux de charge</div></div>';
+  h += "</div>";
+  for (const n of notices) h += '<p class="muted small" style="margin:4px 0">' + esc(n) + "</p>";
   if (hasCap) h += '<div class="small muted" style="margin:0 0 4px">Capacité : ' + esc(sel.join(" ; ")) + "</div>";
-  h += '<div class="chart-legend"><span><span class="k-bar"></span>Charge (Temps h)</span>' +
+  h += '<div class="chart-legend">' + (series ? series.map((n, j) => '<span><span class="k-bar s' + j + '"></span>' + esc(n) + "</span>").join("")
+    : '<span><span class="k-bar"></span>Charge (Temps h)</span>') +
     (hasCap ? '<span><span class="k-line"></span>Capacité (Heure productivité)</span>' : "") + "</div>";
-  h += '<div class="chart-wrap"><svg id="chartSvg" role="img" aria-label="Charge et capacité"></svg><div class="chart-tip" id="chartTip"></div></div>';
-  body.innerHTML = h;
+  h += '<div class="chart-wrap"><svg class="chart-svg" role="img" aria-label="Charge et capacité"></svg><div class="chart-tip"></div></div>';
+  v.body.innerHTML = h;
 
   // ----- regroupement selon l'affichage choisi (jour, semaine, mois, année)
   const buckets = groupChartData(data, chartUI.gran);
-  drawChart($("chartSvg"), buckets, hasCap, chartUI.gran);
+  drawChart(v.body.querySelector(".chart-svg"), buckets, hasCap, chartUI.gran, series);
 }
+
+function renderChart() {
+  if (!chartOpen) return;
+  const def = ACT_DEFS[chartOpen];
+  $("chartTitle").textContent = def.name + " — charge et capacité " + GRANS[chartUI.gran].title;
+  renderChartView({ sub: $("chartSub"), gran: $("chartGran"), body: $("chartBody") }, [chartOpen], true);
+}
+
+function renderGlobal() {
+  if (!$("page-global").classList.contains("active")) return;
+  renderChartView({ sub: $("globalSub"), gran: $("globalGran"), body: $("globalBody") }, Object.keys(ACT_DEFS), false);
+}
+for (const btn of $("globalGran").children) btn.onclick = () => { chartUI.gran = btn.dataset.v; renderGlobal(); };
 
 const GRANS = {
   day: { label: "Jour", title: "par jour", key: d => localISO(d) },
@@ -2365,9 +2665,10 @@ function groupChartData(days, gran) {
   for (const x of days) {
     const k = GRANS[gran].key(x.d);
     let b = out.length && out[out.length - 1].k === k ? out[out.length - 1] : null;
-    if (!b) out.push(b = { k, d: x.d, last: x.d, load: 0, cap: x.cap == null ? null : 0, n: 0 });
+    if (!b) out.push(b = { k, d: x.d, last: x.d, load: 0, parts: x.parts.map(() => 0), cap: x.cap == null ? null : 0, n: 0 });
     b.last = x.d;
     b.load += x.load;
+    x.parts.forEach((v, j) => { b.parts[j] += v; });
     if (x.cap != null) b.cap = (b.cap || 0) + x.cap;
     b.n++;
   }
@@ -2381,7 +2682,7 @@ function groupChartData(days, gran) {
   return out;
 }
 
-function drawChart(svg, data, hasCap, gran) {
+function drawChart(svg, data, hasCap, gran, series) {
   const W = Math.max(480, svg.clientWidth || 900), H = Math.max(260, Math.min(420, innerHeight * 0.45));
   // Lignes de l'axe des dates : la première nomme chaque barre, les suivantes regroupent.
   const monthLabel = (d, w) => {
@@ -2428,11 +2729,21 @@ function drawChart(svg, data, hasCap, gran) {
   }
   g += '<text x="4" y="' + (M.t + 10) + '">h</text>';
   // Barres : bords arrondis côté valeur, ancrées sur la ligne de base.
+  // Plusieurs activités : barres empilées, seul le segment du haut est arrondi.
   data.forEach((x, i) => {
     if (x.load <= 0) return;
-    const x0 = xc(i) - bw / 2, y0 = y(x.load), hh = y(0) - y0, r = Math.min(4, bw / 2, hh);
-    g += '<path class="bar" data-i="' + i + '" d="M' + x0 + "," + y(0) + "V" + (y0 + r) + "Q" + x0 + "," + y0 + " " + (x0 + r) + "," + y0 +
-      "H" + (x0 + bw - r) + "Q" + (x0 + bw) + "," + y0 + " " + (x0 + bw) + "," + (y0 + r) + "V" + y(0) + 'Z"/>';
+    const x0 = xc(i) - bw / 2;
+    const parts = series ? x.parts : [x.load];
+    const topJ = parts.reduce((t, v, j) => v > 0 ? j : t, -1);
+    let base = 0;
+    parts.forEach((v, j) => {
+      if (v <= 0) return;
+      const yb = y(base), y0 = y(base + v), hh = yb - y0;
+      base += v;
+      const r = j === topJ ? Math.min(4, bw / 2, hh) : 0;
+      g += '<path class="bar' + (series ? " s" + j : "") + '" data-i="' + i + '" d="M' + x0 + "," + yb + "V" + (y0 + r) + "Q" + x0 + "," + y0 + " " + (x0 + r) + "," + y0 +
+        "H" + (x0 + bw - r) + "Q" + (x0 + bw) + "," + y0 + " " + (x0 + bw) + "," + (y0 + r) + "V" + yb + 'Z"/>';
+    });
   });
   if (hasCap) {
     g += '<polyline class="cap" points="' + data.map((x, i) => xc(i) + "," + y(x.cap || 0)).join(" ") + '"/>';
@@ -2468,16 +2779,16 @@ function drawChart(svg, data, hasCap, gran) {
   data.forEach((x, i) => {
     g += '<rect class="hit" data-i="' + i + '" x="' + xs(i) + '" y="' + M.t + '" width="' + band + '" height="' + ih + '"/>';
   });
-  g += '<line class="xhair" id="chartXhair" y1="' + M.t + '" y2="' + yBase + '" x1="0" x2="0"/>';
+  g += '<line class="xhair" y1="' + M.t + '" y2="' + yBase + '" x1="0" x2="0"/>';
   svg.setAttribute("viewBox", "0 0 " + W + " " + H);
   svg.setAttribute("height", H);
   svg.innerHTML = g;
-  bindChartHover(svg, data, hasCap, xc, W);
+  bindChartHover(svg, data, hasCap, xc, series);
 }
 
 // Valeurs du jour affichées immédiatement au survol (lecture de données, pas une bulle d'aide).
-function bindChartHover(svg, data, hasCap, xc, W) {
-  const tip = $("chartTip"), xh = $("chartXhair");
+function bindChartHover(svg, data, hasCap, xc, series) {
+  const tip = svg.parentElement.querySelector(".chart-tip"), xh = svg.querySelector(".xhair");
   let cur = -1;
   const mark = (i, on) => {
     for (const el of svg.querySelectorAll('[data-i="' + i + '"]')) {
@@ -2506,7 +2817,9 @@ function bindChartHover(svg, data, hasCap, xc, W) {
       const head = document.createElement("div");
       head.className = "tip-day";
       head.textContent = x.title;
-      tip.append(head, row("k-bar", fmtH(x.load) + " h", "Charge"));
+      tip.append(head);
+      if (series) series.forEach((n, j) => tip.append(row("k-bar s" + j, fmtH(x.parts[j]) + " h", n)));
+      tip.append(row(series ? "k-none" : "k-bar", fmtH(x.load) + " h", series ? "Charge totale" : "Charge"));
       if (hasCap) {
         tip.append(row("k-line", fmtH(x.cap) + " h", "Capacité"));
         const gap = x.cap - x.load;
@@ -2559,12 +2872,12 @@ function stateToWorkbook() {
   for (const [act, m] of Object.entries(state.assign)) for (const [doss, rid] of Object.entries(m)) aff.push([act, doss, rid, resourceName(rid)]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aff), "Affectations");
 
-  const gam = [["Id gamme", "Gamme", "Onglet des lignes", "Colonne dossier", "Colonne quantité"]];
+  const gam = [["Id gamme", "Gamme", "Onglet des lignes", "Colonne dossier", "Colonne quantité", "Découper par date", "Colonne d'exclusion", "Préfixe exclu"]];
   const tasks = [["Id gamme", "N°", "Affectation", "Tâche", "Tps (sec)"]];
   const calcs = [["Id gamme", "N° tâche", "Libellé", "Source", "Onglet", "Colonne", "Liaison (lignes)", "Liaison (source)"]];
   const vals = [["Id gamme", "N° tâche", "Valeur", "Tps (sec)"]];
   for (const g of state.gammes) {
-    gam.push([g.id, g.name, g.sheet, g.folderCol, g.qtyCol]);
+    gam.push([g.id, g.name, g.sheet, g.folderCol, g.qtyCol, g.splitCol || "", g.exclCol || "", g.exclPrefix || ""]);
     g.tasks.forEach((t, i) => {
       tasks.push([g.id, i + 1, t.a, t.name, t.a === "Calcul" ? "" : t.sec]);
       if (t.calc) {
@@ -2630,7 +2943,8 @@ function workbookToState(wb) {
     const vals = rowsOf("Gammes - Valeurs") || [];
     st.gammes = gam.filter(r => str(r[0])).map(r => {
       const id = str(r[0]);
-      const g = { id, name: str(r[1]), sheet: str(r[2]), folderCol: str(r[3]), qtyCol: str(r[4]), tasks: [] };
+      const g = { id, name: str(r[1]), sheet: str(r[2]), folderCol: str(r[3]), qtyCol: str(r[4]),
+        splitCol: str(r[5]), exclCol: str(r[6]), exclPrefix: str(r[7]), tasks: [] };
       for (const t of tasks.filter(t => str(t[0]) === id).sort((a, b) => num(a[1]) - num(b[1]))) {
         const task = { a: AFFECTATIONS.includes(str(t[2])) ? str(t[2]) : "Forfait", name: str(t[3]), sec: num(t[4]) };
         if (task.a === "Calcul") {
@@ -2647,7 +2961,7 @@ function workbookToState(wb) {
     });
     if (!st.gammes.length) st.gammes = clone(DEFAULT_STATE.gammes);
   }
-  return st;
+  return ensureActivityDefaults(st);
 }
 
 async function writeProject(handle) {
@@ -2813,6 +3127,7 @@ function showPage(id) {
   closeSettings();
   for (const t of document.querySelectorAll(".tab")) t.classList.toggle("active", t.dataset.page === id);
   for (const p of document.querySelectorAll(".page")) p.classList.toggle("active", p.id === "page-" + id);
+  renderGlobal();
 }
 
 function toggleFullscreen() {
