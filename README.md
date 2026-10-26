@@ -32,6 +32,8 @@ Sous le ruban, les onglets d'activité : **Prépa OF** (onglet affiché à l'ouv
 
 Laissez la souris **2 secondes** sur un bouton pour voir une bulle d'aide (nom, rôle, raccourci).
 
+**Adaptation à l'écran** : l'application s'ajuste à la taille de la fenêtre (grand écran, portable, tablette). Le tableau Prépa OF occupe toute la hauteur disponible et défile seul ; sur petit écran, le libellé « Période » est masqué, le menu des Paramètres passe au-dessus du contenu, et sur téléphone le logo et le bouton plein écran sont masqués.
+
 ## 3. Le classeur projet (.xlsx)
 
 Tout votre paramétrage est enregistré dans un **classeur Excel** dont vous choisissez l'emplacement.
