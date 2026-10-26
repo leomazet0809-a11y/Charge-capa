@@ -125,7 +125,8 @@ La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN d
 - **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là ;
 - **Courbe** : capacité du jour = somme des *Heure productivité* des groupes/niveaux choisis pour l'activité ;
 - tous les jours de la période du ruban (week-ends grisés) ; le graphique suit aussi les **filtres de colonnes** du tableau ;
-- en haut : charge totale, capacité totale, taux de charge ; laissez la souris 2 s sur un jour pour le détail ; « Valeurs par jour » affiche le tableau des chiffres.
+- en haut : charge totale, capacité totale, taux de charge ;
+- au survol d'une barre ou d'un point de la courbe, les valeurs du jour s'affichent **immédiatement** (charge, capacité, marge ou dépassement).
 
 Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
 

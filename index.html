@@ -462,9 +462,33 @@ table.tbl { width: 100%; border-collapse: collapse; }
 #chartSvg .cap { fill: none; stroke: var(--series-2); stroke-width: 2; stroke-linejoin: round; }
 #chartSvg .dot { fill: var(--series-2); stroke: var(--surface); stroke-width: 2; }
 #chartSvg .hit { fill: transparent; }
-#chartSvg .hit:hover { fill: color-mix(in srgb, var(--text) 6%, transparent); }
-.chart-table { margin-top: 12px; }
-.chart-table summary { cursor: pointer; color: var(--text-2); }
+#chartSvg .hit:hover { fill: color-mix(in srgb, var(--text) 5%, transparent); }
+#chartSvg .bar.on { fill: color-mix(in srgb, var(--series-1) 78%, var(--surface)); }
+#chartSvg .xhair { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; display: none; pointer-events: none; }
+#chartSvg .bar, #chartSvg .dot, #chartSvg .cap { pointer-events: none; }
+.chart-wrap { position: relative; }
+.chart-tip {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 8px 10px;
+  font-size: .9em;
+  min-width: 170px;
+  transition: opacity .08s;
+}
+.chart-tip.show { opacity: 1; }
+.chart-tip .tip-day { color: var(--text-2); margin-bottom: 4px; text-transform: capitalize; }
+.chart-tip .tip-row { display: flex; align-items: center; gap: 8px; line-height: 1.6; }
+.chart-tip .tip-row b { font-variant-numeric: tabular-nums; min-width: 70px; text-align: right; }
+.chart-tip .tip-row > span:last-child { color: var(--text-2); }
+.chart-tip .k-bar, .chart-tip .k-line, .chart-tip .k-none { display: inline-block; width: 14px; height: 2px; }
+.chart-tip .k-bar { background: var(--series-1); height: 3px; }
+.chart-tip .k-line { background: var(--series-2); }
 
 /* ---------- Bulles ---------- */
 .tip {
@@ -2083,13 +2107,7 @@ function renderChart() {
   if (hasCap) h += '<div class="small muted" style="margin:0 0 4px">Capacité : ' + esc(sel.join(" ; ")) + "</div>";
   h += '<div class="chart-legend"><span><span class="k-bar"></span>Charge (Temps h)</span>' +
     (hasCap ? '<span><span class="k-line"></span>Capacité (Heure productivité)</span>' : "") + "</div>";
-  h += '<svg id="chartSvg" role="img" aria-label="Charge et capacité par jour"></svg>';
-  h += '<details class="chart-table"><summary>Valeurs par jour</summary><div class="tbl-wrap" style="max-height:300px;margin-top:8px"><table class="tbl"><thead><tr>' +
-    '<th>Jour</th><th class="num">Charge (h)</th>' + (hasCap ? '<th class="num">Capacité (h)</th><th class="num">Écart (h)</th>' : "") + "</tr></thead><tbody>" +
-    data.map(x => "<tr><td>" + esc(x.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit", year: "numeric" })) + "</td>" +
-      '<td class="num">' + fmtH(x.load) + "</td>" +
-      (hasCap ? '<td class="num">' + fmtH(x.cap) + '</td><td class="num">' + fmtH(x.cap - x.load) + "</td>" : "") + "</tr>").join("") +
-    "</tbody></table></div></details>";
+  h += '<div class="chart-wrap"><svg id="chartSvg" role="img" aria-label="Charge et capacité par jour"></svg><div class="chart-tip" id="chartTip"></div></div>';
   body.innerHTML = h;
 
   // ----- dessin SVG
@@ -2117,12 +2135,12 @@ function renderChart() {
   data.forEach((x, i) => {
     if (x.load <= 0) return;
     const x0 = xc(i) - bw / 2, y0 = y(x.load), hh = y(0) - y0, r = Math.min(4, bw / 2, hh);
-    g += '<path class="bar" d="M' + x0 + "," + y(0) + "V" + (y0 + r) + "Q" + x0 + "," + y0 + " " + (x0 + r) + "," + y0 +
+    g += '<path class="bar" data-i="' + i + '" d="M' + x0 + "," + y(0) + "V" + (y0 + r) + "Q" + x0 + "," + y0 + " " + (x0 + r) + "," + y0 +
       "H" + (x0 + bw - r) + "Q" + (x0 + bw) + "," + y0 + " " + (x0 + bw) + "," + (y0 + r) + "V" + y(0) + 'Z"/>';
   });
   if (hasCap) {
     g += '<polyline class="cap" points="' + data.map((x, i) => xc(i) + "," + y(x.cap)).join(" ") + '"/>';
-    if (band >= 10) data.forEach((x, i) => { g += '<circle class="dot" cx="' + xc(i) + '" cy="' + y(x.cap) + '" r="4"/>'; });
+    if (band >= 10) data.forEach((x, i) => { g += '<circle class="dot" data-i="' + i + '" cx="' + xc(i) + '" cy="' + y(x.cap) + '" r="4"/>'; });
   }
   // Étiquettes de jours, espacées pour ne pas se chevaucher.
   const every = Math.max(1, Math.ceil(44 / band));
@@ -2131,16 +2149,70 @@ function renderChart() {
     g += '<text x="' + xc(i) + '" y="' + (H - M.b + 16) + '" text-anchor="middle">' +
       String(x.d.getDate()).padStart(2, "0") + "/" + String(x.d.getMonth() + 1).padStart(2, "0") + "</text>";
   });
-  // Zones de survol (une par jour, plus larges que la barre).
+  // Zones de survol : une par jour, sur toute la hauteur (plus larges que la barre et le point).
   data.forEach((x, i) => {
-    const day = x.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" });
-    const role = "Charge : " + fmtH(x.load) + " h" + (hasCap ? " · Capacité : " + fmtH(x.cap) + " h · Écart : " + fmtH(x.cap - x.load) + " h" : "");
-    g += '<rect class="hit" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + ih +
-      '" data-tip-name="' + esc(day) + '" data-tip-role="' + esc(role) + '"/>';
+    g += '<rect class="hit" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + ih + '"/>';
   });
+  g += '<line class="xhair" id="chartXhair" y1="' + M.t + '" y2="' + (M.t + ih) + '" x1="0" x2="0"/>';
   svg.setAttribute("viewBox", "0 0 " + W + " " + H);
   svg.setAttribute("height", H);
   svg.innerHTML = g;
+  bindChartHover(svg, data, hasCap, xc, W);
+}
+
+// Valeurs du jour affichées immédiatement au survol (lecture de données, pas une bulle d'aide).
+function bindChartHover(svg, data, hasCap, xc, W) {
+  const tip = $("chartTip"), xh = $("chartXhair");
+  let cur = -1;
+  const mark = (i, on) => {
+    for (const el of svg.querySelectorAll('[data-i="' + i + '"]')) {
+      el.classList.toggle("on", on);
+      if (el.tagName === "circle") el.setAttribute("r", on ? 6 : 4);
+    }
+  };
+  const row = (cls, value, label) => {
+    const r = document.createElement("div");
+    r.className = "tip-row";
+    const k = document.createElement("span"); k.className = cls;
+    const v = document.createElement("b"); v.textContent = value;
+    const l = document.createElement("span"); l.textContent = label;
+    r.append(k, v, l);
+    return r;
+  };
+  svg.onpointermove = e => {
+    const t = e.target.closest("[data-i]");
+    if (!t) return;
+    const i = Number(t.dataset.i), x = data[i];
+    if (i !== cur) {
+      if (cur >= 0) mark(cur, false);
+      mark(i, true);
+      cur = i;
+      tip.replaceChildren();
+      const head = document.createElement("div");
+      head.className = "tip-day";
+      head.textContent = x.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit", year: "numeric" });
+      tip.append(head, row("k-bar", fmtH(x.load) + " h", "Charge"));
+      if (hasCap) {
+        tip.append(row("k-line", fmtH(x.cap) + " h", "Capacité"));
+        const gap = x.cap - x.load;
+        tip.append(row("k-none", (gap >= 0 ? "+" : "") + fmtH(gap) + " h", gap >= 0 ? "Marge" : "Dépassement"));
+      }
+      xh.setAttribute("x1", xc(i)); xh.setAttribute("x2", xc(i));
+      xh.style.display = "block";
+    }
+    tip.classList.add("show");
+    const wrap = svg.parentElement.getBoundingClientRect();
+    const px = e.clientX - wrap.left, py = e.clientY - wrap.top;
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    tip.style.left = (px + 14 + tw > wrap.width ? px - tw - 14 : px + 14) + "px";
+    tip.style.top = Math.max(0, Math.min(py - th / 2, wrap.height - th)) + "px";
+  };
+  svg.onpointerleave = () => {
+    if (cur >= 0) mark(cur, false);
+    cur = -1;
+    tip.classList.remove("show");
+    xh.style.display = "none";
+  };
 }
 
 /* ================= Classeur projet (.xlsx) ================= */
