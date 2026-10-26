@@ -133,7 +133,7 @@ Liste des ressources (préparateurs, postes…) auxquelles l'ordonnanceur affect
 
 ## 5. Prépa OF
 
-**Graphique charge / capacité** : la petite icône de graphique à gauche du nom de l'onglet *Prépa OF* ouvre un panneau (Échap ou ✕ pour le fermer) :
+**Graphique charge / capacité** : le bouton de graphique placé à gauche du grand titre *Prépa OF* (dans la page) ouvre un panneau (Échap ou ✕ pour le fermer) :
 - **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là ;
 - **Courbe** : capacité du jour = somme des *Heure productivité* des groupes/niveaux choisis pour l'activité ;
 - tous les jours de la période du ruban (week-ends grisés) ; le graphique suit aussi les **filtres de colonnes** du tableau ;
