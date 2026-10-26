@@ -440,6 +440,12 @@ table.tbl { width: 100%; border-collapse: collapse; }
   box-shadow: var(--shadow), 0 20px 50px rgba(0, 0, 0, .25);
   padding: 16px 20px 20px;
 }
+#settingsModal { z-index: 790; }
+/* Le ruban reste utilisable (Enregistrer, Annuler, engrenage…) pendant que les Paramètres sont ouverts. */
+.ribbon { position: relative; z-index: 795; }
+.settings-box { height: 88vh; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.settings-box > .settings-layout { flex: 1 1 auto; overflow: auto; padding-bottom: 20px; }
+.settings-box .page-inner { max-width: none; }
 .modal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .chart-legend { display: flex; gap: 18px; align-items: center; margin: 4px 0 8px; color: var(--text-2); font-size: .92em; flex-wrap: wrap; }
 .chart-legend .k-bar { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--series-1); vertical-align: -1px; margin-right: 6px; }
@@ -565,7 +571,6 @@ table.tbl { width: 100%; border-collapse: collapse; }
 <nav class="tabs" id="tabs">
   <button class="tab active" data-page="prepa"><span class="tab-chart" data-chart="prepa-of"
     data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de Prépa OF"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg></span>Prépa OF</button>
-  <button class="tab right" data-page="settings">Paramètres</button>
 </nav>
 
 <main>
@@ -581,8 +586,24 @@ table.tbl { width: 100%; border-collapse: collapse; }
     <div id="prepaBody"></div>
   </section>
 
-  <section class="page" id="page-settings">
-    <h1>Paramètres</h1>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="box">
+    <svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
+    <span id="overlayText">Chargement…</span>
+  </div>
+</div>
+<div class="fpop" id="fpop"></div>
+<div class="modal" id="settingsModal">
+  <div class="modal-box settings-box" id="page-settings" role="dialog" aria-label="Paramètres">
+    <div class="modal-head">
+      <h2 style="margin:0;font-size:1.25em">Paramètres</h2>
+      <span class="spacer" style="flex:1"></span>
+      <button class="icon-btn" id="settingsClose" data-tip-name="Fermer" data-tip-role="Ferme la fenêtre des Paramètres" data-tip-key="Échap">
+        <svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
     <div class="settings-layout">
       <nav class="subnav" id="subnav">
         <button data-sub="general" class="on"
@@ -724,16 +745,8 @@ table.tbl { width: 100%; border-collapse: collapse; }
   </div>
       </div>
     </div>
-  </section>
-</main>
-
-<div class="overlay" id="overlay">
-  <div class="box">
-    <svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
-    <span id="overlayText">Chargement…</span>
   </div>
 </div>
-<div class="fpop" id="fpop"></div>
 <div class="modal" id="chartModal">
   <div class="modal-box">
     <div class="modal-head">
@@ -1408,7 +1421,7 @@ function openGamme(id) {
   currentGammeId = id;
   gammeView = "edit";
   render();
-  document.querySelector("main").scrollTop = 0;
+  document.querySelector("#page-settings .settings-layout").scrollTop = 0;
 }
 
 function renderCalcCard(g, t, i, lineSrc) {
@@ -1992,7 +2005,10 @@ function openFilter(key, anchor) {
 document.addEventListener("mousedown", e => {
   if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
 });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && fpopKey) closeFilter(); });
+document.addEventListener("keydown", e => {
+  // Échap ferme d'abord le menu de filtre, sans fermer la fenêtre qui le contient.
+  if (e.key === "Escape" && fpopKey) { closeFilter(); e.stopImmediatePropagation(); }
+});
 $("prepaClearFilters").onclick = () => { prepaUI.filters = {}; closeFilter(); renderPrepa(); };
 
 /* ---------- Graphique journalier charge / capacité ---------- */
@@ -2006,7 +2022,11 @@ function openChart(activity) {
 function closeChart() { chartOpen = null; $("chartModal").classList.remove("show"); hideTip(); }
 $("chartClose").onclick = closeChart;
 $("chartModal").addEventListener("mousedown", e => { if (e.target.id === "chartModal") closeChart(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape" && chartOpen && !fpopKey) closeChart(); });
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape" || fpopKey) return;
+  if (chartOpen) closeChart();
+  else if (settingsOpen()) closeSettings();
+});
 window.addEventListener("resize", () => { if (chartOpen) renderChart(); });
 
 function niceStep(max, n) {
@@ -2374,11 +2394,25 @@ function showSub(sub) {
   for (const b of $("subnav").children) b.classList.toggle("on", b.dataset.sub === sub);
   for (const p of document.querySelectorAll(".subpage")) p.classList.toggle("active", p.id === "page-" + sub);
 }
+// Les Paramètres s'ouvrent dans une fenêtre flottante au-dessus de l'activité affichée.
+function openSettings(sub) {
+  if (sub) showSub(sub);
+  $("settingsModal").classList.add("show");
+  $("btnSettings").classList.add("active");
+}
+function closeSettings() {
+  closeFilter();
+  hideTip();
+  $("settingsModal").classList.remove("show");
+  $("btnSettings").classList.remove("active");
+}
+function settingsOpen() { return $("settingsModal").classList.contains("show"); }
+
 function showPage(id) {
-  if (SETTINGS_SUBS.includes(id)) { showSub(id); id = "settings"; }
+  if (id === "settings" || SETTINGS_SUBS.includes(id)) return openSettings(SETTINGS_SUBS.includes(id) ? id : null);
+  closeSettings();
   for (const t of document.querySelectorAll(".tab")) t.classList.toggle("active", t.dataset.page === id);
   for (const p of document.querySelectorAll(".page")) p.classList.toggle("active", p.id === "page-" + id);
-  $("btnSettings").classList.toggle("active", id === "settings");
 }
 
 function toggleFullscreen() {
@@ -2397,7 +2431,8 @@ document.addEventListener("fullscreenchange", () => {
 $("btnUndo").onclick = undo;
 $("btnSave").onclick = save;
 $("btnFull").onclick = toggleFullscreen;
-$("btnSettings").onclick = () => showPage("settings");
+$("btnSettings").onclick = () => settingsOpen() ? closeSettings() : openSettings();
+$("settingsClose").onclick = closeSettings;
 $("btnOpen").onclick = openProject;
 $("btnNew").onclick = async () => {
   if (saveState === "dirty" && !confirm("Des modifications ne sont pas enregistrées. Les abandonner ?")) return;
@@ -2439,7 +2474,7 @@ document.addEventListener("keydown", e => {
   if (e.ctrlKey && !e.shiftKey && k === "s") { e.preventDefault(); save(); }
   else if (e.ctrlKey && !e.shiftKey && k === "z" && !e.target.matches("input, textarea")) { e.preventDefault(); undo(); }
   else if (e.ctrlKey && e.shiftKey && k === "f") { e.preventDefault(); toggleFullscreen(); }
-  else if (e.ctrlKey && k === ",") { e.preventDefault(); showPage("settings"); }
+  else if (e.ctrlKey && k === ",") { e.preventDefault(); settingsOpen() ? closeSettings() : openSettings(); }
 });
 
 window.addEventListener("beforeunload", e => {
