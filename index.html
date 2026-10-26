@@ -324,14 +324,22 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 .fpop .flist label.all { font-weight: 600; border-bottom: 1px solid var(--border); margin-bottom: 2px; padding-bottom: 5px; }
 .fpop .fbtns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 #page-prepa .tbl td, #page-prepa .tbl th { white-space: nowrap; padding: 5px 8px; }
+/* Colonne Ressource toujours visible à droite (Temps (h) défile avec les autres). */
 #page-prepa .tbl tr > :last-child {
   position: sticky;
   right: 0;
+  width: 180px;
+  min-width: 180px;
+  max-width: 180px;
   background: var(--surface);
   box-shadow: -1px 0 0 var(--border);
 }
+#page-prepa .tbl tbody tr > td:only-child { position: static; width: auto; max-width: none; box-shadow: none; }
 #page-prepa .tbl thead tr > :last-child { background: var(--surface-2); z-index: 2; }
 #page-prepa .tbl tfoot tr > :last-child { background: var(--surface-2); }
+.res-cell { padding-top: 2px !important; padding-bottom: 2px !important; }
+.res-sel { width: 100%; padding: 3px 6px; border-radius: 6px; }
+.res-sel:not(:disabled) { cursor: pointer; }
 .tbl tbody tr:hover td { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
 .tbl td.num, .tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .tbl tfoot td { background: var(--surface-2); font-weight: 600; }
@@ -692,6 +700,8 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
           data-tip-name="Fichiers sources" data-tip-role="Fichiers Excel ou CSV utilisés par chaque activité">Fichiers sources</button>
         <button data-sub="gammes"
           data-tip-name="Temps gammes" data-tip-role="Récapitulatif et modification des gammes de temps">Temps gammes</button>
+        <button data-sub="ressources"
+          data-tip-name="Ressources" data-tip-role="Liste des ressources (préparateurs, postes…) auxquelles affecter les dossiers">Ressources</button>
       </nav>
       <div class="subpages">
   <div class="subpage active" id="page-general">
@@ -794,6 +804,24 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
               <th class="act"></th>
             </tr>
           </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="subpage" id="page-ressources">
+    <h2 class="sub-title">Ressources</h2>
+    <div class="card">
+      <div class="toolbar">
+        <span class="muted">Liste proposée dans la colonne « Ressource » à droite du tableau Prépa OF, pour affecter chaque dossier.</span>
+        <span class="spacer"></span>
+        <button class="btn primary" id="btnAddResource"
+          data-tip-name="Ajouter une ressource" data-tip-role="Ajoute une ligne en bas de la liste">+ Ajouter une ressource</button>
+      </div>
+      <div class="tbl-wrap" style="max-width:720px">
+        <table class="tbl" id="tblResources">
+          <thead><tr><th class="num">N°</th><th>Ressource</th><th class="num">OF affectés</th><th class="act"></th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
@@ -921,7 +949,10 @@ const DEFAULT_STATE = {
   sources: [{ id: "s-prepa-of", label: "Charge de travail", activity: "prepa-of", gamme: "g-prepa-of", fileName: "", fileDate: null, loadedAt: null, cap: [] }],
   gammes: [defaultGammePrepa()],
   // Source unique de capacité de travail (Heure productivité par jour, groupe et niveau).
-  capacity: { fileName: "", fileDate: null, loadedAt: null }
+  capacity: { fileName: "", fileDate: null, loadedAt: null },
+  // Ressources (préparateurs, postes…) et affectation des dossiers : assign[activité][dossier] = id ressource.
+  resources: [],
+  assign: {}
 };
 const XLSX_TYPES = [{ description: "Classeur Excel", accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"] } }];
 const SOURCE_TYPES = [{ description: "Excel ou CSV", accept: {
@@ -951,7 +982,9 @@ function normalizeState(s) {
     settings: { ...d.settings, ...(s.settings || {}) },
     sources: Array.isArray(s.sources) ? s.sources : d.sources,
     gammes: Array.isArray(s.gammes) && s.gammes.length ? s.gammes : d.gammes,
-    capacity: { ...d.capacity, ...(s.capacity || {}) }
+    capacity: { ...d.capacity, ...(s.capacity || {}) },
+    resources: Array.isArray(s.resources) ? s.resources : [],
+    assign: s.assign && typeof s.assign === "object" ? s.assign : {}
   };
 }
 
@@ -1002,6 +1035,7 @@ function render() {
   renderSources();
   renderGammes();
   renderPrepa();
+  renderResources();
   if (fk) {
     const el = document.querySelector('[data-fk="' + CSS.escape(fk) + '"]');
     if (el) el.focus();
@@ -1108,6 +1142,65 @@ function sourceBadge(s) {
   const detail = Object.entries(d.sheets).map(([k, sh]) => k + " : " + fmtInt(sh.rows.length) + " lignes").join(" · ");
   return '<span class="badge ok" data-tip-name="Chargé" data-tip-role="' + esc(detail) + '">Chargé · ' + fmtInt(n) + " lignes</span>";
 }
+
+/* ================= Ressources ================= */
+function resourceName(id) {
+  const r = state.resources.find(x => x.id === id);
+  return r ? r.name : "";
+}
+function assignCount(id) {
+  let n = 0;
+  for (const m of Object.values(state.assign)) for (const v of Object.values(m)) if (v === id) n++;
+  return n;
+}
+
+function renderResources() {
+  const body = $("tblResources").tBodies[0];
+  if (!state.resources.length) {
+    body.innerHTML = '<tr><td colspan="4" class="muted">Aucune ressource. Cliquez sur « + Ajouter une ressource ».</td></tr>';
+    return;
+  }
+  body.innerHTML = state.resources.map((r, i) => "<tr>" +
+    '<td class="num muted">' + (i + 1) + "</td>" +
+    '<td><input type="text" data-f="res.name" data-rid="' + esc(r.id) + '" data-fk="res.name.' + esc(r.id) + '" value="' + esc(r.name) + '" placeholder="Nom de la ressource"></td>' +
+    '<td class="num">' + assignCount(r.id) + "</td>" +
+    '<td class="act">' +
+      '<button class="mini" data-act="r-up" data-i="' + i + '"' + (i === 0 ? " disabled" : "") + ' data-tip-name="Monter" data-tip-role="Déplace la ressource vers le haut de la liste">' + ICON.up + "</button>" +
+      '<button class="mini" data-act="r-down" data-i="' + i + '"' + (i === state.resources.length - 1 ? " disabled" : "") + ' data-tip-name="Descendre" data-tip-role="Déplace la ressource vers le bas de la liste">' + ICON.down + "</button>" +
+      '<button class="mini danger" data-act="r-del" data-i="' + i + '" data-tip-name="Supprimer la ressource" data-tip-role="Retire la ressource ; ses OF redeviennent non affectés">' + ICON.trash + "</button>" +
+    "</td></tr>").join("");
+}
+
+$("btnAddResource").onclick = () => {
+  const id = uid("r");
+  commit(st => st.resources.push({ id, name: "Ressource " + (st.resources.length + 1) }));
+  const el = document.querySelector('[data-fk="res.name.' + id + '"]');
+  if (el) { el.focus(); el.select(); }
+};
+$("tblResources").addEventListener("change", e => {
+  const el = e.target;
+  if (el.dataset.f !== "res.name") return;
+  const name = el.value.trim();
+  if (!name) { toast("Le nom de la ressource ne peut pas être vide.", true); renderResources(); return; }
+  commit(st => { st.resources.find(x => x.id === el.dataset.rid).name = name; });
+});
+$("tblResources").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]");
+  if (!b || b.disabled) return;
+  const i = Number(b.dataset.i);
+  if (b.dataset.act === "r-up" || b.dataset.act === "r-down") {
+    const k = b.dataset.act === "r-up" ? i - 1 : i + 1;
+    commit(st => { const R = st.resources; [R[i], R[k]] = [R[k], R[i]]; });
+  }
+  if (b.dataset.act === "r-del") {
+    const r = state.resources[i], n = assignCount(r.id);
+    if (!confirm("Supprimer la ressource « " + r.name + " » ?" + (n ? "\n" + n + " OF affecté(s) redeviendront non affectés." : ""))) return;
+    commit(st => {
+      st.resources.splice(i, 1);
+      for (const m of Object.values(st.assign)) for (const [k, v] of Object.entries(m)) if (v === r.id) delete m[k];
+    });
+  }
+});
 
 function renderSources() {
   const body = $("tblSources").tBodies[0];
@@ -1798,7 +1891,8 @@ const PREPA_COLUMNS = [
   { k: "bsm", t: "Bon de sortie matière" },
   { k: "manquants", t: "Manquants" },
   { k: "sortie2", t: "Date sortie 2", date: true },
-  { k: "heures", t: "Temps (h)", num: true }
+  { k: "heures", t: "Temps (h)", num: true },
+  { k: "ressource", t: "Ressource" }
 ];
 
 function localISO(d) {
@@ -1914,6 +2008,8 @@ function renderPrepaTable() {
   }
   const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
   const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
+  const assigned = state.assign[PREPA.activity] || {};
+  for (const x of res.list) x.ressource = resourceName(assigned[x.of]);
   const inRange = res.list.filter(x => x.debut && (!from || x.debut >= from) && (!to || x.debut <= to));
   prepaInRange = inRange;
   const rows = applyColumnFilters(inRange);
@@ -1969,12 +2065,17 @@ function renderPrepaTable() {
       '<td class="nowrap">' + fmtDate(x.sortie2) + "</td>" +
       '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
         (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && dt.unknown ? " ⚠" : "") + "</b></td>" +
+      '<td class="res-cell">' + resourceSelect(x.of, assigned[x.of]) + "</td>" +
       "</tr>";
   }
   if (!rows.length) h += '<tr><td colspan="' + PREPA_COLUMNS.length + '" class="muted">' +
     (inRange.length ? "Aucun OF ne correspond aux filtres." : "Aucun OF dont le Début opé est dans cette plage.") + "</td></tr>";
   h += "</tbody>";
-  if (rows.length) h += '<tfoot><tr><td colspan="' + (PREPA_COLUMNS.length - 1) + '">Total (' + fmtInt(rows.length) + ' OF)</td><td class="num">' + fmtHours(totalH * 3600) + "</td></tr></tfoot>";
+  if (rows.length) {
+    const nAff = rows.filter(x => x.ressource).length;
+    h += '<tfoot><tr><td colspan="' + (PREPA_COLUMNS.length - 2) + '">Total (' + fmtInt(rows.length) + ' OF)</td><td class="num">' + fmtHours(totalH * 3600) + "</td>" +
+      '<td class="res-cell muted">' + fmtInt(nAff) + " / " + fmtInt(rows.length) + " affectés</td></tr></tfoot>";
+  }
   $("prepaBody").innerHTML = h + "</table></div></div>";
 }
 
@@ -1998,6 +2099,26 @@ $("prepaBody").addEventListener("click", e => {
 /* ---------- Filtres de colonnes (type Excel) ---------- */
 let prepaInRange = [];
 let prepaRows = []; // lignes affichées (période + filtres), reprises par le graphique
+
+function resourceSelect(of, current) {
+  const known = state.resources.some(r => r.id === current);
+  return '<select class="res-sel" data-of="' + esc(of) + '" data-fk="assign.' + esc(of) + '"' +
+    (state.resources.length ? "" : ' disabled data-tip-name="Aucune ressource" data-tip-role="Créez la liste dans Paramètres › Ressources"') + ">" +
+    '<option value="">—</option>' +
+    state.resources.map(r => '<option value="' + esc(r.id) + '"' + (r.id === current ? " selected" : "") + ">" + esc(r.name) + "</option>").join("") +
+    (current && !known ? '<option value="" selected>(supprimée)</option>' : "") +
+    "</select>";
+}
+
+$("prepaBody").addEventListener("change", e => {
+  const el = e.target.closest(".res-sel");
+  if (!el) return;
+  const of = el.dataset.of, v = el.value;
+  commit(st => {
+    const m = st.assign[PREPA.activity] || (st.assign[PREPA.activity] = {});
+    if (v) m[of] = v; else delete m[of];
+  });
+});
 
 function cellText(c, x) {
   const v = x[c.k];
@@ -2410,6 +2531,11 @@ function stateToWorkbook() {
     [c.fileName, c.fileDate ? new Date(c.fileDate) : "", c.loadedAt ? new Date(c.loadedAt) : ""]
   ]), "Capacité");
 
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Id", "Ressource"]].concat(state.resources.map(r => [r.id, r.name]))), "Ressources");
+  const aff = [["Activité", "Dossier", "Id ressource", "Ressource"]];
+  for (const [act, m] of Object.entries(state.assign)) for (const [doss, rid] of Object.entries(m)) aff.push([act, doss, rid, resourceName(rid)]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aff), "Affectations");
+
   const gam = [["Id gamme", "Gamme", "Onglet des lignes", "Colonne dossier", "Colonne quantité"]];
   const tasks = [["Id gamme", "N°", "Affectation", "Tâche", "Tps (sec)"]];
   const calcs = [["Id gamme", "N° tâche", "Libellé", "Source", "Onglet", "Colonne", "Liaison (lignes)", "Liaison (source)"]];
@@ -2465,6 +2591,14 @@ function workbookToState(wb) {
   }
   const cap = rowsOf("Capacité");
   if (cap && cap[0]) st.capacity = { fileName: str(cap[0][0]), fileDate: ms(cap[0][1]), loadedAt: ms(cap[0][2]) };
+  const resRows = rowsOf("Ressources");
+  if (resRows) st.resources = resRows.filter(r => str(r[0]) && str(r[1])).map(r => ({ id: str(r[0]), name: str(r[1]) }));
+  const affRows = rowsOf("Affectations");
+  if (affRows) for (const r of affRows) {
+    const act = str(r[0]), doss = str(r[1]), rid = str(r[2]);
+    if (!act || !doss || !st.resources.some(x => x.id === rid)) continue;
+    (st.assign[act] || (st.assign[act] = {}))[doss] = rid;
+  }
 
   const gam = rowsOf("Gammes");
   if (gam) {
@@ -2632,7 +2766,7 @@ function toast(msg, err) {
 }
 
 // Fichiers sources et Temps gammes sont des sous-pages de Paramètres.
-const SETTINGS_SUBS = ["general", "sources", "gammes"];
+const SETTINGS_SUBS = ["general", "sources", "gammes", "ressources"];
 function showSub(sub) {
   for (const b of $("subnav").children) b.classList.toggle("on", b.dataset.sub === sub);
   for (const p of document.querySelectorAll(".subpage")) p.classList.toggle("active", p.id === "page-" + sub);
