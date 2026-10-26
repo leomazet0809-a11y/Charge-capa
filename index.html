@@ -999,9 +999,32 @@ function commit(mutator) {
   render();
 }
 
+// Les filtres du tableau s'annulent aussi, sans toucher au projet (ils ne sont pas enregistrés).
+function filtersSnapshot() {
+  return { filters: Object.fromEntries(Object.entries(prepaUI.filters).map(([k, v]) => [k, [...v]])), enCours: prepaUI.enCours };
+}
+function sameFilters(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+function changeFilters(mutator) {
+  const before = filtersSnapshot();
+  mutator();
+  if (sameFilters(before, filtersSnapshot())) return;
+  undoStack.push({ filters: before });
+  if (undoStack.length > 100) undoStack.shift();
+  $("btnUndo").disabled = false;
+}
+
 function undo() {
   if (!undoStack.length) return;
-  state = JSON.parse(undoStack.pop());
+  const last = undoStack.pop();
+  if (typeof last === "object") {
+    prepaUI.filters = Object.fromEntries(Object.entries(last.filters.filters).map(([k, v]) => [k, new Set(v)]));
+    prepaUI.enCours = last.filters.enCours;
+    closeFilter();
+    render();
+    toast("Filtre annulé");
+    return;
+  }
+  state = JSON.parse(last);
   cacheState();
   setSaveState("dirty");
   render();
@@ -1883,6 +1906,7 @@ const PREPA_COLUMNS = [
 function localISO(d) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 }
+function today0() { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); }
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 // Les dates Excel peuvent arriver décalées de quelques minutes : on arrondit au jour le plus proche.
 function dayOf(v) {
@@ -2041,7 +2065,9 @@ function renderPrepaTable() {
       "<td>" + esc(x.alloc) + "</td>" +
       "<td>" + esc(x.palette) + "</td>" +
       "<td>" + esc(x.statutOpe) + "</td>" +
-      '<td class="nowrap">' + fmtDate(x.debut) + "</td>" +
+      '<td class="nowrap">' + (x.debut && x.debut < today0()
+        ? '<span class="badge err" data-tip-name="Début opé dépassé" data-tip-role="Le Début opé de cet OF est antérieur à aujourd’hui">' + fmtDate(x.debut) + "</span>"
+        : fmtDate(x.debut)) + "</td>" +
       "<td>" + esc(x.type) + "</td>" +
       "<td>" + esc(x.fiche) + "</td>" +
       "<td>" + esc(x.bsm) + "</td>" +
@@ -2188,13 +2214,15 @@ function openFilter(key, anchor) {
     if (!b || b.disabled) return;
     const a = b.dataset.fa;
     if (a === "asc" || a === "desc") { prepaUI.sort = key; prepaUI.dir = a === "asc" ? 1 : -1; }
-    if (a === "clear") delete prepaUI.filters[key];
+    if (a === "clear") changeFilters(() => { delete prepaUI.filters[key]; });
     if (a === "ok") {
       const q = $("fsearch").value.trim();
       const keep = q ? visible.filter(v => checked.has(v)) : values.filter(v => checked.has(v));
       if (!keep.length) return toast("Cochez au moins une valeur.", true);
-      if (!q && keep.length === values.length) delete prepaUI.filters[key];
-      else prepaUI.filters[key] = new Set(keep);
+      changeFilters(() => {
+        if (!q && keep.length === values.length) delete prepaUI.filters[key];
+        else prepaUI.filters[key] = new Set(keep);
+      });
     }
     closeFilter();
     if (a !== "cancel") renderPrepa();
@@ -2218,8 +2246,10 @@ document.addEventListener("keydown", e => {
 $("prepaQuick").onclick = e => {
   const b = e.target.closest("[data-q]");
   if (!b) return;
-  if (b.dataset.q === "encours") prepaUI.enCours = !prepaUI.enCours;
-  else { prepaUI.enCours = false; prepaUI.filters = {}; }
+  changeFilters(() => {
+    if (b.dataset.q === "encours") prepaUI.enCours = !prepaUI.enCours;
+    else { prepaUI.enCours = false; prepaUI.filters = {}; }
+  });
   closeFilter();
   renderPrepa();
 };

@@ -145,6 +145,7 @@ Liste des ressources (préparateurs, postes…) auxquelles l'ordonnanceur affect
 Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
 
 - **Période** : elle se règle dans le ruban, en haut de page, et s'applique à toutes les activités. Par défaut du jour – 15 jours au jour + 30 jours (vraies dates). Modifiez-les librement ; le bouton calendrier ✓ remet la période par défaut.
+- **Annuler un filtre** : poser ou retirer un filtre (En cours, Tout, filtre de colonne) s'annule avec **Ctrl + Z** ou la flèche retour du ruban, comme les autres actions. Les filtres ne sont pas enregistrés dans le projet : les annuler ne le marque pas comme modifié.
 - **Boutons rapides** à droite du titre *Prépa OF* : **En cours** n'affiche que les OF dont le *Statut opé* n'est pas « Soldée » (re-cliquer pour l'enlever) ; **Tout** retire tous les filtres (En cours et filtres de colonnes). Le bouton actif est mis en évidence.
 - **Total** : le pied du tableau donne le nombre d'OF affichés (« filtrés sur N » si un filtre est actif), le total des heures et le nombre d'OF affectés.
 - **Tri** : cliquez sur un titre de colonne (re-cliquez pour inverser).
@@ -155,6 +156,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 |---|---|
 | Atelier | *Lot PF* commençant par **M** → Montage, **U** → Usinage / sous-traitance, sinon vide |
 | OF, Commande liée, Article PF, Qté PF, Statut allocation, Palette, Statut opé, Début opé, Type, Fiche suiveuse, Bon de sortie matière | Colonnes du même nom (onglet OF) |
+| Début opé (rappel) | Affiché en **pastille rouge** quand la date est antérieure à aujourd'hui (OF en retard) |
 | Type palette | **Cryo** si une opération de l'OF contient « degr » (Dégraissage…, majuscules et accents ignorés), sinon **Bois** |
 | Manquants | **Oui** si au moins une ligne de l'OF est marquée « Manquant » (ou « Oui » dans l'export), sinon **Non** |
 | Date sortie 2 | Plus ancienne *Date sortie 2* de l'OF (onglet OF - Opérations) |
