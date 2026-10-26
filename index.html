@@ -140,7 +140,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tab.right { margin-left: auto; }
 
-main { flex: 1 1 auto; overflow: auto; padding: 20px 16px 40px; }
+main { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 14px 16px 16px; }
 .page { display: none; max-width: 1400px; margin: 0 auto; }
 .page.active { display: block; }
 .settings-layout { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -171,7 +171,7 @@ main { flex: 1 1 auto; overflow: auto; padding: 20px 16px 40px; }
 .subpage.active { display: block; }
 .sub-title { font-size: 1.2em; margin: 4px 0 16px; }
 @media (max-width: 800px) {
-  .settings-layout { grid-template-columns: 1fr; }
+  .settings-layout { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 12px; }
   .subnav { position: static; flex-direction: row; flex-wrap: wrap; }
 }
 h1 { font-size: 1.45em; margin: 0 0 16px; font-weight: 700; }
@@ -252,7 +252,15 @@ table.tbl { width: 100%; border-collapse: collapse; }
 .tbl tr.clickable { cursor: pointer; }
 .tbl th.sort:hover { color: var(--text); }
 .tbl th.sort.on { color: var(--accent); }
-.tbl-wrap.tall { max-height: calc(100vh - 290px); }
+/* Prépa OF occupe toute la hauteur disponible ; seul le tableau défile. */
+main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: column; }
+#page-prepa.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; width: 100%; }
+.prepa-head { margin-bottom: 10px; }
+.prepa-head h1 { margin: 0; }
+#prepaBody { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+#prepaBody > .card.muted { flex: 0 0 auto; }
+.prepa-card { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0; margin-bottom: 0; overflow: hidden; }
+.tbl-wrap.tall { flex: 1 1 auto; min-height: 0; border: 0; border-radius: 12px; }
 #page-prepa { max-width: none; }
 #page-prepa .tbl { font-size: .92em; }
 .th-in { display: inline-flex; align-items: center; gap: 4px; }
@@ -440,11 +448,12 @@ table.tbl { width: 100%; border-collapse: collapse; }
   box-shadow: var(--shadow), 0 20px 50px rgba(0, 0, 0, .25);
   padding: 16px 20px 20px;
 }
-#settingsModal { z-index: 790; }
+/* La fenêtre des Paramètres commence sous le ruban, qui reste accessible. */
+#settingsModal { z-index: 790; top: 52px; }
 /* Le ruban reste utilisable (Enregistrer, Annuler, engrenage…) pendant que les Paramètres sont ouverts. */
 .ribbon { position: relative; z-index: 795; }
-.settings-box { height: 88vh; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
-.settings-box > .settings-layout { flex: 1 1 auto; overflow: auto; padding-bottom: 20px; }
+.settings-box { height: min(88vh, calc(100vh - 76px)); max-height: calc(100vh - 76px); display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
+.settings-box > .settings-layout { flex: 1 1 auto; overflow: auto; padding-bottom: 20px; align-content: start; }
 .settings-box .page-inner { max-width: none; }
 .modal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .chart-legend { display: flex; gap: 18px; align-items: center; margin: 4px 0 8px; color: var(--text-2); font-size: .92em; flex-wrap: wrap; }
@@ -493,6 +502,39 @@ table.tbl { width: 100%; border-collapse: collapse; }
 .chart-tip .k-bar, .chart-tip .k-line, .chart-tip .k-none { display: inline-block; width: 14px; height: 2px; }
 .chart-tip .k-bar { background: var(--series-1); height: 3px; }
 .chart-tip .k-line { background: var(--series-2); }
+
+/* ---------- Adaptation à l'écran ---------- */
+@media (max-width: 1100px) {
+  .range-label { display: none; }
+  .range input[type="date"] { width: 132px; }
+}
+@media (max-width: 820px) {
+  .ribbon { gap: 8px; padding: 0 10px; }
+  .range-sep { display: none; }
+  .range input[type="date"] { width: 118px; padding: 4px 4px; }
+  main { padding: 10px 8px 8px; }
+  h1 { font-size: 1.2em; }
+  .card { padding: 14px 12px; }
+  .modal-box { width: 98vw; max-height: 96vh; padding: 12px; }
+  .settings-box { height: calc(100vh - 60px); max-height: calc(100vh - 60px); }
+  .modal-head { flex-wrap: wrap; }
+  .row > label { min-width: 120px; }
+  .chart-stat { padding: 6px 10px; }
+}
+@media (max-width: 560px) {
+  .ribbon .filename { display: none; }
+  .tools { gap: 2px; }
+  .tools .group { padding: 1px; }
+  .icon-btn, .status { width: 32px; height: 32px; flex-basis: 32px; }
+  .range input[type="date"] { width: 104px; font-size: .85em; }
+  .tabs { padding: 0 8px; }
+}
+@media (max-width: 480px) {
+  .ribbon .logo, #btnFull { display: none; }
+  .ribbon { gap: 4px; padding: 0 6px; }
+  .range { gap: 2px; }
+  .range input[type="date"] { width: 96px; padding: 4px 2px; font-size: .8em; }
+}
 
 /* ---------- Bulles ---------- */
 .tip {
@@ -604,8 +646,8 @@ table.tbl { width: 100%; border-collapse: collapse; }
 <main>
 
   <section class="page active" id="page-prepa">
-    <h1>Prépa OF</h1>
-    <div class="toolbar">
+    <div class="toolbar prepa-head">
+      <h1>Prépa OF</h1>
       <button class="btn" id="prepaClearFilters" style="display:none"
         data-tip-name="Effacer les filtres" data-tip-role="Supprime les filtres de toutes les colonnes">Effacer les filtres</button>
       <span class="spacer"></span>
@@ -1872,7 +1914,7 @@ function renderPrepaTable() {
     (nManq ? '<span class="badge warn">' + nManq + " avec manquants</span>" : "");
 
   let h = res.warning ? '<div class="card muted">' + esc(res.warning) + "</div>" : "";
-  h += '<div class="card" style="padding:0"><div class="tbl-wrap tall" style="border:0"><table class="tbl"><thead><tr>' +
+  h += '<div class="card prepa-card"><div class="tbl-wrap tall"><table class="tbl"><thead><tr>' +
     PREPA_COLUMNS.map(c => '<th class="sort' + (c.num ? " num" : "") + (c.k === prepaUI.sort ? " on" : "") + '" data-sort="' + c.k + '"' +
       ' data-tip-name="' + esc(c.t) + '" data-tip-role="Cliquez pour trier sur cette colonne">' +
       '<span class="th-in">' + esc(c.t) + (c.k === prepaUI.sort ? (prepaUI.dir > 0 ? " ▲" : " ▼") : "") +
