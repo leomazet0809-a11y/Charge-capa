@@ -55,7 +55,7 @@ Si vous **fermez** l'onglet ou le navigateur avec des modifications non enregist
 
 ## 4. Paramètres
 
-La fenêtre **Paramètres** (engrenage du ruban ou Ctrl + ,) contient un menu à gauche : **Général**, **Fichiers sources** et **Temps gammes**.
+La fenêtre **Paramètres** (engrenage du ruban ou Ctrl + ,) contient un menu à gauche : **Général**, **Fichiers sources**, **Temps gammes** et **Ressources**.
 
 ### 4.1 Général
 
@@ -125,6 +125,13 @@ Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
 La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence.
 
+### 4.4 Ressources
+
+Liste des ressources (préparateurs, postes…) auxquelles l'ordonnanceur affecte les dossiers, librement paramétrable :
+- **+ Ajouter une ressource**, puis saisissez son nom ; les flèches changent l'ordre de la liste ;
+- la colonne **OF affectés** indique combien de dossiers sont affectés à chaque ressource ;
+- renommer une ressource met à jour toutes ses affectations ; la supprimer remet ses OF « non affectés » (après confirmation).
+
 ## 5. Prépa OF
 
 **Graphique charge / capacité** : la petite icône de graphique à gauche du nom de l'onglet *Prépa OF* ouvre un panneau (Échap ou ✕ pour le fermer) :
@@ -152,6 +159,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 | Manquants | **Oui** si au moins une ligne de l'OF est marquée « Manquant » (ou « Oui » dans l'export), sinon **Non** |
 | Date sortie 2 | Plus ancienne *Date sortie 2* de l'OF (onglet OF - Opérations) |
 | Temps (h) | Temps de préparation calculé avec la gamme (2 décimales) |
+| Ressource | **Colonne de saisie** (toujours visible à droite) : choisissez dans la liste la ressource à qui affecter l'OF, ou « — » pour retirer l'affectation. Le pied du tableau indique « n / N affectés ». |
 
 **Calcul du Temps (h)** pour un OF = somme des temps *Forfait* + somme des temps *Ligne* × nombre de lignes + somme des temps *Quantité* × total des *Qté besoin* + pour chaque tâche *Calcul* : Σ (Tps de la valeur de la ligne × *Qté besoin* de la ligne).
 Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes dont la valeur n'est pas dans le tableau de calcul (comptées 0 s).
