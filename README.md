@@ -47,7 +47,11 @@ Au lancement suivant, l'application propose de **reprendre le dernier projet** :
 
 ⚠ **Fermez le classeur projet dans Excel avant d'enregistrer** : Windows bloque l'écriture d'un fichier ouvert dans Excel. La pastille d'état passe alors en rouge ; fermez Excel et refaites Ctrl + S.
 
-Si vous fermez l'onglet avec des modifications non enregistrées, le navigateur vous prévient.
+**Rappel d'enregistrement** : si vous quittez l'application (autre onglet, autre fenêtre, navigateur réduit) alors que des modifications ne sont pas enregistrées, une fenêtre **« Modifications non enregistrées »** s'affiche à votre retour :
+- **Enregistrer** enregistre dans le classeur projet (ou demande où le créer s'il n'existe pas encore) ;
+- **Plus tard** (ou Échap) ferme le rappel ; il reviendra après une nouvelle modification.
+
+Si vous **fermez** l'onglet ou le navigateur avec des modifications non enregistrées, le navigateur affiche son propre avertissement « Quitter le site ? » (les navigateurs n'autorisent pas d'autre fenêtre à ce moment-là) : choisissez *Annuler* puis faites Ctrl + S.
 
 ## 4. Paramètres
 

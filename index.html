@@ -450,6 +450,16 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 }
 /* La fenêtre des Paramètres commence sous le ruban, qui reste accessible. */
 #settingsModal { z-index: 790; top: 52px; }
+#remindModal { z-index: 860; }
+.remind-box { width: min(440px, 92vw); text-align: center; padding: 22px 24px 18px; }
+.remind-box h2 { margin: 8px 0 6px; }
+.remind-box p { margin: 0 0 16px; }
+.remind-box .fbtns { justify-content: center; }
+.remind-icon {
+  width: 44px; height: 44px; margin: 0 auto; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--warn) 18%, var(--surface)); color: var(--warn);
+}
 /* Le ruban reste utilisable (Enregistrer, Annuler, engrenage…) pendant que les Paramètres sont ouverts. */
 .ribbon { position: relative; z-index: 795; }
 .settings-box { height: min(88vh, calc(100vh - 76px)); max-height: calc(100vh - 76px); display: flex; flex-direction: column; overflow: hidden; padding-bottom: 0; }
@@ -817,6 +827,19 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
     </div>
   </div>
 </div>
+<div class="modal" id="remindModal">
+  <div class="modal-box remind-box" role="alertdialog" aria-labelledby="remindTitle">
+    <div class="remind-icon">
+      <svg class="i" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    </div>
+    <h2 id="remindTitle">Modifications non enregistrées</h2>
+    <p id="remindText" class="muted"></p>
+    <div class="fbtns">
+      <button class="btn" id="remindLater" data-tip-name="Plus tard" data-tip-role="Ferme ce rappel ; il reviendra après une nouvelle modification">Plus tard</button>
+      <button class="btn primary" id="remindSave" data-tip-name="Enregistrer" data-tip-role="Enregistre le projet dans son classeur Excel" data-tip-key="Ctrl + S">Enregistrer</button>
+    </div>
+  </div>
+</div>
 <div class="modal" id="chartModal">
   <div class="modal-box">
     <div class="modal-head">
@@ -1009,6 +1032,7 @@ const STATUS = {
 };
 
 function setSaveState(s) {
+  if (s === "dirty") editVersion++;
   saveState = s;
   const el = $("saveStatus");
   el.dataset.state = s;
@@ -2101,6 +2125,7 @@ for (const btn of $("chartGran").children) btn.onclick = () => { chartUI.gran = 
 $("chartModal").addEventListener("mousedown", e => { if (e.target.id === "chartModal") closeChart(); });
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape" || fpopKey) return;
+  if ($("remindModal").classList.contains("show")) { $("remindLater").click(); return; }
   if (chartOpen) closeChart();
   else if (settingsOpen()) closeSettings();
 });
@@ -2696,8 +2721,56 @@ document.addEventListener("keydown", e => {
 });
 
 window.addEventListener("beforeunload", e => {
-  if (saveState === "dirty") { e.preventDefault(); e.returnValue = ""; }
+  if (saveState === "dirty" || saveState === "error") { e.preventDefault(); e.returnValue = ""; }
 });
+
+/* ---------- Rappel d'enregistrement au retour dans l'application ---------- */
+// Le navigateur interdit toute fenêtre personnalisée à la fermeture : quand on quitte
+// l'application (autre onglet, autre fenêtre, réduction) avec des modifications non
+// enregistrées, une fenêtre propose d'enregistrer au retour.
+let editVersion = 0;          // augmente à chaque modification
+let remindDismissed = -1;     // version pour laquelle « Plus tard » a été choisi
+let leftWithChanges = false;
+let nativeDialogs = 0;        // sélecteurs de fichiers et confirmations ouverts par l'application
+
+const hasUnsaved = () => saveState === "dirty" || saveState === "error";
+function markLeave() {
+  if (!nativeDialogs && hasUnsaved()) leftWithChanges = true;
+}
+function checkReturn() {
+  if (!leftWithChanges || document.visibilityState !== "visible") return;
+  leftWithChanges = false;
+  if (hasUnsaved() && remindDismissed !== editVersion) openSaveReminder();
+}
+document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" ? markLeave() : checkReturn());
+window.addEventListener("blur", markLeave);
+window.addEventListener("focus", checkReturn);
+
+// Les fenêtres du navigateur ouvertes par l'application ne comptent pas comme un départ.
+for (const name of ["confirm", "prompt", "alert", "showOpenFilePicker", "showSaveFilePicker"]) {
+  const orig = window[name];
+  if (typeof orig !== "function") continue;
+  window[name] = function (...args) {
+    nativeDialogs++;
+    let r;
+    try { r = orig.apply(window, args); } catch (e) { nativeDialogs--; throw e; }
+    if (r && typeof r.then === "function") return r.finally(() => setTimeout(() => nativeDialogs--, 300));
+    setTimeout(() => nativeDialogs--, 300);
+    return r;
+  };
+}
+
+function openSaveReminder() {
+  $("remindText").textContent = projectHandle
+    ? "Le projet « " + projectHandle.name + " » contient des modifications qui ne sont pas encore enregistrées."
+    : "Ce projet n'a pas encore de classeur : choisissez où l'enregistrer pour ne pas perdre vos réglages.";
+  $("remindSave").textContent = projectHandle ? "Enregistrer" : "Enregistrer sous…";
+  $("remindModal").classList.add("show");
+  $("remindSave").focus();
+}
+function closeSaveReminder() { $("remindModal").classList.remove("show"); }
+$("remindLater").onclick = () => { remindDismissed = editVersion; closeSaveReminder(); };
+$("remindSave").onclick = async () => { closeSaveReminder(); await save(); };
 
 /* ================= Démarrage ================= */
 (async function init() {
