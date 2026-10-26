@@ -257,6 +257,7 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
 #page-prepa.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; width: 100%; }
 .prepa-head { margin-bottom: 10px; }
 .prepa-head h1 { margin: 0; }
+.quick-filters button { font-weight: 500; }
 #prepaBody { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 #prepaBody > .card.muted { flex: 0 0 auto; }
 .prepa-card { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0; margin-bottom: 0; overflow: hidden; }
@@ -666,10 +667,12 @@ main:has(#page-prepa.active) { overflow: hidden; display: flex; flex-direction: 
   <section class="page active" id="page-prepa">
     <div class="toolbar prepa-head">
       <h1>Prépa OF</h1>
-      <button class="btn" id="prepaClearFilters" style="display:none"
-        data-tip-name="Effacer les filtres" data-tip-role="Supprime les filtres de toutes les colonnes">Effacer les filtres</button>
-      <span class="spacer"></span>
-      <span id="prepaSummary"></span>
+      <div class="segmented quick-filters" id="prepaQuick">
+        <button data-q="encours"
+          data-tip-name="En cours" data-tip-role="Affiche seulement les OF dont le Statut opé n'est pas « Soldée »">En cours</button>
+        <button data-q="tout"
+          data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
+      </div>
     </div>
     <div id="prepaBody"></div>
   </section>
@@ -1910,7 +1913,9 @@ function fmtDate(d) { return d ? d.toLocaleDateString("fr-FR") : ""; }
 function fmtHours(sec) { return (sec / 3600).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 // filters[colonne] = Set des valeurs affichées conservées (comme les cases à cocher d'Excel).
-const prepaUI = { from: localISO(addDays(new Date(), -15)), to: localISO(addDays(new Date(), 30)), sort: "debut", dir: 1, filters: {} };
+// enCours = filtre rapide « Statut opé différent de Soldée », appliqué avant les filtres de colonnes.
+const prepaUI = { from: localISO(addDays(new Date(), -15)), to: localISO(addDays(new Date(), 30)), sort: "debut", dir: 1, filters: {}, enCours: false };
+const isSoldee = x => stripAccents(x.statutOpe) === "soldee";
 const EMPTY_LABEL = "(Vides)";
 let prepaCache = { key: null, list: null, error: null };
 
@@ -2002,7 +2007,6 @@ function renderPrepaTable() {
   $("prepaTo").value = prepaUI.to;
   const res = prepaList();
   if (res.error) {
-    $("prepaSummary").innerHTML = "";
     $("prepaBody").innerHTML = '<div class="card placeholder muted">' + esc(res.error) + "</div>";
     return;
   }
@@ -2010,12 +2014,15 @@ function renderPrepaTable() {
   const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
   const assigned = state.assign[PREPA.activity] || {};
   for (const x of res.list) x.ressource = resourceName(assigned[x.of]);
-  const inRange = res.list.filter(x => x.debut && (!from || x.debut >= from) && (!to || x.debut <= to));
+  const inPeriod = res.list.filter(x => x.debut && (!from || x.debut >= from) && (!to || x.debut <= to));
+  const inRange = prepaUI.enCours ? inPeriod.filter(x => !isSoldee(x)) : inPeriod;
   prepaInRange = inRange;
   const rows = applyColumnFilters(inRange);
   prepaRows = rows;
-  const nFilters = Object.keys(prepaUI.filters).length;
-  $("prepaClearFilters").style.display = nFilters ? "" : "none";
+  const nFilters = Object.keys(prepaUI.filters).length + (prepaUI.enCours ? 1 : 0);
+  for (const b of $("prepaQuick").children) {
+    b.classList.toggle("on", b.dataset.q === "encours" ? prepaUI.enCours : !nFilters);
+  }
   const col = PREPA_COLUMNS.find(c => c.k === prepaUI.sort) || PREPA_COLUMNS[9];
   rows.sort((a, b) => {
     const va = a[col.k], vb = b[col.k];
@@ -2027,11 +2034,6 @@ function renderPrepaTable() {
   });
 
   const totalH = rows.reduce((a, x) => a + (x.heures || 0), 0);
-  const nManq = rows.filter(x => x.manquants === "Oui").length;
-  $("prepaSummary").innerHTML =
-    '<span class="badge off">' + fmtInt(rows.length) + " OF" + (nFilters ? " (filtrés sur " + fmtInt(inRange.length) + ")" : "") + "</span> " +
-    '<span class="badge ok">' + fmtHours(totalH * 3600) + " h</span> " +
-    (nManq ? '<span class="badge warn">' + nManq + " avec manquants</span>" : "");
 
   let h = res.warning ? '<div class="card muted">' + esc(res.warning) + "</div>" : "";
   h += '<div class="card prepa-card"><div class="tbl-wrap tall"><table class="tbl"><thead><tr>' +
@@ -2069,11 +2071,11 @@ function renderPrepaTable() {
       "</tr>";
   }
   if (!rows.length) h += '<tr><td colspan="' + PREPA_COLUMNS.length + '" class="muted">' +
-    (inRange.length ? "Aucun OF ne correspond aux filtres." : "Aucun OF dont le Début opé est dans cette plage.") + "</td></tr>";
+    (inPeriod.length ? "Aucun OF ne correspond aux filtres." : "Aucun OF dont le Début opé est dans cette plage.") + "</td></tr>";
   h += "</tbody>";
   if (rows.length) {
     const nAff = rows.filter(x => x.ressource).length;
-    h += '<tfoot><tr><td colspan="' + (PREPA_COLUMNS.length - 2) + '">Total (' + fmtInt(rows.length) + ' OF)</td><td class="num">' + fmtHours(totalH * 3600) + "</td>" +
+    h += '<tfoot><tr><td colspan="' + (PREPA_COLUMNS.length - 2) + '">Total (' + fmtInt(rows.length) + " OF" + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ')</td><td class="num">' + fmtHours(totalH * 3600) + "</td>" +
       '<td class="res-cell muted">' + fmtInt(nAff) + " / " + fmtInt(rows.length) + " affectés</td></tr></tfoot>";
   }
   $("prepaBody").innerHTML = h + "</table></div></div>";
@@ -2230,7 +2232,14 @@ document.addEventListener("keydown", e => {
   // Échap ferme d'abord le menu de filtre, sans fermer la fenêtre qui le contient.
   if (e.key === "Escape" && fpopKey) { closeFilter(); e.stopImmediatePropagation(); }
 });
-$("prepaClearFilters").onclick = () => { prepaUI.filters = {}; closeFilter(); renderPrepa(); };
+$("prepaQuick").onclick = e => {
+  const b = e.target.closest("[data-q]");
+  if (!b) return;
+  if (b.dataset.q === "encours") prepaUI.enCours = !prepaUI.enCours;
+  else { prepaUI.enCours = false; prepaUI.filters = {}; }
+  closeFilter();
+  renderPrepa();
+};
 
 /* ---------- Graphique journalier charge / capacité ---------- */
 let chartOpen = null; // id de l'activité dont le graphique est affiché
@@ -2281,7 +2290,8 @@ function renderChart() {
   const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
   if (!from || !to || to < from) { body.innerHTML = '<p class="muted">Choisissez une période valide dans le ruban.</p>'; return; }
   const nFilters = Object.keys(prepaUI.filters).length;
-  $("chartSub").textContent = "du " + fmtDate(from) + " au " + fmtDate(to) + (nFilters ? " · " + nFilters + " filtre(s) de colonne appliqué(s)" : "");
+  $("chartSub").textContent = "du " + fmtDate(from) + " au " + fmtDate(to) + (prepaUI.enCours ? " · OF en cours" : "") +
+    (nFilters ? " · " + nFilters + " filtre(s) de colonne appliqué(s)" : "");
 
   const src = state.sources.find(s => s.activity === chartOpen && s.fileName);
   const sel = (src && src.cap) || [];

@@ -146,9 +146,10 @@ Liste des ressources (préparateurs, postes…) auxquelles l'ordonnanceur affect
 Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
 
 - **Période** : elle se règle dans le ruban, en haut de page, et s'applique à toutes les activités. Par défaut du jour – 15 jours au jour + 30 jours (vraies dates). Modifiez-les librement ; le bouton calendrier ✓ remet la période par défaut.
-- **Résumé** (à droite) : nombre d'OF, total d'heures, nombre d'OF avec manquants.
+- **Boutons rapides** à droite du titre *Prépa OF* : **En cours** n'affiche que les OF dont le *Statut opé* n'est pas « Soldée » (re-cliquer pour l'enlever) ; **Tout** retire tous les filtres (En cours et filtres de colonnes). Le bouton actif est mis en évidence.
+- **Total** : le pied du tableau donne le nombre d'OF affichés (« filtrés sur N » si un filtre est actif), le total des heures et le nombre d'OF affectés.
 - **Tri** : cliquez sur un titre de colonne (re-cliquez pour inverser).
-- **Filtres comme dans Excel** : le petit entonnoir à droite de chaque titre ouvre un menu avec le tri, une zone *Rechercher* et la liste des valeurs à cocher (« (Sélectionner tout) », « (Vides) » pour les cases vides). La liste ne montre que les valeurs encore présentes avec les autres filtres. L'entonnoir devient bleu quand un filtre est actif ; **Effacer les filtres** (en haut) les supprime tous. Le résumé indique alors « n OF (filtrés sur N) ».
+- **Filtres comme dans Excel** : le petit entonnoir à droite de chaque titre ouvre un menu avec le tri, une zone *Rechercher* et la liste des valeurs à cocher (« (Sélectionner tout) », « (Vides) » pour les cases vides). La liste ne montre que les valeurs encore présentes avec les autres filtres. L'entonnoir devient bleu quand un filtre est actif ; le bouton **Tout** (en haut) les supprime tous.
 - Le tableau se lit dans le fichier source de l'activité *Prépa OF* (onglets `OF` et `OF - Opérations`) : chargez-le d'abord dans **Paramètres › Fichiers sources**.
 
 | Colonne | Origine |
