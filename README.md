@@ -28,7 +28,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
-Sous le ruban, les onglets d'activité : **Prépa OF** (onglet affiché à l'ouverture). Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, qui s'ouvre uniquement avec l'**engrenage** du ruban (ou Ctrl + ,) ; cliquez sur l'onglet **Prépa OF** pour revenir.
+Sous le ruban, les onglets d'activité : **Prépa OF** (onglet affiché à l'ouverture). Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
 Laissez la souris **2 secondes** sur un bouton pour voir une bulle d'aide (nom, rôle, raccourci).
 
@@ -49,7 +49,7 @@ Si vous fermez l'onglet avec des modifications non enregistrées, le navigateur 
 
 ## 4. Paramètres
 
-**Paramètres** (engrenage du ruban ou Ctrl + ,) contient un menu à gauche : **Général**, **Fichiers sources** et **Temps gammes**.
+La fenêtre **Paramètres** (engrenage du ruban ou Ctrl + ,) contient un menu à gauche : **Général**, **Fichiers sources** et **Temps gammes**.
 
 ### 4.1 Général
 
