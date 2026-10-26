@@ -21,6 +21,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Élément | Rôle | Raccourci |
 |---|---|---|
 | Logo + nom en gras | Nom du classeur projet ouvert | – |
+| Période (Du → Au) | Plage de dates commune à toutes les activités ; le bouton calendrier remet la période par défaut (J – 15 à J + 30) | – |
 | Pastille d'état | ✔ vert : enregistré · ● orange : modifications non enregistrées · ⟳ : enregistrement en cours · ⚠ rouge : échec | – |
 | Flèche retour | Annule la dernière modification | Ctrl + Z |
 | Disquette | Enregistre le projet | Ctrl + S |
@@ -115,7 +116,7 @@ La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN d
 
 Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
 
-- **Plage de dates** : par défaut du jour – 15 jours au jour + 30 jours (vraies dates). Modifiez-les librement ; **Plage par défaut** les remet.
+- **Période** : elle se règle dans le ruban, en haut de page, et s'applique à toutes les activités. Par défaut du jour – 15 jours au jour + 30 jours (vraies dates). Modifiez-les librement ; le bouton calendrier ✓ remet la période par défaut.
 - **Résumé** (à droite) : nombre d'OF, total d'heures, nombre d'OF avec manquants.
 - **Tri** : cliquez sur un titre de colonne (re-cliquez pour inverser).
 - **Filtres comme dans Excel** : le petit entonnoir à droite de chaque titre ouvre un menu avec le tri, une zone *Rechercher* et la liste des valeurs à cocher (« (Sélectionner tout) », « (Vides) » pour les cases vides). La liste ne montre que les valeurs encore présentes avec les autres filtres. L'entonnoir devient bleu quand un filtre est actif ; **Effacer les filtres** (en haut) les supprime tous. Le résumé indique alors « n OF (filtrés sur N) ».
