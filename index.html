@@ -282,8 +282,8 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px 6px; flex-wrap: wrap; }
 .cap-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 0 12px 8px; color: var(--text-2); border-bottom: 1px solid var(--border); }
 .cap-legend .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-:root { --cap-aff: #c0c0c0; --cap-rest: #cfeec9; --cap-over: #ff0000; }
-:root[data-theme="dark"] { --cap-aff: #8a8f98; --cap-rest: #3f7a4a; --cap-over: #ff2a2a; }
+:root { --cap-aff: #cfeec9; --cap-rest: #c0c0c0; --cap-over: #ff0000; }
+:root[data-theme="dark"] { --cap-aff: #3f7a4a; --cap-rest: #8a8f98; --cap-over: #ff2a2a; }
 .k-aff { background: var(--cap-aff); }
 .k-rest { background: var(--cap-rest); }
 .k-over { background: var(--cap-over); }
@@ -292,7 +292,7 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-scroll { overflow-x: auto; }
 .cap-svg { display: block; }
 .cap-svg text { fill: var(--text-2); font-size: 11px; font-family: var(--font); }
-.cap-svg text.who { fill: var(--text); font-size: 11.5px; }
+.cap-svg text.who { fill: var(--text); font-size: 9.5px; }
 .cap-svg text.who.over { fill: var(--cap-over); font-weight: 600; }
 .cap-svg .grid { stroke: var(--border); stroke-width: 1; }
 .cap-svg .axis { stroke: var(--text-2); stroke-width: 1; }
@@ -893,8 +893,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
           data-tip-name="Fichiers sources" data-tip-role="Fichiers Excel ou CSV utilisés par chaque activité">Fichiers sources</button>
         <button data-sub="gammes"
           data-tip-name="Temps gammes" data-tip-role="Récapitulatif et modification des gammes de temps">Temps gammes</button>
-        <button data-sub="ressources"
-          data-tip-name="Ressources" data-tip-role="Liste des ressources (préparateurs, postes…) auxquelles affecter les dossiers">Ressources</button>
       </nav>
       <div class="subpages">
   <div class="subpage active" id="page-general">
@@ -1015,22 +1013,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
     </div>
   </div>
 
-  <div class="subpage" id="page-ressources">
-    <h2 class="sub-title">Ressources</h2>
-    <div class="card">
-      <div class="toolbar">
-        <span class="muted">Liste proposée dans la colonne « Affectation » des tableaux d’activité (liste déroulante et complétion de la saisie), pour affecter chaque dossier.</span>
-        <span class="spacer"></span>
-        <button class="btn primary" id="btnAddResource"
-          data-tip-name="Ajouter une ressource" data-tip-role="Ajoute une ligne en bas de la liste">+ Ajouter une ressource</button>
-      </div>
-      <div class="tbl-wrap" style="max-width:720px">
-        <table class="tbl" id="tblResources">
-          <thead><tr><th class="num">N°</th><th>Ressource</th><th class="num">OF affectés</th><th class="act"></th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
   </div>
 
   <div class="subpage" id="page-gammes">
@@ -1222,7 +1204,7 @@ const DEFAULT_STATE = {
   // Source unique de capacité de travail (Heure productivité par jour, groupe et niveau).
   capacity: { fileName: "", fileDate: null, loadedAt: null },
   // Ressources (préparateurs, postes…) et affectation des dossiers : assign[activité][dossier] = id ressource.
-  resources: [],
+  resources: [], // ancienne liste paramétrée : convertie en noms au chargement (voir migrateResources)
   assign: {},
   // Dates d'affectation modifiées à la main : planned[activité][dossier] = "AAAA-MM-JJ" (sinon date due − délai).
   planned: {}
@@ -1248,11 +1230,20 @@ function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
 function uid(prefix) { return prefix + "-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
+// Les affectations désignent désormais une personne par son nom (fichier de capacité) : les anciens identifiants
+// de la liste Paramètres › Ressources sont remplacés par le nom correspondant.
+function migrateResources(st) {
+  const R = new Map((st.resources || []).map(r => [r.id, r.name]));
+  if (R.size) for (const m of Object.values(st.assign || {})) for (const [k, v] of Object.entries(m)) if (R.has(v)) m[k] = R.get(v);
+  st.resources = [];
+  return st;
+}
+
 // Complète un état incomplet (ancien cache, classeur d'une version précédente).
 function normalizeState(s) {
   const d = clone(DEFAULT_STATE);
   if (!s || typeof s !== "object") return d;
-  return ensureActivityDefaults({
+  return migrateResources(ensureActivityDefaults({
     settings: { ...d.settings, ...(s.settings || {}), leadDays: { ...d.settings.leadDays, ...((s.settings || {}).leadDays || {}) } },
     sources: Array.isArray(s.sources) ? s.sources : d.sources,
     gammes: Array.isArray(s.gammes) && s.gammes.length ? s.gammes : d.gammes,
@@ -1260,7 +1251,7 @@ function normalizeState(s) {
     resources: Array.isArray(s.resources) ? s.resources : [],
     assign: s.assign && typeof s.assign === "object" ? s.assign : {},
     planned: s.planned && typeof s.planned === "object" ? s.planned : {}
-  });
+  }));
 }
 
 function loadCachedState() {
@@ -1336,6 +1327,7 @@ function applyAppearance() {
   document.documentElement.style.setProperty("--font-size", s.fontSize + "px");
 }
 
+let restoringFocus = false;
 function render() {
   // Garde le focus sur le champ en cours de saisie malgré la reconstruction des tableaux.
   const fk = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.fk : null;
@@ -1343,10 +1335,15 @@ function render() {
   renderSources();
   renderGammes();
   renderPrepa();
-  renderResources();
   if (fk) {
     const el = document.querySelector('[data-fk="' + CSS.escape(fk) + '"]');
-    if (el) el.focus();
+    // Remise du focus après un nouvel affichage : ne rouvre pas la liste déroulante de la case.
+    if (el) { restoringFocus = true; el.focus(); restoringFocus = false; }
+  }
+  // La liste déroulante d'une case Affectation n'a de sens que si cette case garde le focus.
+  if (fpopKey && fpopKey.includes(":dd:")) {
+    const a = document.activeElement;
+    if (!(a && a.classList.contains("res-in") && fpopKey.endsWith(":dd:" + a.dataset.id))) closeFilter();
   }
   const s = state.settings;
   for (const b of $("themeSeg").children) b.classList.toggle("on", b.dataset.v === s.theme);
@@ -1472,64 +1469,32 @@ function sourceBadgeMain(s, d) {
   return '<span class="badge ok" data-tip-name="Chargé" data-tip-role="' + esc(detail) + '">Chargé · ' + fmtInt(n) + " lignes</span>";
 }
 
-/* ================= Ressources ================= */
+/* ================= Ressources (personnes du fichier de capacité) ================= */
+// Ancienne liste paramétrée (projets antérieurs) : ne sert plus qu'à convertir les affectations en noms.
 function resourceName(id) {
-  const r = state.resources.find(x => x.id === id);
+  const r = (state.resources || []).find(x => x.id === id);
   return r ? r.name : "";
 }
-function assignCount(id) {
-  let n = 0;
-  for (const m of Object.values(state.assign)) for (const v of Object.values(m)) if (v === id) n++;
-  return n;
+// Noms des personnes du fichier de capacité ; pour une activité, ceux de ses groupes / niveaux de capacité (tous si aucun choisi).
+let capNamesCache = null;
+function capacityNames(act) {
+  const cap = srcData[CAP_ID] && srcData[CAP_ID].cap;
+  if (!cap || !cap.hasNames) return [];
+  const src = act ? state.sources.find(x => x.activity === act) : null;
+  const sel = (src && src.cap) || [];
+  const key = act + "|" + sel.join(";");
+  if (!capNamesCache || capNamesCache.cap !== cap) capNamesCache = { cap, lists: {} };
+  if (capNamesCache.lists[key]) return capNamesCache.lists[key];
+  const names = new Map();
+  for (const pm of cap.byPerson.values()) for (const [k, o] of pm) {
+    if (names.has(k)) continue;
+    if (sel.length && ![...o.keys].some(x => sel.includes(x))) continue;
+    names.set(k, o.name);
+  }
+  const list = [...names.values()].sort((a, b) => a.localeCompare(b, "fr"));
+  capNamesCache.lists[key] = list;
+  return list;
 }
-
-function renderResources() {
-  const body = $("tblResources").tBodies[0];
-  if (!state.resources.length) {
-    body.innerHTML = '<tr><td colspan="4" class="muted">Aucune ressource. Cliquez sur « + Ajouter une ressource ».</td></tr>';
-    return;
-  }
-  body.innerHTML = state.resources.map((r, i) => "<tr>" +
-    '<td class="num muted">' + (i + 1) + "</td>" +
-    '<td><input type="text" data-f="res.name" data-rid="' + esc(r.id) + '" data-fk="res.name.' + esc(r.id) + '" value="' + esc(r.name) + '" placeholder="Nom de la ressource" data-tip-name="Ressource" data-tip-role="Nom de la ressource (cliquez pour le modifier)"></td>' +
-    '<td class="num">' + assignCount(r.id) + "</td>" +
-    '<td class="act">' +
-      '<button class="mini" data-act="r-up" data-i="' + i + '"' + (i === 0 ? " disabled" : "") + ' data-tip-name="Monter" data-tip-role="Déplace la ressource vers le haut de la liste">' + ICON.up + "</button>" +
-      '<button class="mini" data-act="r-down" data-i="' + i + '"' + (i === state.resources.length - 1 ? " disabled" : "") + ' data-tip-name="Descendre" data-tip-role="Déplace la ressource vers le bas de la liste">' + ICON.down + "</button>" +
-      '<button class="mini danger" data-act="r-del" data-i="' + i + '" data-tip-name="Supprimer la ressource" data-tip-role="Retire la ressource ; ses OF redeviennent non affectés">' + ICON.trash + "</button>" +
-    "</td></tr>").join("");
-}
-
-$("btnAddResource").onclick = () => {
-  const id = uid("r");
-  commit(st => st.resources.push({ id, name: "Ressource " + (st.resources.length + 1) }));
-  const el = document.querySelector('[data-fk="res.name.' + id + '"]');
-  if (el) { el.focus(); el.select(); }
-};
-$("tblResources").addEventListener("change", e => {
-  const el = e.target;
-  if (el.dataset.f !== "res.name") return;
-  const name = el.value.trim();
-  if (!name) { toast("Le nom de la ressource ne peut pas être vide.", true); renderResources(); return; }
-  commit(st => { st.resources.find(x => x.id === el.dataset.rid).name = name; });
-});
-$("tblResources").addEventListener("click", e => {
-  const b = e.target.closest("[data-act]");
-  if (!b || b.disabled) return;
-  const i = Number(b.dataset.i);
-  if (b.dataset.act === "r-up" || b.dataset.act === "r-down") {
-    const k = b.dataset.act === "r-up" ? i - 1 : i + 1;
-    commit(st => { const R = st.resources; [R[i], R[k]] = [R[k], R[i]]; });
-  }
-  if (b.dataset.act === "r-del") {
-    const r = state.resources[i], n = assignCount(r.id);
-    if (!confirm("Supprimer la ressource « " + r.name + " » ?" + (n ? "\n" + n + " OF affecté(s) redeviendront non affectés." : ""))) return;
-    commit(st => {
-      st.resources.splice(i, 1);
-      for (const m of Object.values(st.assign)) for (const [k, v] of Object.entries(m)) if (v === r.id) delete m[k];
-    });
-  }
-});
 
 function renderSources() {
   const body = $("tblSources").tBodies[0];
@@ -2694,44 +2659,53 @@ $("prepaFrom").onchange = e => { prepaUI.from = e.target.value; renderPrepa(); }
 $("prepaTo").onchange = e => { prepaUI.to = e.target.value; renderPrepa(); };
 
 // Texte affiché d'une affectation : nom de la ressource de la liste, ou texte libre saisi.
-function assignLabel(v) { return v ? resourceName(v) || (state.resources.some(r => r.id === v) ? "" : v) : ""; }
+function assignLabel(v) { return v ? resourceName(v) || v : ""; }
 // Valeur enregistrée pour un texte saisi : l'id de la ressource du même nom, sinon le texte lui-même.
 function assignValue(text) {
   const t = text.trim();
-  const r = state.resources.find(x => stripAccents(x.name) === stripAccents(t));
-  return r ? r.id : t;
+  // Un nom du fichier de capacité reprend son écriture exacte (majuscules et accents ignorés à la saisie).
+  const hit = capacityNames(null).find(n => personKey(n) === personKey(t));
+  return hit || t;
 }
 
 // Case Affectation : saisie libre avec complétion, et liste déroulante des ressources (bouton ▾ ou Alt + ↓).
 function resourceInput(act, id, current) {
   return '<div class="res-combo"><input type="text" class="res-in" autocomplete="off" spellcheck="false" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
     ' value="' + esc(assignLabel(current)) + '" placeholder="—"' +
-    ' data-tip-name="Affectation" data-tip-role="Cliquez et saisissez la ressource : un début de texte identique à une ressource de la liste (ou à une saisie de la colonne) est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">' +
-    '<button class="res-dd" tabindex="-1" data-id="' + esc(id) + '" data-tip-name="Liste des ressources" data-tip-role="Ouvre la liste déroulante des ressources pour en choisir une" data-tip-key="Alt + ↓">' + ICON.down + "</button></div>";
+    '  data-tip-name="Affectation" data-tip-role="Cliquez dans la case : la liste des personnes du fichier de capacité s’ouvre et se filtre au fil de la saisie ; un début de nom est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">' +
+    '<button class="res-dd" tabindex="-1" data-id="' + esc(id) + '" data-tip-name="Liste des personnes" data-tip-role="Ouvre ou ferme la liste déroulante des personnes du fichier de capacité" data-tip-key="Alt + ↓">' + ICON.down + "</button></div>";
 }
 
 // Liste déroulante d'une case Affectation : ressources de la liste, puis autres textes déjà saisis dans la colonne.
-function openAssignMenu(act, btn) {
+// Liste déroulante d'une case Affectation : s'ouvre dès qu'on entre dans la case et se filtre au fil de la saisie
+// (personnes du fichier de capacité, puis autres textes déjà saisis). Un clic sur le bouton ▾ l'ouvre ou la ferme.
+function openAssignMenu(act, btn, refresh) {
   const id = btn.dataset.id;
-  if (fpopKey === act + ":dd:" + id) return closeFilter();
+  if (fpopKey === act + ":dd:" + id && !refresh) return closeFilter();
+  if (fpopKey && fpopKey !== act + ":dd:" + id) closeFilter();
   const el = btn.parentElement.querySelector("input");
-  const cur = stripAccents(el.value.trim());
-  const names = state.resources.map(r => r.name);
+  const typed = el.selectionStart != null && el.selectionEnd > el.selectionStart ? el.value.slice(0, el.selectionStart) : el.value;
+  const q = stripAccents(typed.trim()), cur = stripAccents(el.value.trim());
+  const match = n => !q || stripAccents(n).startsWith(q);
+  const names = capacityNames(act);
   const others = assignSuggestions(act).filter(t => !names.some(n => stripAccents(n) === stripAccents(t)));
-  closeFilter();
+  const shownNames = names.filter(match), shownOthers = others.filter(match);
   fpopKey = act + ":dd:" + id;
   hideTip();
-  const item = (v, label, role) => '<button class="fitem' + (stripAccents(v) === cur ? " on" : "") + '" data-pick="' + esc(v) + '"' +
+  const item = (v, label, role) => '<button class="fitem' + (stripAccents(v) === cur ? " on" : "") + '" data-pick="' + esc(v) + '" tabindex="-1"' +
     ' data-tip-name="' + esc(label) + '" data-tip-role="' + esc(role) + '">' + esc(label) + "</button>";
   const pop = $("fpop");
   pop.classList.add("dd");
   pop.innerHTML = '<div class="fhead">Affectation</div><div class="ddlist">' +
     item("", "— Aucune affectation", "Retire l’affectation de cette ligne") +
-    (names.length ? "<hr>" + names.map(n => item(n, n, "Affecte cette ligne à cette ressource")).join("")
-      : '<div class="muted small dd-note">Aucune ressource : créez la liste dans Paramètres › Ressources.</div>') +
-    (others.length ? '<hr><div class="muted small dd-note">Autres saisies de la colonne</div>' +
-      others.map(n => item(n, n, "Reprend ce texte déjà saisi dans la colonne")).join("") : "") +
+    (shownNames.length ? "<hr>" + shownNames.map(n => item(n, n, "Affecte cette ligne à cette personne (fichier de capacité)")).join("")
+      : names.length ? '<div class="muted small dd-note">Aucune personne ne commence par « ' + esc(typed.trim()) + " ».</div>"
+      : '<div class="muted small dd-note">Aucune personne : chargez le fichier de capacité (colonne nom_complet) dans Paramètres › Fichiers sources.</div>') +
+    (shownOthers.length ? '<hr><div class="muted small dd-note">Autres saisies de la colonne</div>' +
+      shownOthers.map(n => item(n, n, "Reprend ce texte déjà saisi dans la colonne")).join("") : "") +
     "</div>";
+  // La case garde le focus pendant le choix dans la liste.
+  pop.onmousedown = e => { if (e.target.closest("[data-pick]")) e.preventDefault(); };
   pop.onclick = e => {
     const b = e.target.closest("[data-pick]");
     if (!b) return;
@@ -2740,20 +2714,22 @@ function openAssignMenu(act, btn) {
     saveAssign(act, el);
   };
   pop.classList.add("show");
-  const r = btn.getBoundingClientRect();
-  const w = pop.offsetWidth, h = pop.offsetHeight;
-  pop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + "px";
-  pop.style.top = (r.bottom + h + 12 > innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + "px";
+  const r = el.parentElement.getBoundingClientRect();
+  const w = Math.max(pop.offsetWidth, r.width), h = pop.offsetHeight;
+  pop.style.minWidth = r.width + "px";
+  pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
+  pop.style.top = (r.bottom + h + 12 > innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 4) + "px";
 }
 
 // Propositions pour la complétion : textes déjà saisis dans la colonne (dans l'ordre du tableau), puis la liste des ressources.
 function assignSuggestions(act) {
   const seen = [];
   const add = t => { if (t && !seen.some(x => stripAccents(x) === stripAccents(t))) seen.push(t); };
+  // D'abord les personnes du fichier de capacité, puis les autres textes déjà saisis dans la colonne.
+  for (const n of capacityNames(act)) add(n);
   const m = state.assign[act] || {};
   for (const x of actRows[act] || []) add(assignLabel(m[x.id]));
   for (const v of Object.values(m)) add(assignLabel(v));
-  for (const r of state.resources) add(r.name);
   return seen;
 }
 
@@ -2891,7 +2867,6 @@ function capModel(act) {
   const src = state.sources.find(x => x.activity === act);
   const sel = new Set((src && src.cap) || []);
   const names = new Map();
-  for (const r of state.resources) names.set(personKey(r.name), r.name);
   const load = new Map(), unassigned = new Map();
   for (const a of Object.keys(ACT_DEFS)) {
     const res = actList(a);
@@ -2919,7 +2894,7 @@ function capModel(act) {
     const iso = localISO(d), dm = load.get(iso) || new Map(), pm = withNames ? capD.byPerson.get(iso) || new Map() : new Map();
     const keys = new Set();
     // Ressources de l'activité ce jour-là : capacité dans ses groupes / niveaux, ou temps affecté dans l'activité.
-    for (const [k, o] of pm) if (sel.size ? [...o.keys].some(x => sel.has(x)) : names.has(k)) keys.add(k);
+    for (const [k, o] of pm) if (!sel.size || [...o.keys].some(x => sel.has(x))) keys.add(k);
     for (const [k, o] of dm) if (o.inAct) keys.add(k);
     const rows = [];
     for (const k of keys) {
@@ -2946,7 +2921,7 @@ function capDaySvg(rows, max, width) {
   const n = rows.length;
   const band = Math.max(46, (width - 40) / Math.max(n, 1));
   const W = Math.max(width, 40 + band * n), H = 190;
-  const rot = band < 78;
+  const rot = band < 64;
   const M = { l: 34, r: 6, t: 8, b: rot ? 62 : 30 };
   const ih = H - M.t - M.b;
   const step = niceStep(max || 1, 4), top = Math.ceil((max || 1) / step) * step;
@@ -2969,7 +2944,7 @@ function capDaySvg(rows, max, width) {
       base += v;
     }
     g += '<rect class="hit" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
-    const label = r.name.length > 16 ? r.name.slice(0, 15) + "…" : r.name;
+    const label = r.name.length > 20 ? r.name.slice(0, 19) + "…" : r.name;
     g += rot
       ? '<text class="who' + (r.over ? " over" : "") + '" text-anchor="end" transform="translate(' + (xc + 4) + "," + (M.t + ih + 12) + ') rotate(-35)">' + esc(label) + "</text>"
       : '<text class="who' + (r.over ? " over" : "") + '" text-anchor="middle" x="' + xc + '" y="' + (M.t + ih + 18) + '">' + esc(label) + "</text>";
@@ -3001,8 +2976,7 @@ function renderCapPanel(act) {
   const notes = [];
   if (!m.capD) notes.push("Aucun fichier de capacité chargé : seul le temps affecté est affiché (Paramètres › Fichiers sources).");
   else if (!m.withNames) notes.push("Le fichier de capacité n’a pas de colonne nom_complet : temps disponible par ressource inconnu.");
-  else if (!m.selCount) notes.push("Aucun groupe / niveau de capacité choisi pour " + def.name + " : seules les ressources de Paramètres › Ressources sont affichées (Fichiers sources, colonne « Capacité »).");
-  if (m.unknownCap.length) notes.push("Sans temps disponible dans le fichier de capacité (nom différent ?) : " + m.unknownCap.slice(0, 6).join(", ") + (m.unknownCap.length > 6 ? "…" : "") + ".");
+  else if (!m.selCount) notes.push("Aucun groupe / niveau de capacité choisi pour " + def.name + " : toutes les personnes du fichier de capacité sont affichées (Fichiers sources, colonne « Capacité »).");
   let h = notes.map(n => '<p class="muted small">' + esc(n) + "</p>").join("");
   const width = Math.max(240, body.clientWidth - 8);
   const shownDays = [];
@@ -3116,14 +3090,24 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
   // Saisie dans la colonne Affectation : complétion du texte, Entrée / ↑ / ↓ pour valider et changer de ligne.
   body.addEventListener("input", e => {
     const el = e.target.closest(".res-in");
-    if (el) autoComplete(act, el, e);
+    if (!el) return;
+    autoComplete(act, el, e);
+    openAssignMenu(act, el.parentElement.querySelector(".res-dd"), true);
+  });
+  body.addEventListener("focusin", e => {
+    const el = e.target.closest(".res-in");
+    if (el && !restoringFocus) openAssignMenu(act, el.parentElement.querySelector(".res-dd"), true);
+  });
+  body.addEventListener("focusout", e => {
+    const el = e.target.closest(".res-in");
+    if (el && fpopKey === act + ":dd:" + el.dataset.id && !(e.relatedTarget && e.relatedTarget.closest("#fpop, .res-dd"))) closeFilter();
   });
   body.addEventListener("keydown", e => {
     const el = e.target.closest(".res-in");
     if (!el) return;
     if (e.altKey && e.key === "ArrowDown") {
       e.preventDefault();
-      openAssignMenu(act, el.parentElement.querySelector(".res-dd"));
+      openAssignMenu(act, el.parentElement.querySelector(".res-dd"), true);
       return;
     }
     if (e.key === "Escape") {
@@ -3295,7 +3279,7 @@ function distinctValues(act, c) {
 }
 
 let fpopKey = null;
-function closeFilter() { $("fpop").classList.remove("show", "cols", "dd"); fpopKey = null; }
+function closeFilter() { const p = $("fpop"); p.classList.remove("show", "cols", "dd"); p.style.minWidth = ""; fpopKey = null; }
 
 function openFilter(act, key, anchor) {
   if (fpopKey === act + ":" + key) return closeFilter();
@@ -3743,10 +3727,9 @@ function stateToWorkbook() {
     [c.fileName, c.fileDate ? new Date(c.fileDate) : "", c.loadedAt ? new Date(c.loadedAt) : ""]
   ]), "Capacité");
 
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Id", "Ressource"]].concat(state.resources.map(r => [r.id, r.name]))), "Ressources");
   const aff = [["Activité", "Dossier", "Id ressource", "Affectation"]];
   for (const [act, m] of Object.entries(state.assign)) for (const [doss, v] of Object.entries(m))
-    aff.push([act, doss, state.resources.some(r => r.id === v) ? v : "", assignLabel(v)]);
+    aff.push([act, doss, "", assignLabel(v)]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aff), "Affectations");
   const plan = [["Activité", "Dossier", "Date affectation"]];
   for (const [act, m] of Object.entries(state.planned)) for (const [doss, iso] of Object.entries(m)) plan.push([act, doss, new Date(iso + "T00:00")]);
@@ -3822,6 +3805,7 @@ function workbookToState(wb) {
     if (!act || !doss || !v) continue;
     (st.assign[act] || (st.assign[act] = {}))[doss] = v;
   }
+  migrateResources(st);
   const planRows = rowsOf("Dates affectation");
   if (planRows) for (const r of planRows) {
     const act = str(r[0]), doss = str(r[1]), d = r[2] instanceof Date ? dayOf(r[2]) : toDay(r[2]);
@@ -4019,7 +4003,7 @@ function toast(msg, err) {
 }
 
 // Fichiers sources et Temps gammes sont des sous-pages de Paramètres.
-const SETTINGS_SUBS = ["general", "sources", "gammes", "ressources"];
+const SETTINGS_SUBS = ["general", "sources", "gammes"];
 function showSub(sub) {
   for (const b of $("subnav").children) b.classList.toggle("on", b.dataset.sub === sub);
   for (const p of document.querySelectorAll(".subpage")) p.classList.toggle("active", p.id === "page-" + sub);
