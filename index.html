@@ -278,34 +278,44 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px 6px; flex-wrap: wrap; }
 .cap-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 0 12px 8px; color: var(--text-2); border-bottom: 1px solid var(--border); }
 .cap-legend .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-.k-act { background: var(--series-1); }
-.k-oth { background: color-mix(in srgb, var(--series-1) 45%, var(--surface)); }
-.k-rest { background: color-mix(in srgb, var(--ok) 22%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 50%, transparent); }
-.k-over { background: var(--err); }
+:root { --cap-aff: #c0c0c0; --cap-rest: #cfeec9; --cap-over: #ff0000; }
+:root[data-theme="dark"] { --cap-aff: #8a8f98; --cap-rest: #3f7a4a; --cap-over: #ff2a2a; }
+.k-aff { background: var(--cap-aff); }
+.k-rest { background: var(--cap-rest); }
+.k-over { background: var(--cap-over); }
+.cap-chart { position: relative; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.cap-chart:last-of-type { border-bottom: 0; }
+.cap-scroll { overflow-x: auto; }
+.cap-svg { display: block; }
+.cap-svg text { fill: var(--text-2); font-size: 11px; font-family: var(--font); }
+.cap-svg text.who { fill: var(--text); font-size: 11.5px; }
+.cap-svg text.who.over { fill: var(--cap-over); font-weight: 600; }
+.cap-svg .grid { stroke: var(--border); stroke-width: 1; }
+.cap-svg .axis { stroke: var(--text-2); stroke-width: 1; }
+.cap-svg .aff { fill: var(--cap-aff); }
+.cap-svg .rest { fill: var(--cap-rest); }
+.cap-svg .over { fill: var(--cap-over); }
+.cap-svg .hit { fill: transparent; }
+.cap-svg .hit:hover { fill: color-mix(in srgb, var(--text) 5%, transparent); }
+.cap-warn { color: var(--cap-over); font-weight: 600; }
+.cap-body { position: relative; }
+.cap-tip .k-sq { display: inline-block; width: 10px; height: 10px; border-radius: 2px; }
+.cap-tip .k-sq.k-aff { background: var(--cap-aff); }
+.cap-tip .k-sq.k-rest { background: var(--cap-rest); }
+.cap-tip .k-sq.k-over { background: var(--cap-over); }
 .cap-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 6px 12px 12px; }
 .cap-day { margin: 10px 0 4px; display: flex; align-items: baseline; gap: 8px; font-weight: 600; position: sticky; top: -6px; background: var(--surface); padding: 4px 0; z-index: 1; }
 .cap-day .muted { font-weight: 400; }
 .cap-day.late { color: var(--err); }
-.cap-row { display: grid; grid-template-columns: minmax(70px, 30%) 1fr auto; align-items: center; gap: 8px; padding: 3px 0; }
-.cap-row .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cap-row .nums { font-variant-numeric: tabular-nums; white-space: nowrap; font-size: .88em; color: var(--text-2); text-align: right; }
-.cap-row.over .nums { color: var(--err); font-weight: 600; }
-.cap-bar { position: relative; height: 14px; border-radius: 4px; background: transparent; }
-.cap-bar > i { position: absolute; top: 0; bottom: 0; }
-.cap-bar .rest { background: color-mix(in srgb, var(--ok) 22%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 50%, transparent); border-radius: 4px; }
-.cap-bar .act { background: var(--series-1); }
-.cap-bar .oth { background: color-mix(in srgb, var(--series-1) 45%, var(--surface)); }
-.cap-bar .over { background: var(--err); }
-.cap-bar .first { border-radius: 4px 0 0 4px; }
 .cap-empty { padding: 12px 0; }
 /* Sélection de lignes et affectation en masse. */
 .act-page .tbl tbody tr.sel td { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
 .act-page .tbl tbody tr { cursor: default; }
-.bulk-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: -2px 0 10px; padding: 8px 12px;
-  border: 1px solid var(--accent); border-radius: 10px; background: var(--accent-soft); animation: popIn .14s ease-out; }
-.bulk-bar[hidden] { display: none; }
-.bulk-combo { width: 220px; }
-.bulk-combo .bulk-in { flex: 1; min-width: 0; width: 100%; padding: .25em .5em; border-radius: 6px; border-color: var(--border); background: var(--surface); }
+/* Cases à cocher de sélection (comme dans l'Explorateur Windows) : visibles au survol, quand cochées ou dès qu'une ligne est cochée. */
+.act-page .tbl .sel-cell { width: 2.2em; min-width: 2.2em; padding-left: .5em !important; padding-right: 0 !important; text-align: center; }
+.act-page .tbl .sel-cell input { width: 1.05em; height: 1.05em; margin: 0; cursor: pointer; accent-color: var(--accent); opacity: 0; transition: opacity .12s; }
+.act-page .tbl tr:hover .sel-cell input, .act-page .tbl .sel-cell input:checked, .act-page .tbl .sel-cell input:focus-visible,
+.act-page .tbl.has-sel .sel-cell input, .act-page .tbl thead .sel-cell input { opacity: 1; }
 .act-body > .card.muted { flex: 0 0 auto; }
 .prepa-card { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0; margin-bottom: 0; overflow: hidden; }
 .tbl-wrap.tall { flex: 1 1 auto; min-height: 0; border: 0; border-radius: 12px; }
@@ -774,16 +784,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
         <button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>
       </div>
     </div>
-    <div class="bulk-bar" id="prepaBulk" hidden>
-      <b class="bulk-count"></b>
-      <span class="muted">Affecter à</span>
-      <div class="res-combo bulk-combo"><input type="text" class="bulk-in" autocomplete="off" spellcheck="false" placeholder="Ressource…"
-        data-tip-name="Ressource à affecter" data-tip-role="Tapez ou choisissez la ressource (complétion depuis la liste des ressources) ; Entrée applique l’affectation aux lignes sélectionnées" data-tip-key="Entrée"><button class="res-dd bulk-dd" tabindex="-1" data-tip-name="Liste des ressources" data-tip-role="Ouvre la liste des ressources" data-tip-key="Alt + ↓"><svg class="i" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button></div>
-      <button class="btn primary small" data-bulk="apply" data-tip-name="Affecter" data-tip-role="Affecte toutes les lignes sélectionnées à cette ressource (annulable par Ctrl + Z)" data-tip-key="Entrée">Affecter</button>
-      <button class="btn small" data-bulk="clear" data-tip-name="Retirer l’affectation" data-tip-role="Retire l’affectation de toutes les lignes sélectionnées (annulable par Ctrl + Z)">Retirer l’affectation</button>
-      <button class="btn small" data-bulk="none" data-tip-name="Désélectionner" data-tip-role="Annule la sélection des lignes" data-tip-key="Échap">Désélectionner</button>
-      <span class="muted small bulk-help">Clic : une ligne · Maj + clic : plage · Ctrl + clic : ajouter / retirer</span>
-    </div>
     <div class="act-split">
       <div class="act-body" id="prepaBody"></div>
       <aside class="cap-panel" id="prepaCap" hidden>
@@ -796,9 +796,8 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
           <button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation par capacité"><svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         <div class="cap-legend small">
-          <span><i class="k k-act"></i>Charge affectée (cette activité)</span>
-          <span><i class="k k-oth"></i>Autres activités</span>
-          <span><i class="k k-rest"></i>Capacité restante</span>
+          <span><i class="k k-aff"></i>Temps affecté</span>
+          <span><i class="k k-rest"></i>Temps restant à affecter</span>
           <span><i class="k k-over"></i>Surcharge</span>
         </div>
         <div class="cap-body"></div>
@@ -826,16 +825,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
         <button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>
       </div>
     </div>
-    <div class="bulk-bar" id="expedBulk" hidden>
-      <b class="bulk-count"></b>
-      <span class="muted">Affecter à</span>
-      <div class="res-combo bulk-combo"><input type="text" class="bulk-in" autocomplete="off" spellcheck="false" placeholder="Ressource…"
-        data-tip-name="Ressource à affecter" data-tip-role="Tapez ou choisissez la ressource (complétion depuis la liste des ressources) ; Entrée applique l’affectation aux lignes sélectionnées" data-tip-key="Entrée"><button class="res-dd bulk-dd" tabindex="-1" data-tip-name="Liste des ressources" data-tip-role="Ouvre la liste des ressources" data-tip-key="Alt + ↓"><svg class="i" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button></div>
-      <button class="btn primary small" data-bulk="apply" data-tip-name="Affecter" data-tip-role="Affecte toutes les lignes sélectionnées à cette ressource (annulable par Ctrl + Z)" data-tip-key="Entrée">Affecter</button>
-      <button class="btn small" data-bulk="clear" data-tip-name="Retirer l’affectation" data-tip-role="Retire l’affectation de toutes les lignes sélectionnées (annulable par Ctrl + Z)">Retirer l’affectation</button>
-      <button class="btn small" data-bulk="none" data-tip-name="Désélectionner" data-tip-role="Annule la sélection des lignes" data-tip-key="Échap">Désélectionner</button>
-      <span class="muted small bulk-help">Clic : une ligne · Maj + clic : plage · Ctrl + clic : ajouter / retirer</span>
-    </div>
     <div class="act-split">
       <div class="act-body" id="expedBody"></div>
       <aside class="cap-panel" id="expedCap" hidden>
@@ -848,9 +837,8 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
           <button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation par capacité"><svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
         <div class="cap-legend small">
-          <span><i class="k k-act"></i>Charge affectée (cette activité)</span>
-          <span><i class="k k-oth"></i>Autres activités</span>
-          <span><i class="k k-rest"></i>Capacité restante</span>
+          <span><i class="k k-aff"></i>Temps affecté</span>
+          <span><i class="k k-rest"></i>Temps restant à affecter</span>
           <span><i class="k k-over"></i>Surcharge</span>
         </div>
         <div class="cap-body"></div>
@@ -1602,11 +1590,14 @@ function buildCapIndex(sheets) {
       const m = byDay.get(iso);
       m.set(k, (m.get(k) || 0) + hrs);
       if (iName != null) {
-        const who = personKey(cleanCapText(r[iName]));
+        const name = cleanCapText(r[iName]), who = personKey(name);
         if (who) {
           if (!byPerson.has(iso)) byPerson.set(iso, new Map());
           const pm = byPerson.get(iso);
-          pm.set(who, (pm.get(who) || 0) + hrs);
+          const o = pm.get(who) || { name, h: 0, keys: new Set() };
+          o.h += hrs;
+          o.keys.add(k);
+          pm.set(who, o);
         }
       }
       if (!keys.has(k)) keys.set(k, { g, n });
@@ -2532,7 +2523,6 @@ function renderActTable(act) {
     actRows[act] = []; actInRange[act] = [];
     body.innerHTML = '<div class="card placeholder muted">' + esc(res.error) + "</div>";
     ui.sel.clear();
-    updateBulkBar(act);
     renderCapPanel(act);
     return;
   }
@@ -2563,7 +2553,10 @@ function renderActTable(act) {
 
   const totalH = rows.reduce((a, x) => a + (x.heures || 0), 0);
   let h = res.warning ? '<div class="card muted">' + esc(res.warning) + "</div>" : "";
-  h += '<div class="card prepa-card"><div class="tbl-wrap tall"><table class="tbl"><thead><tr>' +
+  const nSel = rows.filter(x => ui.sel.has(x.id)).length;
+  h += '<div class="card prepa-card"><div class="tbl-wrap tall"><table class="tbl' + (nSel ? " has-sel" : "") + '"><thead><tr>' +
+    '<th class="sel-cell"><input type="checkbox" class="all-chk"' + (rows.length && nSel === rows.length ? " checked" : "") + (rows.length ? "" : " disabled") +
+    ' data-tip-name="Tout cocher" data-tip-role="Coche ou décoche toutes les lignes affichées ; la première affectation saisie sur une ligne cochée est recopiée sur toutes les lignes cochées"></th>' +
     cols.map(c => '<th class="sort' + (c.num ? " num" : "") + (c.k === "ressource" ? " col-res" : "") + (c.k === ui.sort ? " on" : "") + '" data-sort="' + c.k + '"' +
       ' data-tip-name="' + esc(c.t) + '" data-tip-role="Cliquez pour trier sur cette colonne">' +
       '<span class="th-in">' + esc(c.t) + (c.k === ui.sort ? (ui.dir > 0 ? " ▲" : " ▼") : "") +
@@ -2576,7 +2569,9 @@ function renderActTable(act) {
     const tip = dt ? "Forfait " + fmtInt(dt.parts.forfait) + " s + Ligne " + fmtInt(dt.parts.ligne) + " s (" + dt.lines + " lignes) + Quantité " +
       fmtInt(dt.parts.quantite) + " s + Calcul " + fmtInt(dt.parts.calcul) + " s (" + fmtInt(dt.qty) + " pièces)" +
       (dt.unknown ? " — " + dt.unknown + " ligne(s) avec une valeur absente du tableau de calcul (comptée 0 s)" : "") : "";
-    h += '<tr data-row="' + esc(x.id) + '"' + (ui.sel.has(x.id) ? ' class="sel"' : "") + ">";
+    h += '<tr data-row="' + esc(x.id) + '"' + (ui.sel.has(x.id) ? ' class="sel"' : "") + ">" +
+      '<td class="sel-cell"><input type="checkbox" class="row-chk"' + (ui.sel.has(x.id) ? " checked" : "") +
+      ' data-tip-name="Cocher la ligne" data-tip-role="Coche cette ligne (Maj + clic : coche toute la plage depuis la dernière case cliquée). L’affectation saisie ensuite sur une ligne cochée est recopiée sur toutes les lignes cochées" data-tip-key="Maj + clic"></td>';
     for (const c of cols) {
       if (c.heures) h += '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
         (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && dt.unknown ? " ⚠" : "") + "</b></td>";
@@ -2585,21 +2580,22 @@ function renderActTable(act) {
     }
     h += "</tr>";
   }
-  if (!rows.length) h += '<tr><td colspan="' + cols.length + '" class="muted">' +
+  if (!rows.length) h += '<tr><td colspan="' + (cols.length + 1) + '" class="muted">' +
     (inPeriod.length ? "Aucune ligne ne correspond aux filtres." : "Aucune ligne dont la " + def.dateLabel + " est dans cette plage.") + "</td></tr>";
   h += "</tbody>";
   if (rows.length) {
     const nAff = rows.filter(x => x.ressource).length;
     // Le libellé du total occupe les colonnes de gauche ; Temps (h) et Affectation gardent leur total s'ils sont affichés.
     // Les colonnes voisines sans total sont fusionnées ; la première porte le libellé du total.
-    const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")";
+    const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")" +
+      (nSel ? " · " + fmtInt(nSel) + " cochée" + (nSel > 1 ? "s" : "") : "");
     let labelled = false, span = 0;
     const flush = () => {
       if (!span) return;
       h += '<td colspan="' + span + '">' + (labelled ? "" : label) + "</td>";
       labelled = true; span = 0;
     };
-    h += "<tfoot><tr>";
+    h += '<tfoot><tr><td class="sel-cell"></td>';
     for (const c of cols) {
       if (c.heures) { flush(); h += '<td class="num"' + (labelled ? "" : ' data-tip-name="Total" data-tip-role="' + esc(label) + '"') + ">" + fmtHours(totalH * 3600) + "</td>"; }
       else if (c.k === "ressource") { flush(); h += '<td class="res-cell col-res muted">' + fmtInt(nAff) + " / " + fmtInt(rows.length) + " affectés</td>"; }
@@ -2609,7 +2605,6 @@ function renderActTable(act) {
     h += "</tr></tfoot>";
   }
   body.innerHTML = h + "</table></div></div>";
-  updateBulkBar(act);
   renderCapPanel(act);
 }
 
@@ -2635,8 +2630,7 @@ function resourceInput(act, id, current) {
 
 // Liste déroulante d'une case Affectation : ressources de la liste, puis autres textes déjà saisis dans la colonne.
 function openAssignMenu(act, btn) {
-  const bulk = btn.classList.contains("bulk-dd");
-  const id = bulk ? "bulk" : btn.dataset.id;
+  const id = btn.dataset.id;
   if (fpopKey === act + ":dd:" + id) return closeFilter();
   const el = btn.parentElement.querySelector("input");
   const cur = stripAccents(el.value.trim());
@@ -2661,8 +2655,7 @@ function openAssignMenu(act, btn) {
     if (!b) return;
     el.value = b.dataset.pick;
     closeFilter();
-    if (bulk) applyBulk(act, !b.dataset.pick);
-    else saveAssign(act, el);
+    saveAssign(act, el);
   };
   pop.classList.add("show");
   const r = btn.getBoundingClientRect();
@@ -2682,14 +2675,18 @@ function assignSuggestions(act) {
   return seen;
 }
 
+// Une affectation saisie sur une ligne cochée est recopiée sur toutes les lignes cochées (une seule action annulable).
 function saveAssign(act, el) {
-  const id = el.dataset.id, v = assignValue(el.value);
-  const cur = (state.assign[act] || {})[id] || "";
-  if (v === cur) { el.value = assignLabel(cur); return; }
+  const id = el.dataset.id, v = assignValue(el.value), ui = actUI[act];
+  const ids = ui.sel.has(id) && ui.sel.size > 1 ? [...ui.sel] : [id];
+  const m0 = state.assign[act] || {};
+  if (ids.every(x => (m0[x] || "") === v)) { el.value = assignLabel(m0[id] || ""); return; }
+  if (ids.length > 1) { ui.sel.clear(); ui.anchor = null; }
   commit(st => {
     const m = st.assign[act] || (st.assign[act] = {});
-    if (v) m[id] = v; else delete m[id];
+    for (const x of ids) { if (v) m[x] = v; else delete m[x]; }
   });
+  if (ids.length > 1) toast(v ? ids.length + " lignes affectées à « " + assignLabel(v) + " »" : "Affectation retirée de " + ids.length + " lignes");
 }
 
 // Complète la saisie d'une affectation avec un nom déjà connu commençant par les mêmes lettres (comme Excel).
@@ -2707,16 +2704,20 @@ function autoComplete(act, el, e) {
 /* ---------- Sélection de lignes et affectation en masse ---------- */
 function paintSelection(act) {
   const sel = actUI[act].sel;
-  for (const tr of $(ACT_DEFS[act].page + "Body").querySelectorAll("tbody tr[data-row]")) tr.classList.toggle("sel", sel.has(tr.dataset.row));
-  updateBulkBar(act);
-}
-function updateBulkBar(act) {
-  const ui = actUI[act], bar = $(ACT_DEFS[act].page + "Bulk");
-  const n = ui.sel.size;
-  bar.hidden = !n;
-  if (!n) return;
-  const h = (actRows[act] || []).filter(x => ui.sel.has(x.id)).reduce((a, x) => a + (x.heures || 0), 0);
-  bar.querySelector(".bulk-count").textContent = fmtInt(n) + " ligne" + (n > 1 ? "s" : "") + " sélectionnée" + (n > 1 ? "s" : "") + " · " + fmtHours(h * 3600) + " h";
+  const body = $(ACT_DEFS[act].page + "Body");
+  let n = 0, total = 0;
+  for (const tr of body.querySelectorAll("tbody tr[data-row]")) {
+    const on = sel.has(tr.dataset.row);
+    tr.classList.toggle("sel", on);
+    const c = tr.querySelector(".row-chk");
+    if (c) c.checked = on;
+    total++; if (on) n++;
+  }
+  const tbl = body.querySelector("table.tbl"), all = body.querySelector(".all-chk");
+  if (tbl) tbl.classList.toggle("has-sel", n > 0);
+  if (all) { all.checked = total > 0 && n === total; all.indeterminate = n > 0 && n < total; }
+  const foot = body.querySelector("tfoot td[colspan]");
+  if (foot) foot.textContent = foot.textContent.replace(/ · \d[\d\s ]* cochées?$/, "") + (n ? " · " + fmtInt(n) + " cochée" + (n > 1 ? "s" : "") : "");
 }
 function clearSelection(act) {
   const ui = actUI[act];
@@ -2743,34 +2744,22 @@ function selectRow(act, id, e) {
   }
   paintSelection(act);
 }
-function applyBulk(act, clear) {
-  const ui = actUI[act], bar = $(ACT_DEFS[act].page + "Bulk"), input = bar.querySelector(".bulk-in");
-  const ids = [...ui.sel];
-  if (!ids.length) return;
-  const v = clear ? "" : assignValue(input.value);
-  if (!clear && !v) { toast("Tapez ou choisissez une ressource à affecter.", true); input.focus(); return; }
-  commit(st => {
-    const m = st.assign[act] || (st.assign[act] = {});
-    for (const id of ids) { if (v) m[id] = v; else delete m[id]; }
-  });
-  toast(clear ? "Affectation retirée de " + ids.length + " ligne(s)" : ids.length + " ligne(s) affectée(s) à « " + assignLabel(v) + " »");
-  input.value = "";
-  clearSelection(act);
-}
-
 /* ---------- Vue « Affectation par capacité » (panneau à droite) ---------- */
 let capOpen = {}, capWidth = 440;
 try { capOpen = JSON.parse(localStorage.getItem("cc.capPanel")) || {}; capWidth = Number(localStorage.getItem("cc.capPanelW")) || 440; } catch (e) { /* stockage indisponible */ }
 document.documentElement.style.setProperty("--cap-w", capWidth + "px");
 
-// Charge affectée par jour et par personne (cette activité / autres activités), capacité par personne du fichier de capacité.
+// Par jour : les ressources de l'activité (personnes du fichier de capacité dans les groupes / niveaux choisis pour
+// l'activité, plus toute ressource affectée ce jour-là), leur temps disponible et leur temps affecté (toutes activités).
 function capModel(act) {
   const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
   const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
   if (!from || !to || to < from) return { error: "Choisissez une période valide dans le ruban." };
   const capD = srcData[CAP_ID] && srcData[CAP_ID].cap;
-  const persons = new Map();
-  for (const r of state.resources) persons.set(personKey(r.name), r.name);
+  const src = state.sources.find(x => x.activity === act);
+  const sel = new Set((src && src.cap) || []);
+  const names = new Map();
+  for (const r of state.resources) names.set(personKey(r.name), r.name);
   const load = new Map(), unassigned = new Map();
   for (const a of Object.keys(ACT_DEFS)) {
     const res = actList(a);
@@ -2782,34 +2771,78 @@ function capModel(act) {
       const iso = localISO(d), lab = assignLabel(m[x.id]);
       if (!lab) { if (a === act) unassigned.set(iso, (unassigned.get(iso) || 0) + x.heures); continue; }
       const k = personKey(lab);
-      if (!persons.has(k)) persons.set(k, lab);
+      if (!names.has(k)) names.set(k, lab);
       let dm = load.get(iso);
       if (!dm) load.set(iso, dm = new Map());
-      const o = dm.get(k) || { act: 0, oth: 0 };
-      o[a === act ? "act" : "oth"] += x.heures;
+      const o = dm.get(k) || { act: 0, oth: 0, inAct: false };
+      if (a === act) { o.act += x.heures; o.inAct = true; } else o.oth += x.heures;
       dm.set(k, o);
     }
   }
-  const days = [];
-  let over = 0, max = 0, unknownCap = new Set();
+  const withNames = !!(capD && capD.hasNames);
+  const days = [], unknownCap = new Set();
+  let over = 0, max = 0;
   for (let d = new Date(from); d <= to && days.length < 400; d = addDays(d, 1)) {
-    const iso = localISO(d), dm = load.get(iso), pm = capD && capD.hasNames ? capD.byPerson.get(iso) : null;
+    const iso = localISO(d), dm = load.get(iso) || new Map(), pm = withNames ? capD.byPerson.get(iso) || new Map() : new Map();
+    const keys = new Set();
+    // Ressources de l'activité ce jour-là : capacité dans ses groupes / niveaux, ou temps affecté dans l'activité.
+    for (const [k, o] of pm) if (sel.size ? [...o.keys].some(x => sel.has(x)) : names.has(k)) keys.add(k);
+    for (const [k, o] of dm) if (o.inAct) keys.add(k);
     const rows = [];
-    for (const [k, name] of persons) {
-      const l = dm && dm.get(k) || { act: 0, oth: 0 };
-      const cap = capD && capD.hasNames ? (pm && pm.get(k)) || 0 : null;
-      const tot = l.act + l.oth;
-      if (!tot && !cap) continue;
-      if (tot && cap === 0 && !(capD.byPerson && [...capD.byPerson.values()].some(m2 => m2.has(k)))) unknownCap.add(name);
-      const isOver = cap != null && tot > cap + 0.005;
+    for (const k of keys) {
+      const l = dm.get(k) || { act: 0, oth: 0 };
+      const p = pm.get(k);
+      const cap = withNames ? (p ? p.h : 0) : null;
+      const aff = l.act + l.oth;
+      if (!aff && !cap) continue;
+      if (withNames && !p && aff) unknownCap.add(names.get(k) || k);
+      const isOver = cap != null && aff > cap + 0.005;
       if (isOver) over++;
-      max = Math.max(max, tot, cap || 0);
-      rows.push({ name, act: l.act, oth: l.oth, cap, over: isOver });
+      max = Math.max(max, aff, cap || 0);
+      rows.push({ name: (p && p.name) || names.get(k) || k, act: l.act, oth: l.oth, aff, cap, over: isOver });
     }
+    rows.sort((x, y) => x.name.localeCompare(y.name, "fr"));
     const un = unassigned.get(iso) || 0;
     if (rows.length || un) days.push({ d, iso, rows, unassigned: un });
   }
-  return { days, over, max, capD, unknownCap: [...unknownCap] };
+  return { days, over, max, capD, withNames, selCount: sel.size, unknownCap: [...unknownCap] };
+}
+
+// Histogramme empilé d'une journée : une barre par ressource (temps affecté, restant à affecter, surcharge).
+function capDaySvg(rows, max, width) {
+  const n = rows.length;
+  const band = Math.max(46, (width - 40) / Math.max(n, 1));
+  const W = Math.max(width, 40 + band * n), H = 190;
+  const rot = band < 78;
+  const M = { l: 34, r: 6, t: 8, b: rot ? 62 : 30 };
+  const ih = H - M.t - M.b;
+  const step = niceStep(max || 1, 4), top = Math.ceil((max || 1) / step) * step;
+  const y = v => M.t + ih - v / top * ih;
+  const bw = Math.min(54, band * 0.62);
+  let g = "";
+  for (let v = 0; v <= top + 1e-9; v += step) {
+    g += '<line class="grid" x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>' +
+      '<text x="' + (M.l - 5) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v.toLocaleString("fr-FR") + "</text>";
+  }
+  rows.forEach((r, i) => {
+    const xc = M.l + band * i + band / 2, x0 = xc - bw / 2;
+    const affIn = r.cap == null ? r.aff : Math.min(r.aff, r.cap);
+    const rest = r.cap == null ? 0 : Math.max(0, r.cap - r.aff);
+    const surc = r.cap == null ? 0 : Math.max(0, r.aff - r.cap);
+    let base = 0;
+    for (const [v, cls] of [[affIn, "aff"], [rest, "rest"], [surc, "over"]]) {
+      if (v <= 0) continue;
+      g += '<rect class="' + cls + '" data-i="' + i + '" x="' + x0 + '" y="' + y(base + v) + '" width="' + bw + '" height="' + (y(base) - y(base + v)) + '"/>';
+      base += v;
+    }
+    g += '<rect class="hit" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
+    const label = r.name.length > 16 ? r.name.slice(0, 15) + "…" : r.name;
+    g += rot
+      ? '<text class="who' + (r.over ? " over" : "") + '" text-anchor="end" transform="translate(' + (xc + 4) + "," + (M.t + ih + 12) + ') rotate(-35)">' + esc(label) + "</text>"
+      : '<text class="who' + (r.over ? " over" : "") + '" text-anchor="middle" x="' + xc + '" y="' + (M.t + ih + 18) + '">' + esc(label) + "</text>";
+  });
+  g += '<line class="axis" x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>';
+  return '<svg class="cap-svg" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '">' + g + "</svg>";
 }
 
 function renderCapPanel(act) {
@@ -2822,49 +2855,61 @@ function renderCapPanel(act) {
   const alert = btn.querySelector(".cap-alert");
   alert.hidden = !(m.over > 0);
   alert.textContent = m.over || "";
-  btn.dataset.tipRole = "Ouvre à droite la vue par jour et par ressource : capacité, charge affectée et capacité restante" +
+  btn.dataset.tipRole = "Ouvre à droite le graphique par jour de chaque ressource : temps affecté, temps restant à affecter et surcharge" +
     (m.over ? " — " + m.over + " surcharge(s) sur la période" : "");
   if (!open) return;
   const body = panel.querySelector(".cap-body");
+  const scroll = body.scrollTop;
   const onlyOver = panel.querySelector(".cap-only").checked;
-  if (m.error) { body.innerHTML = '<p class="muted cap-empty">' + esc(m.error) + "</p>"; panel.querySelector(".cap-sum").textContent = ""; return; }
-  panel.querySelector(".cap-sum").textContent = m.over ? "⚠ " + m.over + " surcharge" + (m.over > 1 ? "s" : "") : "Aucune surcharge";
-  panel.querySelector(".cap-sum").classList.toggle("over", m.over > 0);
+  const sum = panel.querySelector(".cap-sum");
+  if (m.error) { body.innerHTML = '<p class="muted cap-empty">' + esc(m.error) + "</p>"; sum.textContent = ""; return; }
+  sum.textContent = m.over ? "⚠ " + m.over + " surcharge" + (m.over > 1 ? "s" : "") : "Aucune surcharge";
+  sum.classList.toggle("over", m.over > 0);
   const notes = [];
-  if (!m.capD) notes.push("Aucun fichier de capacité chargé : seule la charge affectée est affichée (Paramètres › Fichiers sources).");
-  else if (!m.capD.hasNames) notes.push("Le fichier de capacité n’a pas de colonne nom_complet : capacité par ressource indisponible.");
-  if (m.unknownCap.length) notes.push("Sans capacité dans le fichier (nom différent ?) : " + m.unknownCap.slice(0, 6).join(", ") + (m.unknownCap.length > 6 ? "…" : "") + ".");
-  if (!state.resources.length) notes.push("Astuce : créez la liste des ressources dans Paramètres › Ressources, avec les mêmes noms que dans le fichier de capacité.");
+  if (!m.capD) notes.push("Aucun fichier de capacité chargé : seul le temps affecté est affiché (Paramètres › Fichiers sources).");
+  else if (!m.withNames) notes.push("Le fichier de capacité n’a pas de colonne nom_complet : temps disponible par ressource inconnu.");
+  else if (!m.selCount) notes.push("Aucun groupe / niveau de capacité choisi pour " + def.name + " : seules les ressources de Paramètres › Ressources sont affichées (Fichiers sources, colonne « Capacité »).");
+  if (m.unknownCap.length) notes.push("Sans temps disponible dans le fichier de capacité (nom différent ?) : " + m.unknownCap.slice(0, 6).join(", ") + (m.unknownCap.length > 6 ? "…" : "") + ".");
   let h = notes.map(n => '<p class="muted small">' + esc(n) + "</p>").join("");
-  const pct = v => (m.max ? v / m.max * 100 : 0).toFixed(2) + "%";
-  let shown = 0;
+  const width = Math.max(240, body.clientWidth - 8);
+  const shownDays = [];
   for (const day of m.days) {
     const rows = onlyOver ? day.rows.filter(r => r.over) : day.rows;
     if (onlyOver && !rows.length) continue;
-    shown++;
-    h += '<div class="cap-day">' + esc(cap1(day.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" }))) +
-      ' <span class="muted small">S' + isoWeek(day.d).week + (day.unassigned ? " · non affecté : " + fmtH(day.unassigned) + " h" : "") + "</span></div>";
-    for (const r of rows) {
-      const tot = r.act + r.oth;
-      const rest = r.cap == null ? null : r.cap - tot;
-      const tip = r.name + " — " + cap1(day.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit" })) +
-        " : capacité " + (r.cap == null ? "inconnue" : fmtH(r.cap) + " h") + ", affecté " + fmtH(tot) + " h (" + def.name + " " + fmtH(r.act) + " h" +
-        (r.oth ? ", autres activités " + fmtH(r.oth) + " h" : "") + ")" + (rest == null ? "" : rest >= 0 ? ", reste " + fmtH(rest) + " h" : ", surcharge " + fmtH(-rest) + " h");
-      let bar = "";
-      if (r.cap) bar += '<i class="rest" style="left:0;width:' + pct(r.cap) + '"></i>';
-      if (r.act) bar += '<i class="act first" style="left:0;width:' + pct(r.act) + '"></i>';
-      if (r.oth) bar += '<i class="oth' + (r.act ? "" : " first") + '" style="left:' + pct(r.act) + ";width:" + pct(r.oth) + '"></i>';
-      if (r.over) bar += '<i class="over" style="left:' + pct(r.cap) + ";width:" + pct(tot - r.cap) + '"></i>';
-      h += '<div class="cap-row' + (r.over ? " over" : "") + '" data-tip-name="' + esc(r.name) + '" data-tip-role="' + esc(tip) + '">' +
-        '<span class="who">' + esc(r.name) + "</span>" +
-        '<div class="cap-bar">' + bar + "</div>" +
-        '<span class="nums">' + fmtH(tot) + " / " + (r.cap == null ? "?" : fmtH(r.cap)) + " h" +
-        (rest == null ? "" : rest >= 0 ? " · reste " + fmtH(rest) : " · ⚠ +" + fmtH(-rest)) + "</span></div>";
-    }
-    if (!rows.length) h += '<div class="muted small">Aucune ressource affectée ce jour-là.</div>';
+    shownDays.push({ day, rows });
+    const nOver = rows.filter(r => r.over).length;
+    h += '<section class="cap-chart" data-d="' + (shownDays.length - 1) + '">' +
+      '<div class="cap-day">' + esc(cap1(day.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit" }))) +
+      ' <span class="muted small">S' + isoWeek(day.d).week +
+      (day.unassigned ? " · non affecté : " + fmtH(day.unassigned) + " h" : "") + "</span>" +
+      (nOver ? ' <span class="cap-warn small">⚠ ' + nOver + " surcharge" + (nOver > 1 ? "s" : "") + "</span>" : "") + "</div>" +
+      (rows.length ? '<div class="cap-scroll">' + capDaySvg(rows, m.max, width) + "</div>" : '<div class="muted small">Aucune ressource ce jour-là.</div>') +
+      "</section>";
   }
-  if (!shown) h += '<p class="muted cap-empty">' + (onlyOver ? "Aucune surcharge sur la période." : "Aucune charge affectée ni capacité sur la période.") + "</p>";
-  body.innerHTML = h;
+  if (!shownDays.length) h += '<p class="muted cap-empty">' + (onlyOver ? "Aucune surcharge sur la période." : "Aucune ressource ni temps affecté sur la période.") + "</p>";
+  body.innerHTML = h + '<div class="chart-tip cap-tip"></div>';
+  body.scrollTop = scroll;
+  // Valeurs d'une barre affichées immédiatement au survol.
+  const tip = body.querySelector(".cap-tip");
+  body.onpointermove = e => {
+    const t = e.target.closest(".cap-svg [data-i]"), sec = t && t.closest(".cap-chart");
+    if (!t || !sec) { tip.classList.remove("show"); return; }
+    const { day, rows } = shownDays[Number(sec.dataset.d)], r = rows[Number(t.dataset.i)];
+    const line = (cls, v, l) => '<div class="tip-row"><span class="k-sq ' + cls + '"></span><b>' + v + "</b><span>" + esc(l) + "</span></div>";
+    tip.innerHTML = '<div class="tip-day">' + esc(r.name) + " · " + esc(day.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" })) + "</div>" +
+      line("k-aff", fmtH(r.aff) + " h", "Temps affecté" + (r.oth ? " (dont " + fmtH(r.oth) + " h autres activités)" : "")) +
+      (r.cap == null ? line("", "?", "Temps disponible inconnu") :
+        line("k-rest", fmtH(Math.max(0, r.cap - r.aff)) + " h", "Temps restant à affecter") +
+        (r.over ? line("k-over", fmtH(r.aff - r.cap) + " h", "Surcharge") : "") +
+        line("", fmtH(r.cap) + " h", "Temps disponible sur la journée"));
+    tip.classList.add("show");
+    const box = body.getBoundingClientRect();
+    const px = e.clientX - box.left, py = e.clientY - box.top + body.scrollTop;
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    tip.style.left = Math.max(4, px + 14 + tw > box.width ? px - tw - 14 : px + 14) + "px";
+    tip.style.top = Math.max(body.scrollTop + 4, py - th - 10) + "px";
+  };
+  body.onpointerleave = () => tip.classList.remove("show");
 }
 
 for (const act of Object.keys(ACT_DEFS)) {
@@ -2890,29 +2935,13 @@ for (const act of Object.keys(ACT_DEFS)) {
     };
     const up = () => {
       panel.classList.remove("resizing");
+      renderCapPanel(act);
       removeEventListener("pointermove", move);
       removeEventListener("pointerup", up);
       try { localStorage.setItem("cc.capPanelW", capWidth); } catch (err) { /* stockage indisponible */ }
     };
     addEventListener("pointermove", move);
     addEventListener("pointerup", up);
-  });
-  // Barre d'affectation en masse.
-  const bar = $(def.page + "Bulk"), input = bar.querySelector(".bulk-in");
-  bar.addEventListener("click", e => {
-    const dd = e.target.closest(".bulk-dd");
-    if (dd) { e.stopPropagation(); openAssignMenu(act, dd); return; }
-    const b = e.target.closest("[data-bulk]");
-    if (!b) return;
-    if (b.dataset.bulk === "apply") applyBulk(act, false);
-    if (b.dataset.bulk === "clear") applyBulk(act, true);
-    if (b.dataset.bulk === "none") { input.value = ""; clearSelection(act); }
-  });
-  input.addEventListener("input", e => autoComplete(act, input, e));
-  input.addEventListener("keydown", e => {
-    if (e.altKey && e.key === "ArrowDown") { e.preventDefault(); openAssignMenu(act, bar.querySelector(".bulk-dd")); }
-    else if (e.key === "Enter") { e.preventDefault(); applyBulk(act, false); }
-    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); input.value = ""; clearSelection(act); }
   });
 }
 
@@ -2924,7 +2953,16 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     if (dd) { e.stopPropagation(); openAssignMenu(act, dd); return; }
     const fb = e.target.closest("[data-filter]");
     if (fb) { e.stopPropagation(); openFilter(act, fb.dataset.filter, fb); return; }
+    const all = e.target.closest(".all-chk");
+    if (all) {
+      const ids = (actRows[act] || []).map(x => x.id);
+      if (all.checked) ids.forEach(id => ui.sel.add(id)); else ui.sel.clear();
+      paintSelection(act);
+      return;
+    }
+    const chk = e.target.closest(".row-chk");
     const tr = e.target.closest("tbody tr[data-row]");
+    if (chk && tr) { selectRow(act, tr.dataset.row, { shiftKey: e.shiftKey, ctrlKey: true }); return; }
     if (tr && !e.target.closest("input, button, select, a, .res-combo")) { selectRow(act, tr.dataset.row, e); return; }
     const th = e.target.closest("th[data-sort]");
     if (!th) return;
@@ -2934,7 +2972,7 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
   });
   // Maj + clic ne doit pas sélectionner le texte de la page.
   body.addEventListener("mousedown", e => {
-    if ((e.shiftKey || e.ctrlKey || e.metaKey) && e.target.closest("tbody tr[data-row]") && !e.target.closest("input, button, select")) e.preventDefault();
+    if ((e.shiftKey || e.ctrlKey || e.metaKey) && e.target.closest("tbody tr[data-row]") && !e.target.closest("input[type=text], button, select")) e.preventDefault();
   });
   body.addEventListener("change", e => {
     const el = e.target.closest(".res-in");
@@ -3197,13 +3235,13 @@ function openFilter(act, key, anchor) {
 }
 
 document.addEventListener("mousedown", e => {
-  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest(".res-dd") && !e.target.closest(".bulk-dd") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
+  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest(".res-dd") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
 });
 document.addEventListener("keydown", e => {
   // Échap ferme d'abord le menu de filtre, sans fermer la fenêtre qui le contient.
   if (e.key === "Escape" && fpopKey) { closeFilter(); e.stopImmediatePropagation(); return; }
   // Échap (hors saisie et hors fenêtre) annule la sélection de lignes de l'activité affichée.
-  if (e.key === "Escape" && !e.target.matches("input, textarea, select") && !chartOpen && !settingsOpen()) {
+  if (e.key === "Escape" && !e.target.matches("input[type=text], textarea, select") && !chartOpen && !settingsOpen()) {
     const page = document.querySelector(".act-page.active");
     const act = page && Object.keys(ACT_DEFS).find(a => "page-" + ACT_DEFS[a].page === page.id);
     if (act && actUI[act].sel.size) { clearSelection(act); e.stopImmediatePropagation(); }
