@@ -258,6 +258,54 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .prepa-head h1 { margin: 0; }
 .quick-filters button { font-weight: 500; }
 .act-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+/* Tableau et vue Affectation par capacité côte à côte. */
+.act-split { flex: 1 1 auto; min-height: 0; display: flex; gap: 10px; }
+.act-split > .act-body { min-width: 0; }
+.cap-btn { display: inline-flex; align-items: center; gap: 6px; position: relative; }
+.cap-btn.on { color: var(--accent); background: var(--accent-soft); border-color: var(--accent); }
+.cap-btn svg.i { width: 18px; height: 18px; }
+.cap-alert { background: var(--err); color: #fff; border-radius: 999px; font-size: .75em; padding: 0 6px; line-height: 1.5; }
+.cap-panel {
+  position: relative; flex: 0 0 var(--cap-w, 440px); width: var(--cap-w, 440px); min-width: 260px; max-width: 75vw;
+  display: flex; flex-direction: column; min-height: 0;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
+  animation: slideInRight .18s ease-out;
+}
+.cap-panel[hidden] { display: none; }
+.cap-resizer { position: absolute; left: -6px; top: 0; bottom: 0; width: 10px; cursor: col-resize; z-index: 3; }
+.cap-resizer::after { content: ""; position: absolute; left: 4px; top: 50%; width: 3px; height: 36px; margin-top: -18px; border-radius: 3px; background: var(--border); }
+.cap-resizer:hover::after, .cap-panel.resizing .cap-resizer::after { background: var(--accent); }
+.cap-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px 6px; flex-wrap: wrap; }
+.cap-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 0 12px 8px; color: var(--text-2); border-bottom: 1px solid var(--border); }
+.cap-legend .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.k-act { background: var(--series-1); }
+.k-oth { background: color-mix(in srgb, var(--series-1) 45%, var(--surface)); }
+.k-rest { background: color-mix(in srgb, var(--ok) 22%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 50%, transparent); }
+.k-over { background: var(--err); }
+.cap-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 6px 12px 12px; }
+.cap-day { margin: 10px 0 4px; display: flex; align-items: baseline; gap: 8px; font-weight: 600; position: sticky; top: -6px; background: var(--surface); padding: 4px 0; z-index: 1; }
+.cap-day .muted { font-weight: 400; }
+.cap-day.late { color: var(--err); }
+.cap-row { display: grid; grid-template-columns: minmax(70px, 30%) 1fr auto; align-items: center; gap: 8px; padding: 3px 0; }
+.cap-row .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cap-row .nums { font-variant-numeric: tabular-nums; white-space: nowrap; font-size: .88em; color: var(--text-2); text-align: right; }
+.cap-row.over .nums { color: var(--err); font-weight: 600; }
+.cap-bar { position: relative; height: 14px; border-radius: 4px; background: transparent; }
+.cap-bar > i { position: absolute; top: 0; bottom: 0; }
+.cap-bar .rest { background: color-mix(in srgb, var(--ok) 22%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 50%, transparent); border-radius: 4px; }
+.cap-bar .act { background: var(--series-1); }
+.cap-bar .oth { background: color-mix(in srgb, var(--series-1) 45%, var(--surface)); }
+.cap-bar .over { background: var(--err); }
+.cap-bar .first { border-radius: 4px 0 0 4px; }
+.cap-empty { padding: 12px 0; }
+/* Sélection de lignes et affectation en masse. */
+.act-page .tbl tbody tr.sel td { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
+.act-page .tbl tbody tr { cursor: default; }
+.bulk-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: -2px 0 10px; padding: 8px 12px;
+  border: 1px solid var(--accent); border-radius: 10px; background: var(--accent-soft); animation: popIn .14s ease-out; }
+.bulk-bar[hidden] { display: none; }
+.bulk-combo { width: 220px; }
+.bulk-combo .bulk-in { flex: 1; min-width: 0; width: 100%; padding: .25em .5em; border-radius: 6px; border-color: var(--border); background: var(--surface); }
 .act-body > .card.muted { flex: 0 0 auto; }
 .prepa-card { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 0; margin-bottom: 0; overflow: hidden; }
 .tbl-wrap.tall { flex: 1 1 auto; min-height: 0; border: 0; border-radius: 12px; }
@@ -430,7 +478,26 @@ td.stale { color: var(--warn); font-weight: 600; }
   align-items: center;
   gap: 12px;
 }
-.overlay svg { animation: spin 1s linear infinite; color: var(--accent); }
+.overlay svg { animation: spin 1s linear infinite; color: var(--accent); flex: 0 0 auto; }
+.overlay .box { min-width: min(380px, 90vw); }
+.ov-text { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.ov-time { align-self: flex-start; font-variant-numeric: tabular-nums; }
+.ov-bar { height: 3px; border-radius: 3px; background: var(--surface-2); overflow: hidden; margin-top: 4px; }
+.ov-bar i { display: block; width: 35%; height: 100%; border-radius: 3px; background: var(--accent); animation: ovbar 1.1s ease-in-out infinite; }
+@keyframes ovbar { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+
+/* ---------- Animations d'ouverture (courtes et discrètes) ---------- */
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes popIn { from { opacity: 0; transform: translateY(6px) scale(.985); } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(24px); } }
+.modal.show, .overlay.show { animation: fadeIn .14s ease-out; }
+.modal.show .modal-box, .overlay.show .box { animation: popIn .16s ease-out; }
+.fpop.show { animation: popIn .12s ease-out; }
+label.check, .row > label.check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; min-width: 0; color: var(--text); }
+@media (prefers-reduced-motion: reduce) {
+  .modal.show, .overlay.show, .modal.show .modal-box, .overlay.show .box, .fpop.show, .cap-panel { animation: none !important; }
+  .ov-bar i { animation-duration: 3s; }
+}
 
 /* ---------- Graphique charge / capacité ---------- */
 :root { --series-1: #2a78d6; --series-2: #eb6834; --series-open: #4b5563; --split: #7c3aed; }
@@ -698,6 +765,7 @@ td.stale { color: var(--warn); font-weight: 600; }
           data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
       </div>
       <span class="spacer"></span>
+      <button class="btn cap-btn" data-cap="prepa-of" data-tip-name="Affectation par capacité" data-tip-role="Ouvre à droite la vue par jour et par ressource : capacité, charge affectée et capacité restante (alertes de surcharge)"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1"/><line x1="18" y1="9" x2="18" y2="20"/><line x1="22" y1="13" x2="22" y2="20"/></svg><span>Affectation par capacité</span><b class="cap-alert" hidden></b></button>
       <button class="icon-btn cols-btn" data-cols="prepa-of" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></button>
       <div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">
         <button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>
@@ -706,7 +774,36 @@ td.stale { color: var(--warn); font-weight: 600; }
         <button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>
       </div>
     </div>
-    <div class="act-body" id="prepaBody"></div>
+    <div class="bulk-bar" id="prepaBulk" hidden>
+      <b class="bulk-count"></b>
+      <span class="muted">Affecter à</span>
+      <div class="res-combo bulk-combo"><input type="text" class="bulk-in" autocomplete="off" spellcheck="false" placeholder="Ressource…"
+        data-tip-name="Ressource à affecter" data-tip-role="Tapez ou choisissez la ressource (complétion depuis la liste des ressources) ; Entrée applique l’affectation aux lignes sélectionnées" data-tip-key="Entrée"><button class="res-dd bulk-dd" tabindex="-1" data-tip-name="Liste des ressources" data-tip-role="Ouvre la liste des ressources" data-tip-key="Alt + ↓"><svg class="i" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button></div>
+      <button class="btn primary small" data-bulk="apply" data-tip-name="Affecter" data-tip-role="Affecte toutes les lignes sélectionnées à cette ressource (annulable par Ctrl + Z)" data-tip-key="Entrée">Affecter</button>
+      <button class="btn small" data-bulk="clear" data-tip-name="Retirer l’affectation" data-tip-role="Retire l’affectation de toutes les lignes sélectionnées (annulable par Ctrl + Z)">Retirer l’affectation</button>
+      <button class="btn small" data-bulk="none" data-tip-name="Désélectionner" data-tip-role="Annule la sélection des lignes" data-tip-key="Échap">Désélectionner</button>
+      <span class="muted small bulk-help">Clic : une ligne · Maj + clic : plage · Ctrl + clic : ajouter / retirer</span>
+    </div>
+    <div class="act-split">
+      <div class="act-body" id="prepaBody"></div>
+      <aside class="cap-panel" id="prepaCap" hidden>
+        <div class="cap-resizer" data-tip-name="Largeur de la vue" data-tip-role="Faites glisser pour élargir ou réduire la vue Affectation par capacité"></div>
+        <div class="cap-head">
+          <b>Affectation par capacité</b>
+          <span class="cap-sum muted small"></span>
+          <span class="spacer" style="flex:1"></span>
+          <label class="check small" data-tip-name="Surcharges seulement" data-tip-role="N’affiche que les ressources dont la charge affectée dépasse la capacité"><input type="checkbox" class="cap-only"> Surcharges</label>
+          <button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation par capacité"><svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="cap-legend small">
+          <span><i class="k k-act"></i>Charge affectée (cette activité)</span>
+          <span><i class="k k-oth"></i>Autres activités</span>
+          <span><i class="k k-rest"></i>Capacité restante</span>
+          <span><i class="k k-over"></i>Surcharge</span>
+        </div>
+        <div class="cap-body"></div>
+      </aside>
+    </div>
   </section>
 
   <section class="page act-page" id="page-exped">
@@ -720,6 +817,7 @@ td.stale { color: var(--warn); font-weight: 600; }
           data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
       </div>
       <span class="spacer"></span>
+      <button class="btn cap-btn" data-cap="prepa-exped" data-tip-name="Affectation par capacité" data-tip-role="Ouvre à droite la vue par jour et par ressource : capacité, charge affectée et capacité restante (alertes de surcharge)"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1"/><line x1="18" y1="9" x2="18" y2="20"/><line x1="22" y1="13" x2="22" y2="20"/></svg><span>Affectation par capacité</span><b class="cap-alert" hidden></b></button>
       <button class="icon-btn cols-btn" data-cols="prepa-exped" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></button>
       <div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">
         <button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>
@@ -728,15 +826,49 @@ td.stale { color: var(--warn); font-weight: 600; }
         <button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>
       </div>
     </div>
-    <div class="act-body" id="expedBody"></div>
+    <div class="bulk-bar" id="expedBulk" hidden>
+      <b class="bulk-count"></b>
+      <span class="muted">Affecter à</span>
+      <div class="res-combo bulk-combo"><input type="text" class="bulk-in" autocomplete="off" spellcheck="false" placeholder="Ressource…"
+        data-tip-name="Ressource à affecter" data-tip-role="Tapez ou choisissez la ressource (complétion depuis la liste des ressources) ; Entrée applique l’affectation aux lignes sélectionnées" data-tip-key="Entrée"><button class="res-dd bulk-dd" tabindex="-1" data-tip-name="Liste des ressources" data-tip-role="Ouvre la liste des ressources" data-tip-key="Alt + ↓"><svg class="i" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button></div>
+      <button class="btn primary small" data-bulk="apply" data-tip-name="Affecter" data-tip-role="Affecte toutes les lignes sélectionnées à cette ressource (annulable par Ctrl + Z)" data-tip-key="Entrée">Affecter</button>
+      <button class="btn small" data-bulk="clear" data-tip-name="Retirer l’affectation" data-tip-role="Retire l’affectation de toutes les lignes sélectionnées (annulable par Ctrl + Z)">Retirer l’affectation</button>
+      <button class="btn small" data-bulk="none" data-tip-name="Désélectionner" data-tip-role="Annule la sélection des lignes" data-tip-key="Échap">Désélectionner</button>
+      <span class="muted small bulk-help">Clic : une ligne · Maj + clic : plage · Ctrl + clic : ajouter / retirer</span>
+    </div>
+    <div class="act-split">
+      <div class="act-body" id="expedBody"></div>
+      <aside class="cap-panel" id="expedCap" hidden>
+        <div class="cap-resizer" data-tip-name="Largeur de la vue" data-tip-role="Faites glisser pour élargir ou réduire la vue Affectation par capacité"></div>
+        <div class="cap-head">
+          <b>Affectation par capacité</b>
+          <span class="cap-sum muted small"></span>
+          <span class="spacer" style="flex:1"></span>
+          <label class="check small" data-tip-name="Surcharges seulement" data-tip-role="N’affiche que les ressources dont la charge affectée dépasse la capacité"><input type="checkbox" class="cap-only"> Surcharges</label>
+          <button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation par capacité"><svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="cap-legend small">
+          <span><i class="k k-act"></i>Charge affectée (cette activité)</span>
+          <span><i class="k k-oth"></i>Autres activités</span>
+          <span><i class="k k-rest"></i>Capacité restante</span>
+          <span><i class="k k-over"></i>Surcharge</span>
+        </div>
+        <div class="cap-body"></div>
+      </aside>
+    </div>
   </section>
 
 </main>
 
 <div class="overlay" id="overlay">
-  <div class="box">
+  <div class="box" role="status" aria-live="polite">
     <svg class="i" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
-    <span id="overlayText">Chargement…</span>
+    <div class="ov-text">
+      <b id="overlayText">Chargement…</b>
+      <span class="muted small" id="overlayDetail"></span>
+      <div class="ov-bar"><i></i></div>
+    </div>
+    <span class="muted small ov-time" id="overlayTime"></span>
   </div>
 </div>
 <div class="fpop" id="fpop"></div>
@@ -777,6 +909,12 @@ td.stale { color: var(--warn); font-weight: 600; }
           data-tip-name="Nouveau classeur" data-tip-role="Crée un nouveau classeur projet .xlsx à l'emplacement de votre choix">Nouveau classeur…</button>
         <button class="btn" id="btnSaveAs"
           data-tip-name="Enregistrer sous" data-tip-role="Enregistre le projet dans un autre fichier .xlsx">Enregistrer sous…</button>
+      </div>
+      <div class="row">
+        <label class="check" data-tip-name="Sauvegarde automatique" data-tip-role="Enregistre le projet toutes les 10 minutes s’il a été modifié (Ctrl + Z reste possible après la sauvegarde)">
+          <input type="checkbox" id="chkAutoSave"> Sauvegarde automatique toutes les 10 minutes
+        </label>
+        <span class="muted small" id="autoSaveInfo"></span>
       </div>
     </div>
 
@@ -974,7 +1112,7 @@ const AFFECT_HELP = {
 function defaultGammePrepa() {
   const t = (a, name, sec) => ({ a, name, sec });
   const dn = [["", 1], ["10", 1], ["15", 1], ["20", 1], ["25", 1], ["32", 1], ["40", 1], ["50", 1],
-    ["65", 60], ["80", 60], ["100", 60], ["150", 70], ["200", 70]];
+    ["65", 60], ["80", 60], ["100", 60], ["125", 60], ["150", 70], ["200", 70]];
   return {
     id: "g-prepa-of",
     name: "Prépa OF",
@@ -989,8 +1127,7 @@ function defaultGammePrepa() {
       t("Ligne", "Sortir le contenant", 60),
       t("Ligne", "Vérifier le lot", 10),
       { a: "Calcul", name: "Compter et déposer les pièces dans la préparation", sec: 0,
-        calc: { label: "DN", sourceId: "", sheet: "", column: "", linkLocal: "Composant OF", linkRemote: "",
-          values: dn.map(([v, s]) => ({ v, sec: s })) } },
+        calc: Object.assign({ label: "DN", values: dn.map(([v, s]) => ({ v, sec: s })) }, DN_LINK) },
       t("Ligne", "Ranger le contenant", 60),
       t("Forfait", "Changement de lot X3", 90),
       t("Forfait", "Conditionnement / Etiquetage", 180),
@@ -1035,6 +1172,11 @@ function defaultGammeExped() {
   };
 }
 
+// Base des DN : fichier local (colonnes Article, DN) relié aux lignes de Prépa OF par le composant.
+// Les données restent sur le poste : seul le lien vers le fichier est enregistré dans le projet.
+const DN_SOURCE = { id: "s-base-dn", label: "Base DN", activity: "", gamme: "", fileName: "", fileDate: null, loadedAt: null, cap: [] };
+const DN_LINK = { sourceId: DN_SOURCE.id, sheet: "", column: "DN", linkLocal: "Composant OF", linkRemote: "Article" };
+
 const DEFAULT_SOURCES = [
   { id: "s-prepa-of", label: "Charge de travail", activity: "prepa-of", gamme: "g-prepa-of", fileName: "", fileDate: null, loadedAt: null, cap: [] },
   { id: "s-prepa-exped", label: "Commandes ventes", activity: "prepa-exped", gamme: "g-prepa-exped", fileName: "", fileDate: null, loadedAt: null, cap: [] }
@@ -1048,12 +1190,23 @@ function ensureActivityDefaults(st) {
     if (!st.gammes.some(g => g.id === src.gamme)) st.gammes.push(gammes[src.gamme]());
     st.sources.push(clone(src));
   }
+  // Projets antérieurs : la tâche DN de Prépa OF sans tableau source est branchée sur la base DN.
+  const g = st.gammes.find(x => x.id === "g-prepa-of");
+  const dnTask = g && g.tasks.find(t => t.a === "Calcul" && t.calc && t.calc.label === "DN" && !t.calc.sourceId && !t.calc.column);
+  if (dnTask) {
+    Object.assign(dnTask.calc, DN_LINK);
+    if (!dnTask.calc.values.some(v => v.v === "125")) {
+      const i = dnTask.calc.values.findIndex(v => v.v === "150");
+      dnTask.calc.values.splice(i < 0 ? dnTask.calc.values.length : i, 0, { v: "125", sec: 60 });
+    }
+  }
+  if (g && g.tasks.some(t => t.calc && t.calc.sourceId === DN_SOURCE.id) && !st.sources.some(x => x.id === DN_SOURCE.id)) st.sources.push(clone(DN_SOURCE));
   return st;
 }
 
 const DEFAULT_STATE = {
-  settings: { theme: "auto", font: "Inter", fontSize: 14 },
-  sources: clone(DEFAULT_SOURCES),
+  settings: { theme: "auto", font: "Inter", fontSize: 14, autoSave: false },
+  sources: clone(DEFAULT_SOURCES).concat(clone(DN_SOURCE)),
   gammes: [defaultGammePrepa(), defaultGammeExped()],
   // Source unique de capacité de travail (Heure productivité par jour, groupe et niveau).
   capacity: { fileName: "", fileDate: null, loadedAt: null },
@@ -1185,6 +1338,7 @@ function render() {
   for (const b of $("themeSeg").children) b.classList.toggle("on", b.dataset.v === s.theme);
   $("selFont").value = s.font;
   $("selSize").value = String(s.fontSize);
+  $("chkAutoSave").checked = !!s.autoSave;
   $("btnUndo").disabled = undoStack.length === 0;
   $("btnRedo").disabled = redoStack.length === 0;
 
@@ -1434,6 +1588,9 @@ function buildCapIndex(sheets) {
     const I = Object.fromEntries(Object.entries(want).map(([k, v]) => [k, H.indexOf(v)]));
     if (Object.values(I).some(i => i < 0)) continue;
     const byDay = new Map(), keys = new Map();
+    // Capacité par personne (vue Affectation par capacité) : colonne du nom, si elle existe.
+    const iName = ["nom_complet", "nom complet", "nom", "ressource", "personne"].map(n => H.indexOf(n)).find(i => i >= 0);
+    const byPerson = new Map();
     let from = null, to = null, rows = 0;
     for (const r of sh.rows) {
       const d = toDay(r[I.date]);
@@ -1444,15 +1601,26 @@ function buildCapIndex(sheets) {
       if (!byDay.has(iso)) byDay.set(iso, new Map());
       const m = byDay.get(iso);
       m.set(k, (m.get(k) || 0) + hrs);
+      if (iName != null) {
+        const who = personKey(cleanCapText(r[iName]));
+        if (who) {
+          if (!byPerson.has(iso)) byPerson.set(iso, new Map());
+          const pm = byPerson.get(iso);
+          pm.set(who, (pm.get(who) || 0) + hrs);
+        }
+      }
       if (!keys.has(k)) keys.set(k, { g, n });
       if (!from || d < from) from = d;
       if (!to || d > to) to = d;
       rows++;
     }
-    return { sheet: name, byDay, keys, from, to, rows };
+    return { sheet: name, byDay, keys, from, to, rows, byPerson, hasNames: iName != null };
   }
   return { error: "Colonnes date, groupe, Niveau et Heure productivité introuvables dans le fichier de capacité." };
 }
+
+// Clé de rapprochement d'un nom (ressource, saisie libre ou nom du fichier de capacité) : sans accents, casse ni espaces doubles.
+function personKey(name) { return stripAccents(name).replace(/\s+/g, " "); }
 
 function capacityOn(iso, sel) {
   const d = srcData[CAP_ID];
@@ -1545,10 +1713,23 @@ async function parseSourceFile(file) {
   return sheets;
 }
 
-function overlay(text) {
+// Fenêtre de chargement : titre, étape en cours et temps écoulé.
+let overlayTimer = null;
+function overlay(text, detail) {
   $("overlayText").textContent = text || "";
-  $("overlay").classList.toggle("show", !!text);
+  $("overlayDetail").textContent = detail || "";
+  const show = !!text, was = $("overlay").classList.contains("show");
+  $("overlay").classList.toggle("show", show);
+  if (show && !was) {
+    const t0 = Date.now();
+    $("overlayTime").textContent = "";
+    clearInterval(overlayTimer);
+    overlayTimer = setInterval(() => { $("overlayTime").textContent = Math.floor((Date.now() - t0) / 1000) + " s"; }, 500);
+  }
+  if (!show) clearInterval(overlayTimer);
 }
+function overlayStep(detail) { $("overlayDetail").textContent = detail; return tick(); }
+const fmtSize = n => n >= 1048576 ? (n / 1048576).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " Mo" : Math.max(1, Math.round(n / 1024)) + " Ko";
 const tick = () => new Promise(r => setTimeout(r, 30));
 
 // ask = true seulement depuis un clic : le navigateur exige un geste pour redemander l'accès.
@@ -1564,15 +1745,19 @@ async function loadSource(id, ask) {
   let perm = await h.queryPermission({ mode: "read" });
   if (perm !== "granted" && ask) perm = await h.requestPermission({ mode: "read" });
   if (perm !== "granted") { srcData[id] = { status: "perm" }; render(); return; }
-  overlay("Chargement de « " + h.name + " »…");
+  overlay("Chargement de « " + h.name + " »", "Accès au fichier…");
   await tick();
   try {
     const file = await h.getFile();
+    await overlayStep("Lecture du fichier (" + fmtSize(file.size) + ")…");
     // Un fichier source de plusieurs activités n'est lu qu'une fois : on reprend la lecture d'une
     // source « jumelle » si elle est à jour, sinon on lit le fichier et on met aussi à jour les jumelles.
     const twins = await sameFileIds(id, h);
     const fresh = twins.find(o => srcData[o] && srcData[o].sheets && srcRec(state, o).fileDate === file.lastModified);
+    if (fresh) await overlayStep("Fichier déjà lu pour une autre source : données réutilisées…");
+    else await overlayStep("Analyse des onglets et des colonnes (" + fmtSize(file.size) + ")…");
     const sheets = fresh ? srcData[fresh].sheets : await parseSourceFile(file);
+    await overlayStep("Calcul des temps et mise à jour des tableaux…");
     setLoaded(id, h, file, sheets, twins);
     for (const o of twins) {
       const od = srcData[o];
@@ -2017,7 +2202,10 @@ function buildGammeTimer(g, lineSrcId) {
     const cd = srcData[srcId];
     let valueOf = () => "";
     if (c.column && cd && cd.sheets) {
-      const sheetName = cd.sheets[c.sheet] ? c.sheet : (srcId === lineSrcId && !c.sheet ? g.sheet : null);
+      const names = Object.keys(cd.sheets);
+      const sheetName = cd.sheets[c.sheet] ? c.sheet
+        : !c.sheet && srcId === lineSrcId ? g.sheet
+        : !c.sheet && names.length === 1 ? names[0] : null;
       const csh = sheetName && cd.sheets[sheetName];
       const iCol = csh ? csh.headers.indexOf(c.column) : -1;
       if (iCol >= 0) {
@@ -2275,7 +2463,7 @@ const actUI = {};
 const actCache = {};
 const actRows = {};     // lignes affichées (période + filtres) par activité, reprises par le graphique
 const actInRange = {};  // lignes de la période (après « En cours ») servant aux listes de filtre
-for (const [id, def] of Object.entries(ACT_DEFS)) actUI[id] = { sort: def.dateKey, dir: 1, filters: {}, enCours: false };
+for (const [id, def] of Object.entries(ACT_DEFS)) actUI[id] = { sort: def.dateKey, dir: 1, filters: {}, enCours: false, sel: new Set(), anchor: null };
 const actOfPage = page => Object.keys(ACT_DEFS).find(a => ACT_DEFS[a].page === page);
 
 // Construit la liste complète des dossiers (toutes dates) ; mise en cache tant que la source et la gamme ne changent pas.
@@ -2287,10 +2475,12 @@ function actList(act) {
   if (!d || d.status !== "loaded" && d.status !== "changed") return { error: "Le fichier source « " + src.fileName + " » n'est pas chargé (Paramètres › Fichiers sources)." };
   const g = state.gammes.find(x => x.id === src.gamme);
   const key = JSON.stringify([src.id, g || null]);
+  // Les fichiers des tableaux de calcul (ex. base DN) font aussi partie du cache : leur chargement relance le calcul.
+  const deps = g ? g.tasks.filter(t => t.calc && t.calc.sourceId).map(t => srcData[t.calc.sourceId]) : [];
   const cache = actCache[act];
-  if (cache && cache.key === key && cache.data === d) return cache;
+  if (cache && cache.key === key && cache.data === d && cache.deps.length === deps.length && cache.deps.every((x, i) => x === deps[i])) return cache;
 
-  const res = { key, data: d, list: null, error: null, warning: null };
+  const res = { key, data: d, deps, list: null, error: null, warning: null };
   actCache[act] = res;
   const sh = {}, missing = [];
   for (const [name, cols] of Object.entries(def.sheets)) {
@@ -2341,6 +2531,9 @@ function renderActTable(act) {
   if (res.error) {
     actRows[act] = []; actInRange[act] = [];
     body.innerHTML = '<div class="card placeholder muted">' + esc(res.error) + "</div>";
+    ui.sel.clear();
+    updateBulkBar(act);
+    renderCapPanel(act);
     return;
   }
   const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
@@ -2353,6 +2546,9 @@ function renderActTable(act) {
   actInRange[act] = inRange;
   const rows = applyColumnFilters(act, inRange);
   actRows[act] = rows;
+  // La sélection ne garde que les lignes encore affichées.
+  const shown = new Set(rows.map(x => x.id));
+  for (const id of ui.sel) if (!shown.has(id)) ui.sel.delete(id);
   const nFilters = Object.keys(ui.filters).length + (ui.enCours ? 1 : 0);
   for (const b of quick.children) b.classList.toggle("on", b.dataset.q === "encours" ? ui.enCours : !nFilters);
   const col = allCols.find(c => c.k === ui.sort) || allCols.find(c => c.k === dk);
@@ -2380,7 +2576,7 @@ function renderActTable(act) {
     const tip = dt ? "Forfait " + fmtInt(dt.parts.forfait) + " s + Ligne " + fmtInt(dt.parts.ligne) + " s (" + dt.lines + " lignes) + Quantité " +
       fmtInt(dt.parts.quantite) + " s + Calcul " + fmtInt(dt.parts.calcul) + " s (" + fmtInt(dt.qty) + " pièces)" +
       (dt.unknown ? " — " + dt.unknown + " ligne(s) avec une valeur absente du tableau de calcul (comptée 0 s)" : "") : "";
-    h += "<tr>";
+    h += '<tr data-row="' + esc(x.id) + '"' + (ui.sel.has(x.id) ? ' class="sel"' : "") + ">";
     for (const c of cols) {
       if (c.heures) h += '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
         (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && dt.unknown ? " ⚠" : "") + "</b></td>";
@@ -2413,6 +2609,8 @@ function renderActTable(act) {
     h += "</tr></tfoot>";
   }
   body.innerHTML = h + "</table></div></div>";
+  updateBulkBar(act);
+  renderCapPanel(act);
 }
 
 $("prepaFrom").onchange = e => { prepaUI.from = e.target.value; renderPrepa(); };
@@ -2437,9 +2635,10 @@ function resourceInput(act, id, current) {
 
 // Liste déroulante d'une case Affectation : ressources de la liste, puis autres textes déjà saisis dans la colonne.
 function openAssignMenu(act, btn) {
-  const id = btn.dataset.id;
+  const bulk = btn.classList.contains("bulk-dd");
+  const id = bulk ? "bulk" : btn.dataset.id;
   if (fpopKey === act + ":dd:" + id) return closeFilter();
-  const el = btn.parentElement.querySelector(".res-in");
+  const el = btn.parentElement.querySelector("input");
   const cur = stripAccents(el.value.trim());
   const names = state.resources.map(r => r.name);
   const others = assignSuggestions(act).filter(t => !names.some(n => stripAccents(n) === stripAccents(t)));
@@ -2462,7 +2661,8 @@ function openAssignMenu(act, btn) {
     if (!b) return;
     el.value = b.dataset.pick;
     closeFilter();
-    saveAssign(act, el);
+    if (bulk) applyBulk(act, !b.dataset.pick);
+    else saveAssign(act, el);
   };
   pop.classList.add("show");
   const r = btn.getBoundingClientRect();
@@ -2492,6 +2692,230 @@ function saveAssign(act, el) {
   });
 }
 
+// Complète la saisie d'une affectation avec un nom déjà connu commençant par les mêmes lettres (comme Excel).
+function autoComplete(act, el, e) {
+  if ((e.inputType || "").startsWith("delete")) return;
+  const typed = el.value;
+  if (!typed.trim() || el.selectionStart !== typed.length) return;
+  const q = stripAccents(typed);
+  const hit = assignSuggestions(act).find(t => t.length > typed.length && stripAccents(t).startsWith(q));
+  if (!hit) return;
+  el.value = hit; // la valeur proposée garde son écriture d'origine
+  el.setSelectionRange(typed.length, el.value.length);
+}
+
+/* ---------- Sélection de lignes et affectation en masse ---------- */
+function paintSelection(act) {
+  const sel = actUI[act].sel;
+  for (const tr of $(ACT_DEFS[act].page + "Body").querySelectorAll("tbody tr[data-row]")) tr.classList.toggle("sel", sel.has(tr.dataset.row));
+  updateBulkBar(act);
+}
+function updateBulkBar(act) {
+  const ui = actUI[act], bar = $(ACT_DEFS[act].page + "Bulk");
+  const n = ui.sel.size;
+  bar.hidden = !n;
+  if (!n) return;
+  const h = (actRows[act] || []).filter(x => ui.sel.has(x.id)).reduce((a, x) => a + (x.heures || 0), 0);
+  bar.querySelector(".bulk-count").textContent = fmtInt(n) + " ligne" + (n > 1 ? "s" : "") + " sélectionnée" + (n > 1 ? "s" : "") + " · " + fmtHours(h * 3600) + " h";
+}
+function clearSelection(act) {
+  const ui = actUI[act];
+  if (!ui.sel.size) return;
+  ui.sel.clear();
+  ui.anchor = null;
+  paintSelection(act);
+}
+// Clic : une ligne · Maj + clic : de la dernière ligne cliquée à celle-ci · Ctrl + clic : ajoute ou retire une ligne.
+function selectRow(act, id, e) {
+  const ui = actUI[act], ids = (actRows[act] || []).map(x => x.id);
+  if (e.shiftKey && ui.anchor && ids.includes(ui.anchor)) {
+    const a = ids.indexOf(ui.anchor), b = ids.indexOf(id);
+    if (!(e.ctrlKey || e.metaKey)) ui.sel.clear();
+    for (let i = Math.min(a, b); i <= Math.max(a, b); i++) ui.sel.add(ids[i]);
+  } else if (e.ctrlKey || e.metaKey) {
+    if (ui.sel.has(id)) ui.sel.delete(id); else ui.sel.add(id);
+    ui.anchor = id;
+  } else {
+    const only = ui.sel.size === 1 && ui.sel.has(id);
+    ui.sel.clear();
+    if (!only) ui.sel.add(id);
+    ui.anchor = id;
+  }
+  paintSelection(act);
+}
+function applyBulk(act, clear) {
+  const ui = actUI[act], bar = $(ACT_DEFS[act].page + "Bulk"), input = bar.querySelector(".bulk-in");
+  const ids = [...ui.sel];
+  if (!ids.length) return;
+  const v = clear ? "" : assignValue(input.value);
+  if (!clear && !v) { toast("Tapez ou choisissez une ressource à affecter.", true); input.focus(); return; }
+  commit(st => {
+    const m = st.assign[act] || (st.assign[act] = {});
+    for (const id of ids) { if (v) m[id] = v; else delete m[id]; }
+  });
+  toast(clear ? "Affectation retirée de " + ids.length + " ligne(s)" : ids.length + " ligne(s) affectée(s) à « " + assignLabel(v) + " »");
+  input.value = "";
+  clearSelection(act);
+}
+
+/* ---------- Vue « Affectation par capacité » (panneau à droite) ---------- */
+let capOpen = {}, capWidth = 440;
+try { capOpen = JSON.parse(localStorage.getItem("cc.capPanel")) || {}; capWidth = Number(localStorage.getItem("cc.capPanelW")) || 440; } catch (e) { /* stockage indisponible */ }
+document.documentElement.style.setProperty("--cap-w", capWidth + "px");
+
+// Charge affectée par jour et par personne (cette activité / autres activités), capacité par personne du fichier de capacité.
+function capModel(act) {
+  const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
+  const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
+  if (!from || !to || to < from) return { error: "Choisissez une période valide dans le ruban." };
+  const capD = srcData[CAP_ID] && srcData[CAP_ID].cap;
+  const persons = new Map();
+  for (const r of state.resources) persons.set(personKey(r.name), r.name);
+  const load = new Map(), unassigned = new Map();
+  for (const a of Object.keys(ACT_DEFS)) {
+    const res = actList(a);
+    if (res.error) continue;
+    const dk = ACT_DEFS[a].dateKey, m = state.assign[a] || {};
+    for (const x of res.list) {
+      const d = x[dk];
+      if (!d || d < from || d > to || x.heures == null) continue;
+      const iso = localISO(d), lab = assignLabel(m[x.id]);
+      if (!lab) { if (a === act) unassigned.set(iso, (unassigned.get(iso) || 0) + x.heures); continue; }
+      const k = personKey(lab);
+      if (!persons.has(k)) persons.set(k, lab);
+      let dm = load.get(iso);
+      if (!dm) load.set(iso, dm = new Map());
+      const o = dm.get(k) || { act: 0, oth: 0 };
+      o[a === act ? "act" : "oth"] += x.heures;
+      dm.set(k, o);
+    }
+  }
+  const days = [];
+  let over = 0, max = 0, unknownCap = new Set();
+  for (let d = new Date(from); d <= to && days.length < 400; d = addDays(d, 1)) {
+    const iso = localISO(d), dm = load.get(iso), pm = capD && capD.hasNames ? capD.byPerson.get(iso) : null;
+    const rows = [];
+    for (const [k, name] of persons) {
+      const l = dm && dm.get(k) || { act: 0, oth: 0 };
+      const cap = capD && capD.hasNames ? (pm && pm.get(k)) || 0 : null;
+      const tot = l.act + l.oth;
+      if (!tot && !cap) continue;
+      if (tot && cap === 0 && !(capD.byPerson && [...capD.byPerson.values()].some(m2 => m2.has(k)))) unknownCap.add(name);
+      const isOver = cap != null && tot > cap + 0.005;
+      if (isOver) over++;
+      max = Math.max(max, tot, cap || 0);
+      rows.push({ name, act: l.act, oth: l.oth, cap, over: isOver });
+    }
+    const un = unassigned.get(iso) || 0;
+    if (rows.length || un) days.push({ d, iso, rows, unassigned: un });
+  }
+  return { days, over, max, capD, unknownCap: [...unknownCap] };
+}
+
+function renderCapPanel(act) {
+  const def = ACT_DEFS[act], panel = $(def.page + "Cap");
+  const btn = document.querySelector('.cap-btn[data-cap="' + act + '"]');
+  const open = !!capOpen[act];
+  panel.hidden = !open;
+  btn.classList.toggle("on", open);
+  const m = capModel(act);
+  const alert = btn.querySelector(".cap-alert");
+  alert.hidden = !(m.over > 0);
+  alert.textContent = m.over || "";
+  btn.dataset.tipRole = "Ouvre à droite la vue par jour et par ressource : capacité, charge affectée et capacité restante" +
+    (m.over ? " — " + m.over + " surcharge(s) sur la période" : "");
+  if (!open) return;
+  const body = panel.querySelector(".cap-body");
+  const onlyOver = panel.querySelector(".cap-only").checked;
+  if (m.error) { body.innerHTML = '<p class="muted cap-empty">' + esc(m.error) + "</p>"; panel.querySelector(".cap-sum").textContent = ""; return; }
+  panel.querySelector(".cap-sum").textContent = m.over ? "⚠ " + m.over + " surcharge" + (m.over > 1 ? "s" : "") : "Aucune surcharge";
+  panel.querySelector(".cap-sum").classList.toggle("over", m.over > 0);
+  const notes = [];
+  if (!m.capD) notes.push("Aucun fichier de capacité chargé : seule la charge affectée est affichée (Paramètres › Fichiers sources).");
+  else if (!m.capD.hasNames) notes.push("Le fichier de capacité n’a pas de colonne nom_complet : capacité par ressource indisponible.");
+  if (m.unknownCap.length) notes.push("Sans capacité dans le fichier (nom différent ?) : " + m.unknownCap.slice(0, 6).join(", ") + (m.unknownCap.length > 6 ? "…" : "") + ".");
+  if (!state.resources.length) notes.push("Astuce : créez la liste des ressources dans Paramètres › Ressources, avec les mêmes noms que dans le fichier de capacité.");
+  let h = notes.map(n => '<p class="muted small">' + esc(n) + "</p>").join("");
+  const pct = v => (m.max ? v / m.max * 100 : 0).toFixed(2) + "%";
+  let shown = 0;
+  for (const day of m.days) {
+    const rows = onlyOver ? day.rows.filter(r => r.over) : day.rows;
+    if (onlyOver && !rows.length) continue;
+    shown++;
+    h += '<div class="cap-day">' + esc(cap1(day.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" }))) +
+      ' <span class="muted small">S' + isoWeek(day.d).week + (day.unassigned ? " · non affecté : " + fmtH(day.unassigned) + " h" : "") + "</span></div>";
+    for (const r of rows) {
+      const tot = r.act + r.oth;
+      const rest = r.cap == null ? null : r.cap - tot;
+      const tip = r.name + " — " + cap1(day.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit" })) +
+        " : capacité " + (r.cap == null ? "inconnue" : fmtH(r.cap) + " h") + ", affecté " + fmtH(tot) + " h (" + def.name + " " + fmtH(r.act) + " h" +
+        (r.oth ? ", autres activités " + fmtH(r.oth) + " h" : "") + ")" + (rest == null ? "" : rest >= 0 ? ", reste " + fmtH(rest) + " h" : ", surcharge " + fmtH(-rest) + " h");
+      let bar = "";
+      if (r.cap) bar += '<i class="rest" style="left:0;width:' + pct(r.cap) + '"></i>';
+      if (r.act) bar += '<i class="act first" style="left:0;width:' + pct(r.act) + '"></i>';
+      if (r.oth) bar += '<i class="oth' + (r.act ? "" : " first") + '" style="left:' + pct(r.act) + ";width:" + pct(r.oth) + '"></i>';
+      if (r.over) bar += '<i class="over" style="left:' + pct(r.cap) + ";width:" + pct(tot - r.cap) + '"></i>';
+      h += '<div class="cap-row' + (r.over ? " over" : "") + '" data-tip-name="' + esc(r.name) + '" data-tip-role="' + esc(tip) + '">' +
+        '<span class="who">' + esc(r.name) + "</span>" +
+        '<div class="cap-bar">' + bar + "</div>" +
+        '<span class="nums">' + fmtH(tot) + " / " + (r.cap == null ? "?" : fmtH(r.cap)) + " h" +
+        (rest == null ? "" : rest >= 0 ? " · reste " + fmtH(rest) : " · ⚠ +" + fmtH(-rest)) + "</span></div>";
+    }
+    if (!rows.length) h += '<div class="muted small">Aucune ressource affectée ce jour-là.</div>';
+  }
+  if (!shown) h += '<p class="muted cap-empty">' + (onlyOver ? "Aucune surcharge sur la période." : "Aucune charge affectée ni capacité sur la période.") + "</p>";
+  body.innerHTML = h;
+}
+
+for (const act of Object.keys(ACT_DEFS)) {
+  const def = ACT_DEFS[act], panel = $(def.page + "Cap");
+  const toggle = open => {
+    if (open) capOpen[act] = true; else delete capOpen[act];
+    try { localStorage.setItem("cc.capPanel", JSON.stringify(capOpen)); } catch (e) { /* stockage indisponible */ }
+    hideTip();
+    renderCapPanel(act);
+  };
+  document.querySelector('.cap-btn[data-cap="' + act + '"]').onclick = () => toggle(!capOpen[act]);
+  panel.querySelector(".cap-close").onclick = () => toggle(false);
+  panel.querySelector(".cap-only").onchange = () => renderCapPanel(act);
+  // Largeur réglable à la souris (poignée sur le bord gauche), mémorisée sur ce poste.
+  panel.querySelector(".cap-resizer").addEventListener("pointerdown", e => {
+    e.preventDefault();
+    const x0 = e.clientX, w0 = panel.getBoundingClientRect().width;
+    panel.classList.add("resizing");
+    hideTip();
+    const move = ev => {
+      capWidth = Math.round(Math.min(innerWidth * 0.75, Math.max(260, w0 + x0 - ev.clientX)));
+      document.documentElement.style.setProperty("--cap-w", capWidth + "px");
+    };
+    const up = () => {
+      panel.classList.remove("resizing");
+      removeEventListener("pointermove", move);
+      removeEventListener("pointerup", up);
+      try { localStorage.setItem("cc.capPanelW", capWidth); } catch (err) { /* stockage indisponible */ }
+    };
+    addEventListener("pointermove", move);
+    addEventListener("pointerup", up);
+  });
+  // Barre d'affectation en masse.
+  const bar = $(def.page + "Bulk"), input = bar.querySelector(".bulk-in");
+  bar.addEventListener("click", e => {
+    const dd = e.target.closest(".bulk-dd");
+    if (dd) { e.stopPropagation(); openAssignMenu(act, dd); return; }
+    const b = e.target.closest("[data-bulk]");
+    if (!b) return;
+    if (b.dataset.bulk === "apply") applyBulk(act, false);
+    if (b.dataset.bulk === "clear") applyBulk(act, true);
+    if (b.dataset.bulk === "none") { input.value = ""; clearSelection(act); }
+  });
+  input.addEventListener("input", e => autoComplete(act, input, e));
+  input.addEventListener("keydown", e => {
+    if (e.altKey && e.key === "ArrowDown") { e.preventDefault(); openAssignMenu(act, bar.querySelector(".bulk-dd")); }
+    else if (e.key === "Enter") { e.preventDefault(); applyBulk(act, false); }
+    else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); input.value = ""; clearSelection(act); }
+  });
+}
+
 // Événements des pages d'activité : tri, filtre, affectation, boutons rapides.
 for (const [act, def] of Object.entries(ACT_DEFS)) {
   const body = $(def.page + "Body"), ui = actUI[act];
@@ -2500,11 +2924,17 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     if (dd) { e.stopPropagation(); openAssignMenu(act, dd); return; }
     const fb = e.target.closest("[data-filter]");
     if (fb) { e.stopPropagation(); openFilter(act, fb.dataset.filter, fb); return; }
+    const tr = e.target.closest("tbody tr[data-row]");
+    if (tr && !e.target.closest("input, button, select, a, .res-combo")) { selectRow(act, tr.dataset.row, e); return; }
     const th = e.target.closest("th[data-sort]");
     if (!th) return;
     if (ui.sort === th.dataset.sort) ui.dir = -ui.dir;
     else { ui.sort = th.dataset.sort; ui.dir = 1; }
     renderPrepa();
+  });
+  // Maj + clic ne doit pas sélectionner le texte de la page.
+  body.addEventListener("mousedown", e => {
+    if ((e.shiftKey || e.ctrlKey || e.metaKey) && e.target.closest("tbody tr[data-row]") && !e.target.closest("input, button, select")) e.preventDefault();
   });
   body.addEventListener("change", e => {
     const el = e.target.closest(".res-in");
@@ -2513,14 +2943,7 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
   // Saisie dans la colonne Affectation : complétion du texte, Entrée / ↑ / ↓ pour valider et changer de ligne.
   body.addEventListener("input", e => {
     const el = e.target.closest(".res-in");
-    if (!el || (e.inputType || "").startsWith("delete")) return;
-    const typed = el.value;
-    if (!typed.trim() || el.selectionStart !== typed.length) return;
-    const q = stripAccents(typed);
-    const hit = assignSuggestions(act).find(t => t.length > typed.length && stripAccents(t).startsWith(q));
-    if (!hit) return;
-    el.value = hit; // comme Excel, la valeur proposée garde son écriture d'origine
-    el.setSelectionRange(typed.length, el.value.length);
+    if (el) autoComplete(act, el, e);
   });
   body.addEventListener("keydown", e => {
     const el = e.target.closest(".res-in");
@@ -2774,11 +3197,17 @@ function openFilter(act, key, anchor) {
 }
 
 document.addEventListener("mousedown", e => {
-  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest(".res-dd") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
+  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest(".res-dd") && !e.target.closest(".bulk-dd") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
 });
 document.addEventListener("keydown", e => {
   // Échap ferme d'abord le menu de filtre, sans fermer la fenêtre qui le contient.
-  if (e.key === "Escape" && fpopKey) { closeFilter(); e.stopImmediatePropagation(); }
+  if (e.key === "Escape" && fpopKey) { closeFilter(); e.stopImmediatePropagation(); return; }
+  // Échap (hors saisie et hors fenêtre) annule la sélection de lignes de l'activité affichée.
+  if (e.key === "Escape" && !e.target.matches("input, textarea, select") && !chartOpen && !settingsOpen()) {
+    const page = document.querySelector(".act-page.active");
+    const act = page && Object.keys(ACT_DEFS).find(a => "page-" + ACT_DEFS[a].page === page.id);
+    if (act && actUI[act].sel.size) { clearSelection(act); e.stopImmediatePropagation(); }
+  }
   // Entrée valide le menu ouvert (filtre ou colonnes), comme le bouton OK.
   if (e.key === "Enter" && fpopKey) {
     const ok = $("fpop").querySelector('[data-fa="ok"]');
@@ -3124,7 +3553,8 @@ function stateToWorkbook() {
     ["Clé", "Valeur"],
     ["theme", s.theme],
     ["police", s.font],
-    ["taille_police", s.fontSize]
+    ["taille_police", s.fontSize],
+    ["sauvegarde_auto", s.autoSave ? "oui" : "non"]
   ];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Paramètres");
 
@@ -3184,6 +3614,7 @@ function workbookToState(wb) {
     if (FONTS.some(f => f.name === kv.police)) st.settings.font = kv.police;
     const n = Number(kv.taille_police);
     if (n >= 12 && n <= 16) st.settings.fontSize = n;
+    st.settings.autoSave = kv.sauvegarde_auto === "oui";
   }
 
   const rowsOf = name => wb.Sheets[name] ? XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "" }).slice(1) : null;
@@ -3240,7 +3671,8 @@ function workbookToState(wb) {
   return ensureActivityDefaults(st);
 }
 
-async function writeProject(handle) {
+// quiet : sauvegarde automatique, sans reconstruire l'écran (une saisie en cours n'est pas perdue).
+async function writeProject(handle, quiet) {
   setSaveState("saving");
   try {
     const data = XLSX.write(stateToWorkbook(), { type: "array", bookType: "xlsx" });
@@ -3250,8 +3682,8 @@ async function writeProject(handle) {
     projectHandle = handle;
     await idbSet("projectHandle", handle);
     setSaveState("saved");
-    render();
-    toast("Projet enregistré");
+    if (quiet) { $("autoSaveInfo").textContent = "Dernière sauvegarde automatique : " + new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); toast("Sauvegarde automatique effectuée"); }
+    else { render(); toast("Projet enregistré"); }
     return true;
   } catch (e) {
     console.error(e);
@@ -3267,6 +3699,21 @@ async function save() {
   if (!(await ensurePermission(projectHandle, true))) return;
   await writeProject(projectHandle);
 }
+
+// Sauvegarde automatique : toutes les 10 minutes si l'option est cochée et le projet modifié.
+// L'historique (Ctrl + Z / Ctrl + Y) est conservé : une sauvegarde ne vide pas les piles d'annulation.
+const AUTO_SAVE_MS = 10 * 60 * 1000;
+async function autoSave() {
+  if (!state.settings.autoSave || saveState !== "dirty" || !projectHandle || !FS_OK) return;
+  // Le navigateur n'autorise pas de demande d'accès hors d'un clic : sans accès déjà accordé, on attend Ctrl + S.
+  if (await projectHandle.queryPermission({ mode: "readwrite" }) !== "granted") {
+    $("autoSaveInfo").textContent = "Sauvegarde automatique en attente : enregistrez une fois avec Ctrl + S pour l’autoriser.";
+    return;
+  }
+  await writeProject(projectHandle, true);
+}
+setInterval(autoSave, AUTO_SAVE_MS);
+$("chkAutoSave").onchange = e => { const v = e.target.checked; commit(st => { st.settings.autoSave = v; }); };
 
 async function saveAs() {
   if (!FS_OK) return toast("Enregistrement impossible : utilisez Chrome ou Edge.", true);
