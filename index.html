@@ -337,10 +337,19 @@ td.stale { color: var(--warn); font-weight: 600; }
 .act-page .tbl td, .act-page .tbl th { white-space: nowrap; padding: .4em .6em; }
 /* Cellules multi-lignes en petit (adresse, instructions). */
 .act-page .tbl td.wrap { white-space: normal; font-size: .82em; line-height: 1.3; min-width: 14em; max-width: 22em; vertical-align: top; }
-/* Colonne Ressource : largeur fixe ; elle défile avec les autres colonnes. */
+/* Colonne Affectation : largeur fixe ; elle défile avec les autres colonnes. */
 .act-page .tbl .col-res { width: 13em; min-width: 13em; max-width: 13em; }
 .res-cell { padding-top: 2px !important; padding-bottom: 2px !important; }
-.res-in { width: 100%; padding: .2em .45em; border-radius: 6px; font-size: 1em; }
+.res-combo { display: flex; align-items: center; gap: 2px; }
+.res-in { flex: 1; min-width: 0; width: 100%; padding: .2em .45em; border-radius: 6px; font-size: 1em; }
+.res-dd { flex: 0 0 auto; width: 1.6em; height: 1.6em; display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text-2); cursor: pointer; }
+.res-dd:hover { color: var(--accent); border-color: var(--accent); }
+.res-dd svg.i { width: 1em; height: 1em; }
+.fpop.dd { min-width: 200px; }
+.fpop.dd .ddlist { max-height: min(320px, 50vh); overflow: auto; }
+.fpop.dd .fitem.on { color: var(--accent); font-weight: 600; }
+.fpop .dd-note { padding: 4px 10px; }
 .act-page .fbtn { width: 1.45em; height: 1.45em; flex-basis: 1.45em; }
 .act-page .fbtn svg.i { width: .95em; height: .95em; }
 .res-in:not(:focus) { border-color: transparent; background: transparent; }
@@ -862,7 +871,7 @@ td.stale { color: var(--warn); font-weight: 600; }
     <h2 class="sub-title">Ressources</h2>
     <div class="card">
       <div class="toolbar">
-        <span class="muted">Liste proposée dans la colonne « Ressource » à droite du tableau Prépa OF, pour affecter chaque dossier.</span>
+        <span class="muted">Liste proposée dans la colonne « Affectation » des tableaux d’activité (liste déroulante et complétion de la saisie), pour affecter chaque dossier.</span>
         <span class="spacer"></span>
         <button class="btn primary" id="btnAddResource"
           data-tip-name="Ajouter une ressource" data-tip-role="Ajoute une ligne en bas de la liste">+ Ajouter une ressource</button>
@@ -1482,7 +1491,7 @@ function openCapPicker(sid, anchor) {
             esc(k.slice(k.indexOf(" › ") + 3)) + "</label>").join("");
       }).join("") + "</div>"
         : '<div class="muted" style="padding:6px">Chargez d\'abord le fichier de capacité (en bas de cette page).</div>') +
-      '<div class="fbtns"><button class="btn" data-fa="cancel" data-tip-name="Annuler" data-tip-role="Ferme la liste sans rien changer">Annuler</button><button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-role="Applique les groupes et niveaux cochés à cette activité">OK</button></div>';
+      '<div class="fbtns"><button class="btn" data-fa="cancel" data-tip-name="Annuler" data-tip-role="Ferme la liste sans rien changer">Annuler</button><button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-key="Entrée" data-tip-role="Applique les groupes et niveaux cochés à cette activité">OK</button></div>';
     for (const el of pop.querySelectorAll("[data-ind]")) el.indeterminate = true;
   };
   draw();
@@ -2253,7 +2262,7 @@ const ACT_DEFS = {
 function actColumns(act) {
   const cols = ACT_DEFS[act].columns.concat([
     { k: "heures", t: "Temps (h)", num: true, heures: true },
-    { k: "ressource", t: "Ressource" }
+    { k: "ressource", t: "Affectation" }
   ]);
   // Ordre choisi par l'utilisateur (bouton Colonnes) ; une colonne absente de l'ordre garde sa place par défaut, à la fin.
   const order = colOrder[act];
@@ -2385,7 +2394,7 @@ function renderActTable(act) {
   h += "</tbody>";
   if (rows.length) {
     const nAff = rows.filter(x => x.ressource).length;
-    // Le libellé du total occupe les colonnes de gauche ; Temps (h) et Ressource gardent leur total s'ils sont affichés.
+    // Le libellé du total occupe les colonnes de gauche ; Temps (h) et Affectation gardent leur total s'ils sont affichés.
     // Les colonnes voisines sans total sont fusionnées ; la première porte le libellé du total.
     const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")";
     let labelled = false, span = 0;
@@ -2418,10 +2427,48 @@ function assignValue(text) {
   return r ? r.id : t;
 }
 
+// Case Affectation : saisie libre avec complétion, et liste déroulante des ressources (bouton ▾ ou Alt + ↓).
 function resourceInput(act, id, current) {
-  return '<input type="text" class="res-in" autocomplete="off" spellcheck="false" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
+  return '<div class="res-combo"><input type="text" class="res-in" autocomplete="off" spellcheck="false" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
     ' value="' + esc(assignLabel(current)) + '" placeholder="—"' +
-    ' data-tip-name="Ressource" data-tip-role="Cliquez et saisissez la ressource ; un début de texte déjà saisi dans la colonne est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">';
+    ' data-tip-name="Affectation" data-tip-role="Cliquez et saisissez la ressource : un début de texte identique à une ressource de la liste (ou à une saisie de la colonne) est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">' +
+    '<button class="res-dd" tabindex="-1" data-id="' + esc(id) + '" data-tip-name="Liste des ressources" data-tip-role="Ouvre la liste déroulante des ressources pour en choisir une" data-tip-key="Alt + ↓">' + ICON.down + "</button></div>";
+}
+
+// Liste déroulante d'une case Affectation : ressources de la liste, puis autres textes déjà saisis dans la colonne.
+function openAssignMenu(act, btn) {
+  const id = btn.dataset.id;
+  if (fpopKey === act + ":dd:" + id) return closeFilter();
+  const el = btn.parentElement.querySelector(".res-in");
+  const cur = stripAccents(el.value.trim());
+  const names = state.resources.map(r => r.name);
+  const others = assignSuggestions(act).filter(t => !names.some(n => stripAccents(n) === stripAccents(t)));
+  closeFilter();
+  fpopKey = act + ":dd:" + id;
+  hideTip();
+  const item = (v, label, role) => '<button class="fitem' + (stripAccents(v) === cur ? " on" : "") + '" data-pick="' + esc(v) + '"' +
+    ' data-tip-name="' + esc(label) + '" data-tip-role="' + esc(role) + '">' + esc(label) + "</button>";
+  const pop = $("fpop");
+  pop.classList.add("dd");
+  pop.innerHTML = '<div class="fhead">Affectation</div><div class="ddlist">' +
+    item("", "— Aucune affectation", "Retire l’affectation de cette ligne") +
+    (names.length ? "<hr>" + names.map(n => item(n, n, "Affecte cette ligne à cette ressource")).join("")
+      : '<div class="muted small dd-note">Aucune ressource : créez la liste dans Paramètres › Ressources.</div>') +
+    (others.length ? '<hr><div class="muted small dd-note">Autres saisies de la colonne</div>' +
+      others.map(n => item(n, n, "Reprend ce texte déjà saisi dans la colonne")).join("") : "") +
+    "</div>";
+  pop.onclick = e => {
+    const b = e.target.closest("[data-pick]");
+    if (!b) return;
+    el.value = b.dataset.pick;
+    closeFilter();
+    saveAssign(act, el);
+  };
+  pop.classList.add("show");
+  const r = btn.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + "px";
+  pop.style.top = (r.bottom + h + 12 > innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + "px";
 }
 
 // Propositions pour la complétion : textes déjà saisis dans la colonne (dans l'ordre du tableau), puis la liste des ressources.
@@ -2449,6 +2496,8 @@ function saveAssign(act, el) {
 for (const [act, def] of Object.entries(ACT_DEFS)) {
   const body = $(def.page + "Body"), ui = actUI[act];
   body.addEventListener("click", e => {
+    const dd = e.target.closest(".res-dd");
+    if (dd) { e.stopPropagation(); openAssignMenu(act, dd); return; }
     const fb = e.target.closest("[data-filter]");
     if (fb) { e.stopPropagation(); openFilter(act, fb.dataset.filter, fb); return; }
     const th = e.target.closest("th[data-sort]");
@@ -2461,7 +2510,7 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     const el = e.target.closest(".res-in");
     if (el) saveAssign(act, el);
   });
-  // Saisie dans la colonne Ressource : complétion du texte, Entrée / ↑ / ↓ pour valider et changer de ligne.
+  // Saisie dans la colonne Affectation : complétion du texte, Entrée / ↑ / ↓ pour valider et changer de ligne.
   body.addEventListener("input", e => {
     const el = e.target.closest(".res-in");
     if (!el || (e.inputType || "").startsWith("delete")) return;
@@ -2476,6 +2525,11 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
   body.addEventListener("keydown", e => {
     const el = e.target.closest(".res-in");
     if (!el) return;
+    if (e.altKey && e.key === "ArrowDown") {
+      e.preventDefault();
+      openAssignMenu(act, el.parentElement.querySelector(".res-dd"));
+      return;
+    }
     if (e.key === "Escape") {
       e.preventDefault(); e.stopPropagation();
       el.value = assignLabel((state.assign[act] || {})[el.dataset.id]);
@@ -2550,7 +2604,7 @@ function openColumns(act, anchor) {
     '<div class="fbtns"><button class="btn" data-fa="reset" data-tip-name="Ordre par défaut" data-tip-role="Remet les colonnes dans leur ordre d’origine">Ordre par défaut</button>' +
     '<span class="spacer" style="flex:1"></span>' +
     '<button class="btn" data-fa="cancel" data-tip-name="Annuler" data-tip-role="Ferme le menu sans changer les colonnes">Annuler</button>' +
-    '<button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-role="Applique l’ordre choisi, affiche les colonnes cochées et masque les autres">OK</button></div>';
+    '<button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-key="Entrée" data-tip-role="Applique l’ordre choisi, affiche les colonnes cochées et masque les autres">OK</button></div>';
   const list = $("flist");
   function draw() {
     const allOn = cols.every(c => checked.has(c.k));
@@ -2645,7 +2699,7 @@ function distinctValues(act, c) {
 }
 
 let fpopKey = null;
-function closeFilter() { $("fpop").classList.remove("show", "cols"); fpopKey = null; }
+function closeFilter() { $("fpop").classList.remove("show", "cols", "dd"); fpopKey = null; }
 
 function openFilter(act, key, anchor) {
   if (fpopKey === act + ":" + key) return closeFilter();
@@ -2665,7 +2719,7 @@ function openFilter(act, key, anchor) {
     '<button class="fitem" data-fa="clear" data-tip-name="Effacer le filtre" data-tip-role="Affiche à nouveau toutes les valeurs de cette colonne"' + (current ? "" : " disabled") + ">Effacer le filtre de « " + esc(c.t) + " »</button>" +
     '<input type="text" id="fsearch" placeholder="Rechercher" data-tip-name="Rechercher" data-tip-role="Tapez une partie du texte pour réduire la liste des valeurs">' +
     '<div class="flist" id="flist" data-tip-name="Valeurs" data-tip-role="Cochez les valeurs à afficher dans le tableau"></div>' +
-    '<div class="fbtns"><button class="btn" data-fa="cancel" data-tip-name="Annuler" data-tip-role="Ferme le menu sans changer le filtre">Annuler</button><button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-role="Applique le filtre avec les valeurs cochées">OK</button></div>';
+    '<div class="fbtns"><button class="btn" data-fa="cancel" data-tip-name="Annuler" data-tip-role="Ferme le menu sans changer le filtre">Annuler</button><button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-key="Entrée" data-tip-role="Applique le filtre avec les valeurs cochées">OK</button></div>';
 
   const list = $("flist");
   function drawList() {
@@ -2720,11 +2774,16 @@ function openFilter(act, key, anchor) {
 }
 
 document.addEventListener("mousedown", e => {
-  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
+  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest(".res-dd") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
 });
 document.addEventListener("keydown", e => {
   // Échap ferme d'abord le menu de filtre, sans fermer la fenêtre qui le contient.
   if (e.key === "Escape" && fpopKey) { closeFilter(); e.stopImmediatePropagation(); }
+  // Entrée valide le menu ouvert (filtre ou colonnes), comme le bouton OK.
+  if (e.key === "Enter" && fpopKey) {
+    const ok = $("fpop").querySelector('[data-fa="ok"]');
+    if (ok) { e.preventDefault(); e.stopImmediatePropagation(); ok.click(); }
+  }
 });
 
 /* ---------- Graphique journalier charge / capacité ---------- */
@@ -3082,7 +3141,7 @@ function stateToWorkbook() {
   ]), "Capacité");
 
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Id", "Ressource"]].concat(state.resources.map(r => [r.id, r.name]))), "Ressources");
-  const aff = [["Activité", "Dossier", "Id ressource", "Ressource"]];
+  const aff = [["Activité", "Dossier", "Id ressource", "Affectation"]];
   for (const [act, m] of Object.entries(state.assign)) for (const [doss, v] of Object.entries(m))
     aff.push([act, doss, state.resources.some(r => r.id === v) ? v : "", assignLabel(v)]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aff), "Affectations");

@@ -135,7 +135,7 @@ Liste des ressources (préparateurs, postes…) auxquelles l'ordonnanceur affect
 - **+ Ajouter une ressource**, puis saisissez son nom ; les flèches changent l'ordre de la liste ;
 - les mêmes ressources servent à toutes les activités (Prépa OF, Prépa Expéd) ;
 - la colonne **OF affectés** indique combien de dossiers sont affectés à chaque ressource ;
-- dans les tableaux, la colonne Ressource accepte aussi un **texte libre** : un texte identique au nom d'une ressource de la liste (majuscules et accents ignorés) est relié à cette ressource ;
+- dans les tableaux, la colonne **Affectation** propose cette liste (liste déroulante ▾) et accepte aussi un **texte libre** : un texte identique au nom d'une ressource de la liste (majuscules et accents ignorés) est relié à cette ressource ;
 - renommer une ressource met à jour toutes ses affectations ; la supprimer remet ses OF « non affectés » (après confirmation).
 
 ## 5. Charge globale
@@ -173,7 +173,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 - **Boutons rapides** à droite du titre *Prépa OF* : **En cours** n'affiche que les OF dont le *Statut opé* n'est pas « Soldée » (re-cliquer pour l'enlever) ; **Tout** retire tous les filtres (En cours et filtres de colonnes). Le bouton actif est mis en évidence.
 - **Total** : le pied du tableau donne le nombre d'OF affichés (« filtrés sur N » si un filtre est actif), le total des heures et le nombre d'OF affectés.
 - **Tri** : cliquez sur un titre de colonne (re-cliquez pour inverser).
-- **Filtres comme dans Excel** : le petit entonnoir à droite de chaque titre ouvre un menu avec le tri, une zone *Rechercher* et la liste des valeurs à cocher (« (Sélectionner tout) », « (Vides) » pour les cases vides). La liste ne montre que les valeurs encore présentes avec les autres filtres. L'entonnoir devient bleu quand un filtre est actif ; le bouton **Tout** (en haut) les supprime tous.
+- **Filtres comme dans Excel** : le petit entonnoir à droite de chaque titre ouvre un menu avec le tri, une zone *Rechercher* et la liste des valeurs à cocher (« (Sélectionner tout) », « (Vides) » pour les cases vides). La liste ne montre que les valeurs encore présentes avec les autres filtres. L'entonnoir devient bleu quand un filtre est actif ; le bouton **Tout** (en haut) les supprime tous. La touche **Entrée** valide le menu de filtre (comme **OK**), y compris après une recherche.
 - Le tableau se lit dans le fichier source de l'activité *Prépa OF* (onglets `OF` et `OF - Opérations`) : chargez-le d'abord dans **Paramètres › Fichiers sources**.
 
 | Colonne | Origine |
@@ -185,7 +185,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 | Manquants | **Oui** si au moins une ligne de l'OF est marquée « Manquant » (ou « Oui » dans l'export), sinon **Non** |
 | Date sortie 2 | Plus ancienne *Date sortie 2* de l'OF (onglet OF - Opérations) |
 | Temps (h) | Temps de préparation calculé avec la gamme (2 décimales) |
-| Ressource | **Colonne de saisie** (elle défile avec les autres colonnes) : cliquez dans la case et tapez le nom de la ressource. Dès les premières lettres, l'application **complète** avec un texte déjà saisi dans la colonne (ou un nom de la liste des Ressources) : continuez à taper pour l'ignorer, ou validez. **Entrée** ou **↓** valide et passe à la ligne du dessous, **↑** à la ligne du dessus, **Échap** annule la saisie ; videz la case pour retirer l'affectation. Le pied du tableau indique « n / N affectés ». |
+| Affectation | **Colonne de saisie** (elle défile avec les autres colonnes). **Liste déroulante** : le bouton ▾ de la case (ou **Alt + ↓**) affiche les ressources de *Paramètres › Ressources* (puis les autres textes déjà saisis dans la colonne) ; cliquez pour choisir, ou « — Aucune affectation » pour retirer. **Saisie à la main** : cliquez dans la case et tapez ; dès les premières lettres identiques à une ressource de la liste (ou à un texte déjà saisi dans la colonne), l'application **complète** le nom : continuez à taper pour l'ignorer, ou validez. **Entrée** ou **↓** valide et passe à la ligne du dessous, **↑** à la ligne du dessus, **Échap** annule la saisie ; videz la case pour retirer l'affectation. Le pied du tableau indique « n / N affectés ». |
 
 **Calcul du Temps (h)** pour un OF = somme des temps *Forfait* + somme des temps *Ligne* × nombre de lignes + somme des temps *Quantité* × total des *Qté besoin* + pour chaque tâche *Calcul* : Σ (Tps de la valeur de la ligne × *Qté besoin* de la ligne).
 Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes dont la valeur n'est pas dans le tableau de calcul (comptées 0 s).
@@ -212,7 +212,7 @@ Période, tri, filtres Excel, boutons rapides, total, affectation des ressources
 | Instruction livraison | En petit, sur plusieurs lignes |
 | Soldée | **Oui** si tous les articles de la commande-date sont « Soldé », sinon **Non** |
 | Temps (h) | Temps de préparation calculé avec la gamme *Prépa Expéd* sur toutes les lignes (soldées comprises), **sauf les articles commençant par 9** ; quantité = *Qté commandée US* |
-| Ressource | Saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
+| Affectation | Liste déroulante des ressources et saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
 
 ---
 
