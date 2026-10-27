@@ -282,8 +282,9 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px 6px; flex-wrap: wrap; }
 .cap-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 0 12px 8px; color: var(--text-2); border-bottom: 1px solid var(--border); }
 .cap-legend .k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-:root { --cap-aff: #cfeec9; --cap-rest: #c0c0c0; --cap-over: #ff0000; }
-:root[data-theme="dark"] { --cap-aff: #3f7a4a; --cap-rest: #8a8f98; --cap-over: #ff2a2a; }
+/* Vert, gris, rouge plus actuels que les teintes Excel : émeraude, gris ardoise clair, rouge corail. */
+:root { --cap-aff: #34c38f; --cap-rest: #dde2e8; --cap-over: #f0525a; }
+:root[data-theme="dark"] { --cap-aff: #2fb383; --cap-rest: #3a4250; --cap-over: #f26b72; }
 .k-aff { background: var(--cap-aff); }
 .k-rest { background: var(--cap-rest); }
 .k-over { background: var(--cap-over); }
@@ -296,10 +297,18 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-svg text.who.over { fill: var(--cap-over); font-weight: 600; }
 .cap-svg .grid { stroke: var(--border); stroke-width: 1; }
 .cap-svg .axis { stroke: var(--text-2); stroke-width: 1; }
+.cap-svg .aff, .cap-svg .rest, .cap-svg .over { stroke: var(--surface); stroke-width: 1; }
 .cap-svg .aff { fill: var(--cap-aff); }
 .cap-svg .rest { fill: var(--cap-rest); }
 .cap-svg .over { fill: var(--cap-over); }
 .cap-svg .hit { fill: transparent; }
+.cap-svg .hit.drop-on { fill: color-mix(in srgb, var(--accent) 22%, transparent); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.cap-chart.drop-on { outline: 2px dashed var(--accent); outline-offset: -2px; border-radius: 8px; }
+body.dragging-rows .cap-body { background: color-mix(in srgb, var(--accent) 5%, transparent); }
+.act-page .tbl tbody tr[draggable="true"] { cursor: grab; }
+.drag-ghost { position: fixed; top: -100px; left: -400px; padding: 4px 10px; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; font-size: 13px; white-space: nowrap; }
+.drop-hint { position: fixed; z-index: 1002; display: none; padding: 4px 8px; border-radius: 6px; background: var(--text); color: var(--bg); font-size: 12px; pointer-events: none; white-space: nowrap; }
+.drop-hint.show { display: block; }
 .cap-svg .hit:hover { fill: color-mix(in srgb, var(--text) 5%, transparent); }
 .cap-warn { color: var(--cap-over); font-weight: 600; }
 .cap-body { position: relative; }
@@ -876,6 +885,8 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
   </div>
 </div>
 <div class="fpop" id="fpop"></div>
+<div class="drag-ghost" id="dragGhost"></div>
+<div class="drop-hint" id="dropHint"></div>
 <div class="modal" id="settingsModal">
   <div class="modal-box settings-box" id="page-settings" role="dialog" aria-label="Paramètres">
     <div class="modal-head">
@@ -2938,11 +2949,15 @@ function capDaySvg(rows, max, width) {
     const rest = r.cap == null ? 0 : Math.max(0, r.cap - r.aff);
     const surc = r.cap == null ? 0 : Math.max(0, r.aff - r.cap);
     let base = 0;
-    for (const [v, cls] of [[affIn, "aff"], [rest, "rest"], [surc, "over"]]) {
-      if (v <= 0) continue;
-      g += '<rect class="' + cls + '" data-i="' + i + '" x="' + x0 + '" y="' + y(base + v) + '" width="' + bw + '" height="' + (y(base) - y(base + v)) + '"/>';
+    // Segments empilés, séparés d'un fin liseré ; seul le segment du haut a les coins arrondis.
+    const segs = [[affIn, "aff"], [rest, "rest"], [surc, "over"]].filter(([v]) => v > 0);
+    segs.forEach(([v, cls], j) => {
+      const yb = y(base), yt = y(base + v), hh = yb - yt;
+      const r = j === segs.length - 1 ? Math.min(5, bw / 2, hh) : 0;
+      g += '<path class="' + cls + '" data-i="' + i + '" d="M' + x0 + "," + yb + "V" + (yt + r) + "Q" + x0 + "," + yt + " " + (x0 + r) + "," + yt +
+        "H" + (x0 + bw - r) + "Q" + (x0 + bw) + "," + yt + " " + (x0 + bw) + "," + (yt + r) + "V" + yb + 'Z"/>';
       base += v;
-    }
+    });
     g += '<rect class="hit" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
     const label = r.name.length > 20 ? r.name.slice(0, 19) + "…" : r.name;
     g += rot
@@ -2995,6 +3010,7 @@ function renderCapPanel(act) {
   }
   if (!shownDays.length) h += '<p class="muted cap-empty">' + (onlyOver ? "Aucune surcharge sur la période." : "Aucune ressource ni temps affecté sur la période.") + "</p>";
   body.innerHTML = h + '<div class="chart-tip cap-tip"></div>';
+  panel.capShown = shownDays;
   body.scrollTop = scroll;
   // Valeurs d'une barre affichées immédiatement au survol.
   const tip = body.querySelector(".cap-tip");
@@ -3019,8 +3035,66 @@ function renderCapPanel(act) {
   body.onpointerleave = () => tip.classList.remove("show");
 }
 
+let dragInfo = null;
+// Cible du dépôt dans la vue capacité : une barre (personne et jour) ou, ailleurs dans le graphique d'un jour, le jour seul.
+function capDropTarget(panel, e) {
+  const sec = e.target.closest && e.target.closest(".cap-chart");
+  if (!sec || !panel.capShown) return null;
+  const { day, rows } = panel.capShown[Number(sec.dataset.d)];
+  const bar = e.target.closest(".cap-svg [data-i]");
+  return { sec, bar: bar ? sec.querySelector('.hit[data-i="' + bar.dataset.i + '"]') : null, day, row: bar ? rows[Number(bar.dataset.i)] : null };
+}
+function clearDropMarks(panel) {
+  for (const el of panel.querySelectorAll(".drop-on")) el.classList.remove("drop-on");
+  $("dropHint").classList.remove("show");
+}
+// Affecte les dossiers déposés : personne (si déposés sur sa barre) et date d'affectation = jour du graphique.
+function dropOnCapacity(act, ids, day, name) {
+  const rows = new Map((actCache[act] && actCache[act].list || []).map(x => [x.id, x]));
+  const iso = day.iso;
+  actUI[act].sel.clear();
+  actUI[act].anchor = null;
+  commit(st => {
+    const am = st.assign[act] || (st.assign[act] = {}), pm = st.planned[act] || (st.planned[act] = {});
+    for (const id of ids) {
+      if (name) am[id] = name;
+      const x = rows.get(id), def = x && defaultAffDate(act, x);
+      if (def && localISO(def) === iso) delete pm[id]; else pm[id] = iso;
+    }
+  });
+  const when = day.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" });
+  toast((ids.length > 1 ? ids.length + " dossiers" : "1 dossier") + (name ? " affecté" + (ids.length > 1 ? "s" : "") + " à « " + name + " »" : " planifié" + (ids.length > 1 ? "s" : "")) + " le " + when);
+}
+
 for (const act of Object.keys(ACT_DEFS)) {
   const def = ACT_DEFS[act], panel = $(def.page + "Cap");
+  const capBody = panel.querySelector(".cap-body");
+  capBody.addEventListener("dragover", e => {
+    if (!dragInfo || dragInfo.act !== act) return;
+    const t = capDropTarget(panel, e);
+    clearDropMarks(panel);
+    if (!t) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    (t.bar || t.sec).classList.add("drop-on");
+    const hint = $("dropHint");
+    hint.textContent = (t.row ? "Affecter à « " + t.row.name + " » le " : "Planifier le ") + t.day.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" });
+    hint.style.left = (e.clientX + 14) + "px";
+    hint.style.top = (e.clientY + 14) + "px";
+    hint.classList.add("show");
+  });
+  capBody.addEventListener("dragleave", e => { if (!capBody.contains(e.relatedTarget)) clearDropMarks(panel); });
+  capBody.addEventListener("drop", e => {
+    if (!dragInfo || dragInfo.act !== act) return;
+    const t = capDropTarget(panel, e);
+    clearDropMarks(panel);
+    if (!t) return;
+    e.preventDefault();
+    const ids = dragInfo.ids;
+    dragInfo = null;
+    document.body.classList.remove("dragging-rows");
+    dropOnCapacity(act, ids, t.day, t.row ? t.row.name : "");
+  });
   const toggle = open => {
     if (open) capOpen[act] = true; else delete capOpen[act];
     try { localStorage.setItem("cc.capPanel", JSON.stringify(capOpen)); } catch (e) { /* stockage indisponible */ }
@@ -3076,6 +3150,33 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     if (ui.sort === th.dataset.sort) ui.dir = -ui.dir;
     else { ui.sort = th.dataset.sort; ui.dir = 1; }
     renderPrepa();
+  });
+  // Glisser une ligne (ou toutes les lignes cochées si elle l'est) vers une barre de la vue Affectation par capacité.
+  // La ligne n'est « déplaçable » que si l'on part d'une zone sans champ de saisie.
+  body.addEventListener("mousedown", e => {
+    const tr = e.target.closest("tbody tr[data-row]");
+    if (tr) tr.draggable = !e.target.closest("input, button, select, a, .res-combo");
+  });
+  body.addEventListener("dragstart", e => {
+    const tr = e.target.closest && e.target.closest("tbody tr[data-row]");
+    if (!tr) return;
+    const id = tr.dataset.row;
+    const ids = ui.sel.has(id) && ui.sel.size > 1 ? [...ui.sel] : [id];
+    dragInfo = { act, ids };
+    e.dataTransfer.effectAllowed = "copyMove";
+    e.dataTransfer.setData("text/plain", ids.join(", "));
+    const hrs = (actRows[act] || []).filter(x => ids.includes(x.id)).reduce((a, x) => a + (x.heures || 0), 0);
+    const ghost = $("dragGhost");
+    ghost.textContent = (ids.length > 1 ? ids.length + " dossiers" : ids[0]) + " · " + fmtHours(hrs * 3600) + " h";
+    e.dataTransfer.setDragImage(ghost, -10, -10);
+    hideTip();
+    document.body.classList.add("dragging-rows");
+    if (!capOpen[act]) toast("Ouvrez la vue « Affectation par capacité » pour déposer les dossiers sur une ressource et un jour.");
+  });
+  body.addEventListener("dragend", () => {
+    dragInfo = null;
+    document.body.classList.remove("dragging-rows");
+    for (const tr of body.querySelectorAll("tr[draggable]")) tr.removeAttribute("draggable");
   });
   // Maj + clic ne doit pas sélectionner le texte de la page.
   body.addEventListener("mousedown", e => {

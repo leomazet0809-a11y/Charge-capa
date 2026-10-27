@@ -192,7 +192,13 @@ La vue présente **un histogramme empilé par jour**, les jours les uns sous les
 - **gris clair** : temps **restant à affecter** = temps disponible sur la journée (*Heure productivité*) – temps déjà affecté ;
 - **rouge vif** : **surcharge**, quand le temps affecté dépasse le temps disponible.
 
-Au survol d'une barre, ses valeurs s'affichent immédiatement. Sous le nom de chaque jour figurent la semaine, la charge **non affectée** de l'activité et le nombre de surcharges. Le total des surcharges de la période s'affiche en haut de la vue et en **pastille rouge** sur le bouton ; la case **Surcharges** ne garde que les ressources en dépassement. Toutes les lignes affectées de la période sont comptées, quels que soient les filtres du tableau.
+Au survol d'une barre, ses valeurs s'affichent immédiatement.
+
+**Glisser-déposer** : faites glisser une ligne du tableau (ou, si elle est cochée, toutes les lignes cochées) et déposez-la dans la vue :
+- **sur la barre d'une personne** : les dossiers lui sont affectés **et** leur *Date affectation* devient le jour de ce graphique ;
+- **ailleurs dans le graphique d'un jour** (titre, fond) : seule la *Date affectation* change, l'affectation est conservée.
+
+Pendant le glisser, la barre visée est encadrée et une bulle indique « Affecter à … le … ». L'opération compte comme une seule action, annulable par Ctrl + Z. Partez d'une zone de la ligne sans champ de saisie (pas des cases Affectation ou Date affectation). Sous le nom de chaque jour figurent la semaine, la charge **non affectée** de l'activité et le nombre de surcharges. Le total des surcharges de la période s'affiche en haut de la vue et en **pastille rouge** sur le bouton ; la case **Surcharges** ne garde que les ressources en dépassement. Toutes les lignes affectées de la période sont comptées, quels que soient les filtres du tableau.
 
 > Les noms des affectations doivent être les mêmes que ceux de la colonne *nom_complet* du fichier de capacité (majuscules et accents ignorés) ; les noms des personnes sont écrits en petit sous chaque barre. Sans groupe / niveau choisi pour l'activité, la vue affiche toutes les personnes du fichier de capacité.
 
