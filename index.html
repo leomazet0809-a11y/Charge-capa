@@ -406,6 +406,9 @@ td.stale { color: var(--warn); font-weight: 600; }
 .aff-in:not(:focus) { border-color: transparent; background: transparent; }
 .aff-in.set { color: var(--accent); font-style: normal; font-weight: 600; }
 .aff-in.late { color: var(--err); }
+.aff-wrap { display: inline-flex; align-items: center; gap: 4px; }
+.aff-warn { color: var(--err); font-weight: 700; cursor: default; }
+.aff-cell { white-space: nowrap; }
 .aff-in.late:not(:focus) { border-color: color-mix(in srgb, var(--err) 45%, transparent); }
 .res-combo { display: flex; align-items: center; gap: 2px; }
 .res-in { flex: 1; min-width: 0; width: 100%; padding: .2em .45em; border-radius: 6px; font-size: 1em; }
@@ -2779,10 +2782,13 @@ function affDateInput(act, x) {
   const set = !!(state.planned[act] || {})[x.id], due = x[ACT_DEFS[act].dateKey], d = x.dateAff;
   const late = d && due && d > due;
   const role = (set ? "Date modifiée à la main" : "Date par défaut : " + ACT_DEFS[act].dateLabel + " − " + leadDays(act) + " jour(s) ouvré(s)") +
-    (late ? ". ⚠ Postérieure à la " + ACT_DEFS[act].dateLabel : "") +
+    (late ? ". ⚠ Postérieure à la date due (" + ACT_DEFS[act].dateLabel + ")" : "") +
     ". Modifiez-la pour avancer le dossier (recopiée sur les lignes cochées) ; videz-la pour revenir à la date par défaut.";
-  return '<input type="date" class="aff-in' + (set ? " set" : "") + (late ? " late" : "") + '" data-id="' + esc(x.id) + '" data-fk="aff.' + esc(act) + "." + esc(x.id) + '"' +
-    ' value="' + (d ? localISO(d) : "") + '" data-tip-name="Date affectation" data-tip-role="' + esc(role) + '">';
+  // Logo attention à gauche quand la date d'affectation dépasse la date due.
+  return '<span class="aff-wrap">' + (late ? '<span class="aff-warn" data-tip-name="Date affectation après la date due" data-tip-role="' +
+      esc("La date d’affectation (" + fmtDate(d) + ") est postérieure à la date due (" + ACT_DEFS[act].dateLabel + " : " + fmtDate(due) + ")") + '">⚠</span>' : "") +
+    '<input type="date" class="aff-in' + (set ? " set" : "") + (late ? " late" : "") + '" data-id="' + esc(x.id) + '" data-fk="aff.' + esc(act) + "." + esc(x.id) + '"' +
+    ' value="' + (d ? localISO(d) : "") + '" data-tip-name="Date affectation" data-tip-role="' + esc(role) + '"></span>';
 }
 function saveAffDate(act, el) {
   const ui = actUI[act], id = el.dataset.id;
