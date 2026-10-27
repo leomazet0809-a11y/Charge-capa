@@ -160,28 +160,30 @@ Premier onglet, à gauche des activités : **un seul graphique** qui additionne 
 - **Ajuster** choisit la plus grande taille qui fait tenir toutes les colonnes dans la largeur de l'écran.
 La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce poste** (pas dans le classeur projet).
 
-### Sélection de lignes et affectation en masse
+### Cases à cocher et affectation en masse
 
-Dans le tableau d'une activité, cliquez sur une ligne pour la sélectionner (en bleu) :
-- **clic** : sélectionne une ligne (re-cliquer la désélectionne) ;
-- **Maj + clic** : sélectionne toutes les lignes entre la dernière cliquée et celle-ci ;
-- **Ctrl + clic** : ajoute ou retire une ligne de la sélection ;
-- **Échap** : annule la sélection.
+Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Windows : elle apparaît au survol de la ligne, et reste visible dès qu'une ligne est cochée.
+- **clic sur la case** : coche ou décoche la ligne ;
+- **Maj + clic sur la case** : coche toutes les lignes entre la dernière case cliquée et celle-ci ;
+- la case de l'**en-tête** coche ou décoche toutes les lignes affichées ;
+- un clic sur la ligne elle-même ne coche que cette ligne (Ctrl + clic : ajoute ou retire) ;
+- **Échap** décoche tout. Le pied du tableau indique le nombre de lignes cochées.
 
-Une barre bleue apparaît au-dessus du tableau (nombre de lignes et heures sélectionnées). Tapez la ressource dans **Affecter à** (complétion depuis la liste des ressources) ou ouvrez la liste ▾, puis **Affecter** (ou Entrée) ; **Retirer l'affectation** vide l'affectation des lignes sélectionnées. L'opération compte comme **une seule action**, annulable par Ctrl + Z.
+Ensuite, **saisissez l'affectation dans la case Affectation de l'une des lignes cochées** (au clavier ou par la liste ▾) : dès la validation, elle est **recopiée sur toutes les lignes cochées**, puis les cases sont décochées. L'opération compte comme une seule action, annulable par Ctrl + Z. Une saisie sur une ligne non cochée ne concerne que cette ligne.
 
 ### Affectation par capacité
 
 Le bouton **Affectation par capacité** (à gauche du bouton Colonnes) ouvre une vue qui glisse depuis la droite, à côté du tableau. **Faites glisser son bord gauche** pour l'élargir ou la réduire (largeur mémorisée sur ce poste).
 
-Pour chaque jour de la période, et pour chaque ressource ayant de la capacité ou de la charge ce jour-là, une **barre cumulée** montre :
-- en vert clair, la **capacité totale** de la ressource (somme des *Heure productivité* du fichier de capacité, colonne *nom_complet* = nom de la ressource, majuscules et accents ignorés) ;
-- en bleu, la **charge affectée** dans cette activité, et en bleu clair celle des **autres activités** ;
-- la partie verte restante = **capacité restante** ; en **rouge**, la **surcharge** quand la charge dépasse la capacité.
+La vue présente **un histogramme empilé par jour**, les jours les uns sous les autres (faites défiler la vue vers le haut ou le bas). Chaque histogramme a **une barre par ressource de l'activité** ce jour-là :
+- les ressources sont les personnes du **fichier de capacité** (colonne *nom_complet*) appartenant aux **groupes / niveaux choisis pour l'activité** (Paramètres › Fichiers sources, colonne « Capacité »), plus toute ressource à qui du temps est affecté ce jour-là ;
+- **gris clair** : temps **affecté** à la ressource ce jour-là (toutes activités confondues ; le survol précise la part des autres activités) ;
+- **vert** : temps **restant à affecter** = temps disponible sur la journée (*Heure productivité*) – temps déjà affecté ;
+- **rouge vif** : **surcharge**, quand le temps affecté dépasse le temps disponible.
 
-À droite de chaque barre : « affecté / capacité h · reste » ou « ⚠ +dépassement ». Sous chaque jour figure aussi la charge **non affectée** de l'activité. Le nombre de surcharges de la période s'affiche en haut de la vue et en **pastille rouge** sur le bouton ; la case **Surcharges** n'affiche que les ressources en dépassement. La charge comptée est celle de toutes les lignes affectées de la période, quels que soient les filtres du tableau.
+Au survol d'une barre, ses valeurs s'affichent immédiatement. Sous le nom de chaque jour figurent la semaine, la charge **non affectée** de l'activité et le nombre de surcharges. Le total des surcharges de la période s'affiche en haut de la vue et en **pastille rouge** sur le bouton ; la case **Surcharges** ne garde que les ressources en dépassement. Toutes les lignes affectées de la période sont comptées, quels que soient les filtres du tableau.
 
-> Pour que la capacité s'affiche, les noms de *Paramètres › Ressources* (ou les textes saisis) doivent être les mêmes que ceux de la colonne *nom_complet* du fichier de capacité ; la vue signale les ressources sans capacité trouvée.
+> Les noms des affectations doivent être les mêmes que ceux de la colonne *nom_complet* du fichier de capacité (majuscules et accents ignorés) ; la vue signale les ressources sans temps disponible trouvé. Sans groupe / niveau choisi pour l'activité, la vue affiche les ressources de *Paramètres › Ressources*.
 
 ## 7. Prépa OF
 
