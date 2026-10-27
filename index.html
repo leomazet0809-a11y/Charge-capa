@@ -337,16 +337,8 @@ td.stale { color: var(--warn); font-weight: 600; }
 .act-page .tbl td, .act-page .tbl th { white-space: nowrap; padding: .4em .6em; }
 /* Cellules multi-lignes en petit (adresse, instructions). */
 .act-page .tbl td.wrap { white-space: normal; font-size: .82em; line-height: 1.3; min-width: 14em; max-width: 22em; vertical-align: top; }
-/* Colonne Ressource : visible en permanence à droite quand elle est la dernière colonne. */
+/* Colonne Ressource : largeur fixe ; elle défile avec les autres colonnes. */
 .act-page .tbl .col-res { width: 13em; min-width: 13em; max-width: 13em; }
-.act-page .tbl tr > .col-res:last-child {
-  position: sticky;
-  right: 0;
-  background: var(--surface);
-  box-shadow: -1px 0 0 var(--border);
-}
-.act-page .tbl thead tr > .col-res:last-child { background: var(--surface-2); z-index: 2; }
-.act-page .tbl tfoot tr > .col-res:last-child { background: var(--surface-2); }
 .res-cell { padding-top: 2px !important; padding-bottom: 2px !important; }
 .res-in { width: 100%; padding: .2em .45em; border-radius: 6px; font-size: 1em; }
 .act-page .fbtn { width: 1.45em; height: 1.45em; flex-basis: 1.45em; }
