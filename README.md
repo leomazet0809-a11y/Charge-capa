@@ -165,7 +165,7 @@ La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce po
 
 ### Date affectation
 
-Chaque activité a une colonne **Date affectation** (avant *Temps (h)*) : c'est le **jour où le dossier est planifié**, en général avant sa date due (Début opé pour Prépa OF, Date expédition pour Prépa Expéd).
+Chaque activité a une colonne **Date affectation** (juste à droite de la colonne *Affectation*) : c'est le **jour où le dossier est planifié**, en général avant sa date due (Début opé pour Prépa OF, Date expédition pour Prépa Expéd).
 - **Par défaut** : date due − *x* jours ouvrés, *x* étant réglé pour chaque activité dans *Paramètres › Général › Date d'affectation* (2 par défaut). Elle s'affiche alors en gris italique et suit la date due si l'export change.
 - **Pour avancer un dossier** (par exemple pour lisser un pic), changez sa date dans la case : elle passe en **bleu gras** et est enregistrée dans le classeur projet (onglet *Dates affectation*). Videz la case (ou remettez la date par défaut) pour revenir au calcul automatique.
 - Une date **postérieure à la date due** s'affiche en **rouge**.

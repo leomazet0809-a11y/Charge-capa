@@ -2517,9 +2517,9 @@ const ACT_DEFS = {
 // Colonnes communes ajoutées à droite de chaque activité.
 function actColumns(act) {
   const cols = ACT_DEFS[act].columns.concat([
-    { k: "dateAff", t: "Date affectation", date: true },
     { k: "heures", t: "Temps (h)", num: true, heures: true },
-    { k: "ressource", t: "Affectation" }
+    { k: "ressource", t: "Affectation" },
+    { k: "dateAff", t: "Date affectation", date: true }
   ]);
   // Ordre choisi par l'utilisateur (bouton Colonnes) ; une colonne absente de l'ordre garde sa place par défaut, à la fin.
   const order = colOrder[act];
