@@ -109,7 +109,11 @@ button, input, select { font: inherit; color: inherit; }
 .icon-btn:hover { background: var(--surface); color: var(--text); }
 .icon-btn:disabled { opacity: .35; cursor: default; background: transparent; }
 .icon-btn.active { color: var(--accent); background: var(--accent-soft); }
-/* Disquette : verte quand tout est enregistré, orange sinon. */
+/* Actualiser : noir quand les données chargées correspondent aux fichiers sources, orange sinon. */
+#btnRefresh, #btnRefresh:hover { color: var(--text); }
+#btnRefresh[data-state="stale"], #btnRefresh[data-state="stale"]:hover { color: var(--warn); }
+#btnRefresh[data-state="loading"] svg { animation: spin 1s linear infinite; }
+/* Disquette : noire quand tout est enregistré, orange sinon. */
 #btnSave, #btnSave:hover { color: var(--warn); }
 #btnSave[data-state="saved"], #btnSave[data-state="saved"]:hover { color: var(--text); }
 #btnSave[data-state="saving"] svg { animation: pulse 0.8s ease-in-out infinite alternate; }
@@ -720,6 +724,10 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
       <button class="icon-btn" id="btnRedo" disabled
         data-tip-name="Rétablir" data-tip-role="Rétablit la dernière action annulée (comme Excel)" data-tip-key="Ctrl + Y">
         <svg class="i" viewBox="0 0 24 24"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+      </button>
+      <button class="icon-btn" id="btnRefresh" data-state="ok"
+        data-tip-name="Actualiser les données" data-tip-role="Recharge les fichiers sources" data-tip-key="F9">
+        <svg class="i" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
       </button>
       <button class="icon-btn" id="btnSave"
         data-tip-name="Enregistrer" data-tip-role="Enregistre le projet dans le classeur Excel" data-tip-key="Ctrl + S">
@@ -1347,6 +1355,7 @@ function render() {
     ' data-tip-name="Délai ' + esc(a.name) + '" data-tip-role="Nombre de jours ouvrés entre la date d’affectation par défaut et la date due (' + esc(ACT_DEFS[a.id].dateLabel) + ')">' +
     ' <span class="muted small">jours ouvrés avant la ' + esc(ACT_DEFS[a.id].dateLabel) + "</span></div>").join("");
   $("btnUndo").disabled = undoStack.length === 0;
+  updateRefreshBtn();
   $("btnRedo").disabled = redoStack.length === 0;
 
   const name = projectHandle ? projectHandle.name : "Nouveau projet (non enregistré)";
@@ -1826,6 +1835,55 @@ async function pickSource(id) {
 async function loadAllSources(ask) {
   for (const id of allSourceIds()) if (srcRec(state, id).fileName) await loadSource(id, ask);
 }
+
+/* ---------- Bouton Actualiser (ruban) ---------- */
+// État des fichiers sources : à jour seulement si chaque fichier choisi est chargé et identique à celui du disque.
+const SRC_ISSUES = { none: "non chargé", perm: "lecture à autoriser", changed: "modifié depuis le chargement", error: "erreur de lecture" };
+function sourcesToRefresh() {
+  const out = [];
+  for (const id of allSourceIds()) {
+    const s = srcRec(state, id);
+    if (!s || !s.fileName) continue;
+    const d = srcData[id];
+    const st = !d ? "none" : d.status === "loaded" ? null : d.status;
+    if (st) out.push({ id, label: id === CAP_ID ? "Capacité de travail" : s.label || s.fileName, why: SRC_ISSUES[st] || st, diskDate: d && d.diskDate });
+  }
+  return out;
+}
+let refreshing = false;
+function updateRefreshBtn() {
+  const b = $("btnRefresh"), todo = sourcesToRefresh();
+  b.dataset.state = refreshing ? "loading" : todo.length ? "stale" : "ok";
+  b.dataset.tipName = todo.length ? "Actualiser les données – " + todo.length + " fichier" + (todo.length > 1 ? "s" : "") + " à actualiser" : "Actualiser les données – à jour";
+  b.dataset.tipRole = todo.length
+    ? todo.map(t => t.label + " : " + t.why + (t.why.startsWith("modifié") && t.diskDate ? " (" + fmtDateTime(t.diskDate) + ")" : "")).join(" · ") + ". Cliquez pour recharger ces fichiers."
+    : "Les données chargées correspondent aux fichiers sources. Cliquez pour tout relire quand même.";
+}
+// Seul l'utilisateur déclenche l'actualisation (et à l'ouverture de l'application) : le clic permet aussi
+// au navigateur de redemander l'accès aux fichiers après un rechargement de la page.
+async function refreshSources() {
+  if (refreshing) return;
+  if (!FS_OK) return toast("Actualisation impossible : utilisez Chrome ou Edge.", true);
+  const todo = sourcesToRefresh();
+  const ids = todo.length ? todo.map(t => t.id) : allSourceIds().filter(id => srcRec(state, id) && srcRec(state, id).fileName);
+  if (!ids.length) return toast("Aucun fichier source choisi (Paramètres › Fichiers sources).", true);
+  refreshing = true;
+  updateRefreshBtn();
+  try {
+    for (const id of ids) {
+      // Un fichier partagé a pu être rechargé avec sa source jumelle : inutile de le relire.
+      const d = srcData[id];
+      if (todo.length && d && d.status === "loaded") continue;
+      await loadSource(id, true);
+    }
+  } finally {
+    refreshing = false;
+    render();
+  }
+  const left = sourcesToRefresh();
+  toast(left.length ? left.length + " fichier(s) non actualisé(s) : " + left.map(t => t.label).join(", ") : "Données à jour", left.length > 0);
+}
+$("btnRefresh").onclick = refreshSources;
 
 // Vérifie la date des fichiers sources : au retour sur l'application et chaque minute.
 // Un fichier modifié depuis son chargement passe « À actualiser ».
@@ -4038,6 +4096,7 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyAppea
 document.addEventListener("keydown", e => {
   const k = e.key.toLowerCase();
   if (e.ctrlKey && !e.shiftKey && k === "s") { e.preventDefault(); save(); }
+  else if (e.key === "F9" && !e.ctrlKey && !e.altKey) { e.preventDefault(); refreshSources(); }
   else if (e.ctrlKey && !e.shiftKey && k === "z" && !e.target.matches("input, textarea")) { e.preventDefault(); undo(); }
   else if (e.ctrlKey && (k === "y" || e.shiftKey && k === "z") && !e.target.matches("input, textarea")) { e.preventDefault(); redo(); }
   else if (e.ctrlKey && e.shiftKey && k === "f") { e.preventDefault(); toggleFullscreen(); }
