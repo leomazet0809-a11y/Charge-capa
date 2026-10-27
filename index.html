@@ -432,8 +432,9 @@ td.stale { color: var(--warn); font-weight: 600; }
 .overlay svg { animation: spin 1s linear infinite; color: var(--accent); }
 
 /* ---------- Graphique charge / capacité ---------- */
-:root { --series-1: #2a78d6; --series-2: #eb6834; --series-open: #4b5563; }
-:root[data-theme="dark"] { --series-1: #3987e5; --series-2: #d95926; --series-open: #8b93a1; }
+:root { --series-1: #2a78d6; --series-2: #eb6834; --series-open: #4b5563; --split: #7c3aed; }
+:root[data-theme="dark"] { --series-1: #3987e5; --series-2: #d95926; --series-open: #8b93a1; --split: #a78bfa; }
+.split-cde { color: var(--split); }
 /* Bouton graphique à gauche du titre de l'activité. */
 .chart-btn { color: var(--accent); background: var(--accent-soft); margin-right: -4px; }
 .chart-btn:hover { background: var(--accent); color: #fff; }
@@ -2152,7 +2153,9 @@ const ACT_DEFS = {
       "Nom client livraison", "Adresse livraison 1", "Adresse livraison 2", "Adresse livraison 3",
       "Ville livraison", "Code postal livraison", "Pays livraison"] },
     columns: [
-      { k: "commande", t: "Commande", cell: x => "<b>" + esc(x.commande) + "</b>" },
+      { k: "commande", t: "Commande", cell: x => x.nDates > 1
+        ? '<b class="split-cde" data-tip-name="Commande splitée" data-tip-role="Cette commande est expédiée à ' + x.nDates + ' dates différentes (toutes dates confondues, une ligne par date)">' + esc(x.commande) + "</b>"
+        : "<b>" + esc(x.commande) + "</b>" },
       { k: "client", t: "Client" },
       { k: "gest", t: "Gestionnaire" },
       { k: "mode", t: "Mode livraison" },
@@ -2182,6 +2185,9 @@ const ACT_DEFS = {
       const address = r => [normText(r[I["Nom client livraison"]]), normText(r[I["Adresse livraison 1"]]),
         [r[I["Adresse livraison 2"]], r[I["Adresse livraison 3"]], r[I["Code postal livraison"]], r[I["Ville livraison"]], r[I["Pays livraison"]]]
           .map(normText).filter(Boolean).join(" ")].filter(Boolean).join("\n");
+      // Nombre de dates d'expédition par commande (commande splitée si plus d'une).
+      const nDates = new Map();
+      for (const gr of groups.values()) nDates.set(gr.cde, (nDates.get(gr.cde) || 0) + 1);
       const out = [];
       for (const [k, gr] of groups) {
         const R = gr.rows;
@@ -2190,6 +2196,7 @@ const ACT_DEFS = {
         out.push({
           id: k, timeKey: k,
           commande: gr.cde,
+          nDates: nDates.get(gr.cde),
           client: joinDistinct(R, I.Client),
           gest: joinDistinct(R, I.Gestionnaire),
           mode: joinDistinct(R, I["Mode livraison"]),

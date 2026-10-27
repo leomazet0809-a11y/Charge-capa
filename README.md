@@ -201,6 +201,7 @@ Période, tri, filtres Excel, boutons rapides, total, affectation des ressources
 
 | Colonne | Origine |
 |---|---|
+| Commande (rappel) | En **violet** quand la commande est **splitée** : expédiée à plusieurs dates différentes (toutes dates du fichier confondues, même hors période) |
 | Commande, Client, Gestionnaire, Mode livraison, Type, Référence commande | Colonnes du même nom ; si les lignes d'une commande-date ont des valeurs différentes, toutes sont affichées, séparées par « / » |
 | RFF | En **pastille rouge** si une valeur est « Oui » |
 | Validée | En **pastille rouge** si une valeur est « Non » |
