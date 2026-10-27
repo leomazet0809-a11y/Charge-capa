@@ -30,6 +30,8 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 
 Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*, *Ressources*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
+Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargement, une fenêtre indique le fichier, l'étape en cours (lecture, analyse des onglets, calcul des temps) et le temps écoulé.
+
 Laissez la souris **2 secondes** sur n'importe quel élément cliquable (bouton, liste, case, champ, onglet…) pour voir une bulle d'aide indiquant sa fonction (et son raccourci s'il en a un).
 
 **Adaptation à l'écran** : l'application s'ajuste à la taille de la fenêtre (grand écran, portable, tablette). Le tableau de chaque activité occupe toute la hauteur disponible et défile seul ; sur petit écran, le libellé « Période » est masqué, le menu des Paramètres passe au-dessus du contenu, et sur téléphone le logo et le bouton plein écran sont masqués.
@@ -42,6 +44,7 @@ Tout votre paramétrage est enregistré dans un **classeur Excel** dont vous cho
 - **Paramètres › Ouvrir un classeur…** : reprenez un classeur projet existant.
 - **Paramètres › Enregistrer sous…** : faites une copie sous un autre nom ou dans un autre dossier.
 - **Ctrl + S** ou la **disquette** : enregistre dans le classeur en cours. S'il n'y en a pas encore, l'application vous demande où le créer.
+- **Sauvegarde automatique** (option de *Paramètres › Général*, décochée par défaut) : le projet est enregistré **toutes les 10 minutes** s'il a été modifié. Le bouton retour (**Ctrl + Z**) et Rétablir (**Ctrl + Y**) restent utilisables après une sauvegarde automatique : pensez seulement à réenregistrer après avoir annulé. Le navigateur exige un premier enregistrement manuel (Ctrl + S) dans la session pour autoriser l'écriture ; tant que ce n'est pas fait, la ligne sous l'option l'indique.
 
 Au lancement suivant, l'application propose de **reprendre le dernier projet** : cliquez sur **Ouvrir** puis acceptez l'autorisation du navigateur (c'est une sécurité de Chrome/Edge, elle est demandée une fois par session).
 
@@ -59,7 +62,7 @@ La fenêtre **Paramètres** (engrenage du ruban ou Ctrl + ,) contient un menu à
 
 ### 4.1 Général
 
-- **Classeur projet** : ouvrir, créer, enregistrer sous (voir ci-dessus).
+- **Classeur projet** : ouvrir, créer, enregistrer sous, sauvegarde automatique toutes les 10 minutes (voir ci-dessus).
 - **Apparence** : thème *Clair*, *Sombre* ou *Comme Windows* (suit le réglage de Windows).
 - **Polices d'écriture** : choix de la police (Inter, Segoe UI, Aptos, Bahnschrift, Calibri, Arial) et de la taille du texte, avec aperçu.
 
@@ -127,7 +130,7 @@ Les totaux Forfait / Ligne / Quantité s'affichent sous le tableau.
 Temps de la tâche pour une ligne = Tps (sec) de sa valeur × quantité de la ligne.
 Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
-La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée).
+La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence (DN10 à DN200, dont DN125 à 60 s comme DN100), relié à la **Base DN** (voir ci-dessous) ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée).
 
 ### 4.4 Ressources
 
@@ -147,6 +150,8 @@ Premier onglet, à gauche des activités : **un seul graphique** qui additionne 
 - boutons **Jour / Semaine / Mois / Année**, axe des dates et survol comme le graphique d'une activité ; le survol détaille la charge de chaque activité ;
 - chaque activité y compte les lignes affichées dans son tableau : ses **filtres** (En cours, filtres de colonnes) s'appliquent aussi ici (rappelé à côté du titre).
 
+**Base DN** : dans *Fichiers sources*, la ligne **Base DN** (« — Base de données ») attend le fichier des DN par article (onglet unique, colonnes **Article** et **DN**). Choisissez-le une fois : la tâche *Compter et déposer les pièces* de Prépa OF retrouve alors le DN de chaque ligne en reliant *Composant OF* (fichier Prépa OF) à *Article* (base DN), et applique le temps du tableau DN. Un composant absent de la base prend le temps de la ligne « (vide) ». Comme les autres sources, la base reste sur votre poste : seul le lien vers le fichier est enregistré dans le projet.
+
 ## 6. Colonnes et taille des tableaux
 
 À droite des boutons rapides de chaque activité :
@@ -154,6 +159,29 @@ Premier onglet, à gauche des activités : **un seul graphique** qui additionne 
 - **A−** / **A+** réduisent ou agrandissent le texte du tableau (de 50 % à 160 %) ; le bouton du milieu affiche la taille et revient à **100 %** ;
 - **Ajuster** choisit la plus grande taille qui fait tenir toutes les colonnes dans la largeur de l'écran.
 La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce poste** (pas dans le classeur projet).
+
+### Sélection de lignes et affectation en masse
+
+Dans le tableau d'une activité, cliquez sur une ligne pour la sélectionner (en bleu) :
+- **clic** : sélectionne une ligne (re-cliquer la désélectionne) ;
+- **Maj + clic** : sélectionne toutes les lignes entre la dernière cliquée et celle-ci ;
+- **Ctrl + clic** : ajoute ou retire une ligne de la sélection ;
+- **Échap** : annule la sélection.
+
+Une barre bleue apparaît au-dessus du tableau (nombre de lignes et heures sélectionnées). Tapez la ressource dans **Affecter à** (complétion depuis la liste des ressources) ou ouvrez la liste ▾, puis **Affecter** (ou Entrée) ; **Retirer l'affectation** vide l'affectation des lignes sélectionnées. L'opération compte comme **une seule action**, annulable par Ctrl + Z.
+
+### Affectation par capacité
+
+Le bouton **Affectation par capacité** (à gauche du bouton Colonnes) ouvre une vue qui glisse depuis la droite, à côté du tableau. **Faites glisser son bord gauche** pour l'élargir ou la réduire (largeur mémorisée sur ce poste).
+
+Pour chaque jour de la période, et pour chaque ressource ayant de la capacité ou de la charge ce jour-là, une **barre cumulée** montre :
+- en vert clair, la **capacité totale** de la ressource (somme des *Heure productivité* du fichier de capacité, colonne *nom_complet* = nom de la ressource, majuscules et accents ignorés) ;
+- en bleu, la **charge affectée** dans cette activité, et en bleu clair celle des **autres activités** ;
+- la partie verte restante = **capacité restante** ; en **rouge**, la **surcharge** quand la charge dépasse la capacité.
+
+À droite de chaque barre : « affecté / capacité h · reste » ou « ⚠ +dépassement ». Sous chaque jour figure aussi la charge **non affectée** de l'activité. Le nombre de surcharges de la période s'affiche en haut de la vue et en **pastille rouge** sur le bouton ; la case **Surcharges** n'affiche que les ressources en dépassement. La charge comptée est celle de toutes les lignes affectées de la période, quels que soient les filtres du tableau.
+
+> Pour que la capacité s'affiche, les noms de *Paramètres › Ressources* (ou les textes saisis) doivent être les mêmes que ceux de la colonne *nom_complet* du fichier de capacité ; la vue signale les ressources sans capacité trouvée.
 
 ## 7. Prépa OF
 
@@ -190,7 +218,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 **Calcul du Temps (h)** pour un OF = somme des temps *Forfait* + somme des temps *Ligne* × nombre de lignes + somme des temps *Quantité* × total des *Qté besoin* + pour chaque tâche *Calcul* : Σ (Tps de la valeur de la ligne × *Qté besoin* de la ligne).
 Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes dont la valeur n'est pas dans le tableau de calcul (comptées 0 s).
 
-> En attendant la base des DN, toutes les lignes prennent le temps « (vide) » du tableau DN (1 s par pièce).
+> Sans fichier **Base DN** chargé (Paramètres › Fichiers sources), toutes les lignes prennent le temps « (vide) » du tableau DN (1 s par pièce).
 
 ## 8. Prépa Expéd
 
