@@ -21,10 +21,10 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Élément | Rôle | Raccourci |
 |---|---|---|
 | Logo + nom en gras | Nom du classeur projet ouvert | – |
-| Période (Du → Au) | Plage de dates commune à toutes les activités ; le bouton calendrier remet la période par défaut (J – 15 à J + 30) | – |
+| Période (Du → Au) | Plage de dates commune à toutes les activités ; à l'ouverture : J – 15 à J + 30 | – |
 | Flèche retour | Annule la dernière modification | Ctrl + Z |
 | Flèche avant | **Rétablit** la dernière action annulée (annuler une annulation, comme Excel). Toute nouvelle modification vide la liste des actions à rétablir | Ctrl + Y |
-| Disquette | Enregistre le projet. **Verte** : tout est enregistré ; **orange** : modifications non enregistrées, pas encore de classeur ou dernier enregistrement en échec (la bulle précise le cas) | Ctrl + S |
+| Disquette | Enregistre le projet. **Noire** : tout est enregistré ; **orange** : modifications non enregistrées, pas encore de classeur ou dernier enregistrement en échec (la bulle précise le cas) | Ctrl + S |
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
@@ -149,7 +149,7 @@ Premier onglet, à gauche des activités : **un seul graphique** qui additionne 
 ## 6. Colonnes et taille des tableaux
 
 À droite des boutons rapides de chaque activité :
-- le bouton **Colonnes** (icône de tableau) ouvre la liste des colonnes : cochez celles à afficher, décochez celles à masquer (« (Sélectionner tout) » coche ou décoche tout), puis **OK**. Au moins une colonne doit rester affichée. Le bouton est bleu quand des colonnes sont masquées. Les colonnes masquées sont mémorisées **sur ce poste**, pour chaque activité ; un filtre posé sur une colonne masquée reste actif (le bouton **Tout** le retire) ;
+- le bouton **Colonnes** (icône de tableau) ouvre la liste des colonnes : cochez celles à afficher, décochez celles à masquer (« (Sélectionner tout) » coche ou décoche tout) ; les flèches **↑ ↓** de chaque colonne changent son **ordre** dans le tableau (haut de la liste = gauche du tableau), **Ordre par défaut** remet l'ordre d'origine ; puis **OK**. La colonne Ressource reste visible en permanence à droite tant qu'elle est la dernière colonne. Au moins une colonne doit rester affichée. Le bouton est bleu quand des colonnes sont masquées. Les colonnes masquées et leur ordre sont mémorisés **sur ce poste**, pour chaque activité ; un filtre posé sur une colonne masquée reste actif (le bouton **Tout** le retire) ;
 - **A−** / **A+** réduisent ou agrandissent le texte du tableau (de 50 % à 160 %) ; le bouton du milieu affiche la taille et revient à **100 %** ;
 - **Ajuster** choisit la plus grande taille qui fait tenir toutes les colonnes dans la largeur de l'écran.
 La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce poste** (pas dans le classeur projet).
@@ -167,7 +167,7 @@ La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce po
 
 Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
 
-- **Période** : elle se règle dans le ruban, en haut de page, et s'applique à toutes les activités. Par défaut du jour – 15 jours au jour + 30 jours (vraies dates). Modifiez-les librement ; le bouton calendrier ✓ remet la période par défaut.
+- **Période** : elle se règle dans le ruban, en haut de page, et s'applique à toutes les activités. Par défaut du jour – 15 jours au jour + 30 jours (vraies dates). Modifiez-les librement ; la période par défaut revient à chaque ouverture de l'application.
 - **Annuler un filtre** : poser ou retirer un filtre (En cours, Tout, filtre de colonne) s'annule avec **Ctrl + Z** ou la flèche retour du ruban, comme les autres actions. Les filtres ne sont pas enregistrés dans le projet : les annuler ne le marque pas comme modifié.
 - **Boutons rapides** à droite du titre *Prépa OF* : **En cours** n'affiche que les OF dont le *Statut opé* n'est pas « Soldée » (re-cliquer pour l'enlever) ; **Tout** retire tous les filtres (En cours et filtres de colonnes). Le bouton actif est mis en évidence.
 - **Total** : le pied du tableau donne le nombre d'OF affichés (« filtrés sur N » si un filtre est actif), le total des heures et le nombre d'OF affectés.
