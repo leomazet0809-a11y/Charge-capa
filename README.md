@@ -29,7 +29,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
-Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*, *Ressources*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
+Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
 Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargement, une fenêtre indique le fichier, l'étape en cours (lecture, analyse des onglets, calcul des temps) et le temps écoulé.
 
@@ -59,7 +59,7 @@ Si vous **fermez** l'onglet ou le navigateur avec des modifications non enregist
 
 ## 4. Paramètres
 
-La fenêtre **Paramètres** (engrenage du ruban ou Ctrl + ,) contient un menu à gauche : **Général**, **Fichiers sources**, **Temps gammes** et **Ressources**.
+La fenêtre **Paramètres** (engrenage du ruban ou Ctrl + ,) contient un menu à gauche : **Général**, **Fichiers sources** et **Temps gammes**.
 
 ### 4.1 Général
 
@@ -135,14 +135,12 @@ Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
 La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence (DN10 à DN200, dont DN125 à 60 s comme DN100), relié à la **Base DN** (voir ci-dessous) ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée).
 
-### 4.4 Ressources
+### 4.4 Ressources à affecter
 
-Liste des ressources (préparateurs, postes…) auxquelles l'ordonnanceur affecte les dossiers, librement paramétrable :
-- **+ Ajouter une ressource**, puis saisissez son nom ; les flèches changent l'ordre de la liste ;
-- les mêmes ressources servent à toutes les activités (Prépa OF, Prépa Expéd) ;
-- la colonne **OF affectés** indique combien de dossiers sont affectés à chaque ressource ;
-- dans les tableaux, la colonne **Affectation** propose cette liste (liste déroulante ▾) et accepte aussi un **texte libre** : un texte identique au nom d'une ressource de la liste (majuscules et accents ignorés) est relié à cette ressource ;
-- renommer une ressource met à jour toutes ses affectations ; la supprimer remet ses OF « non affectés » (après confirmation).
+Il n'y a plus de liste à paramétrer : les ressources proposées dans la colonne **Affectation** sont les **personnes du fichier de capacité** (colonne *nom_complet*).
+- Pour une activité, ce sont les personnes des **groupes / niveaux de capacité choisis pour cette activité** (*Fichiers sources*, colonne « Capacité ») ; si aucun n'est choisi, toutes les personnes du fichier.
+- Une saisie identique à un nom du fichier (majuscules et accents ignorés) reprend l'écriture exacte du nom ; un autre texte reste accepté (texte libre).
+- Les projets enregistrés avec l'ancienne liste *Paramètres › Ressources* sont convertis automatiquement : chaque affectation garde le nom de sa ressource.
 
 ## 5. Charge globale
 
@@ -190,13 +188,13 @@ Le bouton **Affectation par capacité** (à gauche du bouton Colonnes) ouvre une
 La vue présente **un histogramme empilé par jour**, les jours les uns sous les autres (faites défiler la vue vers le haut ou le bas). Chaque histogramme a **une barre par ressource de l'activité** ce jour-là :
 - les ressources sont les personnes du **fichier de capacité** (colonne *nom_complet*) appartenant aux **groupes / niveaux choisis pour l'activité** (Paramètres › Fichiers sources, colonne « Capacité »), plus toute ressource à qui du temps est affecté ce jour-là ;
 - chaque dossier compte au jour de sa **Date affectation** (voir ci-dessus), et non à sa date due ;
-- **gris clair** : temps **affecté** à la ressource ce jour-là (toutes activités confondues ; le survol précise la part des autres activités) ;
-- **vert** : temps **restant à affecter** = temps disponible sur la journée (*Heure productivité*) – temps déjà affecté ;
+- **vert** : temps **affecté** à la ressource ce jour-là (toutes activités confondues ; le survol précise la part des autres activités) ;
+- **gris clair** : temps **restant à affecter** = temps disponible sur la journée (*Heure productivité*) – temps déjà affecté ;
 - **rouge vif** : **surcharge**, quand le temps affecté dépasse le temps disponible.
 
 Au survol d'une barre, ses valeurs s'affichent immédiatement. Sous le nom de chaque jour figurent la semaine, la charge **non affectée** de l'activité et le nombre de surcharges. Le total des surcharges de la période s'affiche en haut de la vue et en **pastille rouge** sur le bouton ; la case **Surcharges** ne garde que les ressources en dépassement. Toutes les lignes affectées de la période sont comptées, quels que soient les filtres du tableau.
 
-> Les noms des affectations doivent être les mêmes que ceux de la colonne *nom_complet* du fichier de capacité (majuscules et accents ignorés) ; la vue signale les ressources sans temps disponible trouvé. Sans groupe / niveau choisi pour l'activité, la vue affiche les ressources de *Paramètres › Ressources*.
+> Les noms des affectations doivent être les mêmes que ceux de la colonne *nom_complet* du fichier de capacité (majuscules et accents ignorés) ; les noms des personnes sont écrits en petit sous chaque barre. Sans groupe / niveau choisi pour l'activité, la vue affiche toutes les personnes du fichier de capacité.
 
 ## 7. Prépa OF
 
@@ -228,7 +226,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 | Manquants | **Oui** si au moins une ligne de l'OF est marquée « Manquant » (ou « Oui » dans l'export), sinon **Non** |
 | Date sortie 2 | Plus ancienne *Date sortie 2* de l'OF (onglet OF - Opérations) |
 | Temps (h) | Temps de préparation calculé avec la gamme (2 décimales) |
-| Affectation | **Colonne de saisie** (elle défile avec les autres colonnes). **Liste déroulante** : le bouton ▾ de la case (ou **Alt + ↓**) affiche les ressources de *Paramètres › Ressources* (puis les autres textes déjà saisis dans la colonne) ; cliquez pour choisir, ou « — Aucune affectation » pour retirer. **Saisie à la main** : cliquez dans la case et tapez ; dès les premières lettres identiques à une ressource de la liste (ou à un texte déjà saisi dans la colonne), l'application **complète** le nom : continuez à taper pour l'ignorer, ou validez. **Entrée** ou **↓** valide et passe à la ligne du dessous, **↑** à la ligne du dessus, **Échap** annule la saisie ; videz la case pour retirer l'affectation. Le pied du tableau indique « n / N affectés ». |
+| Affectation | **Colonne de saisie** (elle défile avec les autres colonnes). **Liste déroulante toujours proposée** : dès que vous cliquez dans la case, la liste des personnes du fichier de capacité s'ouvre sous la case (puis les autres textes déjà saisis dans la colonne) ; cliquez sur un nom pour le choisir, ou « — Aucune affectation » pour retirer. Le bouton ▾ (ou **Alt + ↓**) l'ouvre ou la ferme. **Saisie à la main** : tapez le début d'un nom ; la liste se réduit aux noms qui commencent ainsi et l'application **complète** le premier nom : continuez à taper pour l'ignorer, ou validez. **Entrée** ou **↓** valide et passe à la ligne du dessous, **↑** à la ligne du dessus, **Échap** annule la saisie ; videz la case pour retirer l'affectation. Le pied du tableau indique « n / N affectés ». |
 
 **Calcul du Temps (h)** pour un OF = somme des temps *Forfait* + somme des temps *Ligne* × nombre de lignes + somme des temps *Quantité* × total des *Qté besoin* + pour chaque tâche *Calcul* : Σ (Tps de la valeur de la ligne × *Qté besoin* de la ligne).
 Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes dont la valeur n'est pas dans le tableau de calcul (comptées 0 s).
