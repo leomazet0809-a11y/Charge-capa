@@ -23,6 +23,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Logo + nom en gras | Nom du classeur projet ouvert | – |
 | Période (Du → Au) | Plage de dates commune à toutes les activités ; le bouton calendrier remet la période par défaut (J – 15 à J + 30) | – |
 | Flèche retour | Annule la dernière modification | Ctrl + Z |
+| Flèche avant | **Rétablit** la dernière action annulée (annuler une annulation, comme Excel). Toute nouvelle modification vide la liste des actions à rétablir | Ctrl + Y |
 | Disquette | Enregistre le projet. **Verte** : tout est enregistré ; **orange** : modifications non enregistrées, pas encore de classeur ou dernier enregistrement en échec (la bulle précise le cas) | Ctrl + S |
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
@@ -133,20 +134,22 @@ Liste des ressources (préparateurs, postes…) auxquelles l'ordonnanceur affect
 - **+ Ajouter une ressource**, puis saisissez son nom ; les flèches changent l'ordre de la liste ;
 - les mêmes ressources servent à toutes les activités (Prépa OF, Prépa Expéd) ;
 - la colonne **OF affectés** indique combien de dossiers sont affectés à chaque ressource ;
+- dans les tableaux, la colonne Ressource accepte aussi un **texte libre** : un texte identique au nom d'une ressource de la liste (majuscules et accents ignorés) est relié à cette ressource ;
 - renommer une ressource met à jour toutes ses affectations ; la supprimer remet ses OF « non affectés » (après confirmation).
 
 ## 5. Charge globale
 
 Premier onglet, à gauche des activités : **un seul graphique** qui additionne la charge et la capacité de toutes les activités sur la période du ruban.
-- **Barres empilées** : une couleur par activité (Prépa OF, Prépa Expéd) ; la hauteur totale est la charge totale du jour ;
+- **Barres empilées** : charge **soldée** en bleu (en bas) et charge **en cours** en noir grisé (au-dessus), toutes activités additionnées ; la hauteur totale est la charge totale du jour ;
 - **Courbe** : capacité des groupes / niveaux choisis pour les activités (un groupe choisi pour deux activités n'est compté qu'une fois) ;
-- en haut : charge totale, charge de chaque activité, capacité totale et taux de charge ;
+- en haut : charge totale, dont soldée, dont en cours, charge de chaque activité, capacité totale et taux de charge ;
 - boutons **Jour / Semaine / Mois / Année**, axe des dates et survol comme le graphique d'une activité ; le survol détaille la charge de chaque activité ;
 - chaque activité y compte les lignes affichées dans son tableau : ses **filtres** (En cours, filtres de colonnes) s'appliquent aussi ici (rappelé à côté du titre).
 
-## 6. Taille des tableaux
+## 6. Colonnes et taille des tableaux
 
 À droite des boutons rapides de chaque activité :
+- le bouton **Colonnes** (icône de tableau) ouvre la liste des colonnes : cochez celles à afficher, décochez celles à masquer (« (Sélectionner tout) » coche ou décoche tout), puis **OK**. Au moins une colonne doit rester affichée. Le bouton est bleu quand des colonnes sont masquées. Les colonnes masquées sont mémorisées **sur ce poste**, pour chaque activité ; un filtre posé sur une colonne masquée reste actif (le bouton **Tout** le retire) ;
 - **A−** / **A+** réduisent ou agrandissent le texte du tableau (de 50 % à 160 %) ; le bouton du milieu affiche la taille et revient à **100 %** ;
 - **Ajuster** choisit la plus grande taille qui fait tenir toutes les colonnes dans la largeur de l'écran.
 La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce poste** (pas dans le classeur projet).
@@ -154,7 +157,7 @@ La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce po
 ## 7. Prépa OF
 
 **Graphique charge / capacité** : le bouton de graphique placé à gauche du grand titre *Prépa OF* (dans la page) ouvre un panneau (Échap ou ✕ pour le fermer) :
-- **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là ;
+- **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là, en deux parts : **soldée** en bleu (Statut opé « Soldée » ; pour Prépa Expéd, Soldée = Oui) et **en cours** en noir grisé ; en haut, la charge totale est détaillée « dont soldée / dont en cours » ;
 - **Courbe** : capacité du jour = somme des *Heure productivité* des groupes/niveaux choisis pour l'activité ;
 - tous les jours de la période du ruban (week-ends grisés) ; le graphique suit aussi les **filtres de colonnes** du tableau ;
 - boutons **Jour / Semaine / Mois / Année** (en haut à droite du graphique) : charge et capacité sont additionnées par semaine, mois ou année ; une semaine ou un mois coupé par la période ne compte que les jours de la période (les dates exactes sont rappelées au survol) ;
@@ -181,7 +184,7 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 | Manquants | **Oui** si au moins une ligne de l'OF est marquée « Manquant » (ou « Oui » dans l'export), sinon **Non** |
 | Date sortie 2 | Plus ancienne *Date sortie 2* de l'OF (onglet OF - Opérations) |
 | Temps (h) | Temps de préparation calculé avec la gamme (2 décimales) |
-| Ressource | **Colonne de saisie** (toujours visible à droite) : choisissez dans la liste la ressource à qui affecter l'OF, ou « — » pour retirer l'affectation. Le pied du tableau indique « n / N affectés ». |
+| Ressource | **Colonne de saisie** (toujours visible à droite) : cliquez dans la case et tapez le nom de la ressource. Dès les premières lettres, l'application **complète** avec un texte déjà saisi dans la colonne (ou un nom de la liste des Ressources) : continuez à taper pour l'ignorer, ou validez. **Entrée** ou **↓** valide et passe à la ligne du dessous, **↑** à la ligne du dessus, **Échap** annule la saisie ; videz la case pour retirer l'affectation. Le pied du tableau indique « n / N affectés ». |
 
 **Calcul du Temps (h)** pour un OF = somme des temps *Forfait* + somme des temps *Ligne* × nombre de lignes + somme des temps *Quantité* × total des *Qté besoin* + pour chaque tâche *Calcul* : Σ (Tps de la valeur de la ligne × *Qté besoin* de la ligne).
 Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes dont la valeur n'est pas dans le tableau de calcul (comptées 0 s).
@@ -207,7 +210,7 @@ Période, tri, filtres Excel, boutons rapides, total, affectation des ressources
 | Instruction livraison | En petit, sur plusieurs lignes |
 | Soldée | **Oui** si tous les articles de la commande-date sont « Soldé », sinon **Non** |
 | Temps (h) | Temps de préparation calculé avec la gamme *Prépa Expéd* sur toutes les lignes (soldées comprises), **sauf les articles commençant par 9** ; quantité = *Qté commandée US* |
-| Ressource | Affectation à une ressource, enregistrée dans le classeur projet |
+| Ressource | Saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
 
 ---
 

@@ -263,6 +263,7 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .tbl-wrap.tall { flex: 1 1 auto; min-height: 0; border: 0; border-radius: 12px; }
 .act-page { max-width: none; }
 .act-page .tbl { font-size: calc(.92em * var(--tbl-zoom, 1)); }
+.cols-btn.on { color: var(--accent); background: var(--accent-soft); }
 .zoom-ctl .zoom-val { min-width: 4.2em; font-variant-numeric: tabular-nums; }
 .badge-btn { border: 0; cursor: pointer; font-family: inherit; }
 .badge-btn:hover { filter: brightness(.95); }
@@ -314,6 +315,7 @@ td.stale { color: var(--warn); font-weight: 600; }
 }
 .fpop .fitem:hover { background: var(--surface-2); }
 .fpop .fitem:disabled { opacity: .4; cursor: default; background: none; }
+.fpop .fhead { font-weight: 600; padding: 4px 10px 6px; }
 .fpop hr { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
 .fpop input[type="text"] { width: 100%; margin: 4px 0 6px; }
 .fpop .flist {
@@ -344,10 +346,10 @@ td.stale { color: var(--warn); font-weight: 600; }
 .act-page .tbl thead tr > :last-child { background: var(--surface-2); z-index: 2; }
 .act-page .tbl tfoot tr > :last-child { background: var(--surface-2); }
 .res-cell { padding-top: 2px !important; padding-bottom: 2px !important; }
-.res-sel { width: 100%; padding: .2em .45em; border-radius: 6px; font-size: 1em; }
+.res-in { width: 100%; padding: .2em .45em; border-radius: 6px; font-size: 1em; }
 .act-page .fbtn { width: 1.45em; height: 1.45em; flex-basis: 1.45em; }
 .act-page .fbtn svg.i { width: .95em; height: .95em; }
-.res-sel:not(:disabled) { cursor: pointer; }
+.res-in:not(:focus) { border-color: transparent; background: transparent; }
 .tbl tbody tr:hover td { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
 .tbl td.num, .tbl th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .tbl tfoot td { background: var(--surface-2); font-weight: 600; }
@@ -428,8 +430,8 @@ td.stale { color: var(--warn); font-weight: 600; }
 .overlay svg { animation: spin 1s linear infinite; color: var(--accent); }
 
 /* ---------- Graphique charge / capacité ---------- */
-:root { --series-1: #2a78d6; --series-2: #eb6834; --series-3: #14a38b; }
-:root[data-theme="dark"] { --series-1: #3987e5; --series-2: #d95926; --series-3: #2bb59b; }
+:root { --series-1: #2a78d6; --series-2: #eb6834; --series-open: #4b5563; }
+:root[data-theme="dark"] { --series-1: #3987e5; --series-2: #d95926; --series-open: #8b93a1; }
 /* Bouton graphique à gauche du titre de l'activité. */
 .chart-btn { color: var(--accent); background: var(--accent-soft); margin-right: -4px; }
 .chart-btn:hover { background: var(--accent); color: #fff; }
@@ -494,9 +496,12 @@ td.stale { color: var(--warn); font-weight: 600; }
 .chart-svg .hit { fill: transparent; }
 .chart-svg .hit:hover { fill: color-mix(in srgb, var(--text) 5%, transparent); }
 .chart-svg .bar.on { fill: color-mix(in srgb, var(--series-1) 78%, var(--surface)); }
-.chart-svg .bar.s1 { fill: var(--series-3); }
-.chart-svg .bar.s1.on { fill: color-mix(in srgb, var(--series-3) 78%, var(--surface)); }
-.chart-legend .k-bar.s1, .chart-tip .k-bar.s1 { background: var(--series-3); }
+/* Charge soldée en bleu, charge en cours en noir grisé. */
+.chart-svg .bar.s-open { fill: var(--series-open); }
+.chart-svg .bar.s-open.on { fill: color-mix(in srgb, var(--series-open) 78%, var(--surface)); }
+.chart-legend .k-bar.k-open, .chart-tip .k-bar.k-open { background: var(--series-open); }
+.chart-stat .v.k-done-t { color: var(--series-1); }
+.chart-stat .v.k-open-t { color: var(--series-open); }
 .chart-svg .xhair { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; display: none; pointer-events: none; }
 .chart-svg .bar, .chart-svg .dot, .chart-svg .cap { pointer-events: none; }
 .chart-wrap { position: relative; }
@@ -630,6 +635,10 @@ td.stale { color: var(--warn); font-weight: 600; }
         data-tip-name="Annuler" data-tip-role="Annule la dernière modification" data-tip-key="Ctrl + Z">
         <svg class="i" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
       </button>
+      <button class="icon-btn" id="btnRedo" disabled
+        data-tip-name="Rétablir" data-tip-role="Rétablit la dernière action annulée (comme Excel)" data-tip-key="Ctrl + Y">
+        <svg class="i" viewBox="0 0 24 24"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+      </button>
       <button class="icon-btn" id="btnSave"
         data-tip-name="Enregistrer" data-tip-role="Enregistre le projet dans le classeur Excel" data-tip-key="Ctrl + S">
         <svg class="i" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
@@ -689,6 +698,7 @@ td.stale { color: var(--warn); font-weight: 600; }
           data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
       </div>
       <span class="spacer"></span>
+      <button class="icon-btn cols-btn" data-cols="prepa-of" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></button>
       <div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">
         <button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>
         <button data-z="0" class="zoom-val" data-tip-name="Taille normale" data-tip-role="Revient à la taille de texte normale (100 %)">100 %</button>
@@ -710,6 +720,7 @@ td.stale { color: var(--warn); font-weight: 600; }
           data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
       </div>
       <span class="spacer"></span>
+      <button class="icon-btn cols-btn" data-cols="prepa-exped" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></button>
       <div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">
         <button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>
         <button data-z="0" class="zoom-val" data-tip-name="Taille normale" data-tip-role="Revient à la taille de texte normale (100 %)">100 %</button>
@@ -1063,6 +1074,7 @@ const FS_OK = "showOpenFilePicker" in window;
 /* ================= État & annulation ================= */
 let state = loadCachedState();
 let undoStack = [];
+let redoStack = []; // actions annulées, rétablies par Ctrl + Y ; vidée par toute nouvelle action
 let projectHandle = null;
 let saveState = "none"; // none | saved | dirty | saving | error
 
@@ -1099,6 +1111,7 @@ function cacheState() {
 function commit(mutator) {
   undoStack.push(JSON.stringify(state));
   if (undoStack.length > 100) undoStack.shift();
+  redoStack = [];
   mutator(state);
   cacheState();
   setSaveState("dirty");
@@ -1117,27 +1130,34 @@ function changeFilters(act, mutator) {
   if (sameFilters(before, filtersSnapshot(act))) return;
   undoStack.push({ filters: before });
   if (undoStack.length > 100) undoStack.shift();
+  redoStack = [];
   $("btnUndo").disabled = false;
+  $("btnRedo").disabled = true;
 }
 
-function undo() {
-  if (!undoStack.length) return;
-  const last = undoStack.pop();
+// Annuler et rétablir : chaque pas restaure l'état enregistré et garde l'état courant dans l'autre pile.
+function stepHistory(from, to, undoing) {
+  if (!from.length) return;
+  const last = from.pop();
   if (typeof last === "object") {
     const ui = actUI[last.filters.act];
+    to.push({ filters: filtersSnapshot(last.filters.act) });
     ui.filters = Object.fromEntries(Object.entries(last.filters.filters).map(([k, v]) => [k, new Set(v)]));
     ui.enCours = last.filters.enCours;
     closeFilter();
     render();
-    toast("Filtre annulé");
+    toast(undoing ? "Filtre annulé" : "Filtre rétabli");
     return;
   }
+  to.push(JSON.stringify(state));
   state = JSON.parse(last);
   cacheState();
   setSaveState("dirty");
   render();
-  toast("Action annulée");
+  toast(undoing ? "Action annulée" : "Action rétablie");
 }
+function undo() { stepHistory(undoStack, redoStack, true); }
+function redo() { stepHistory(redoStack, undoStack, false); }
 
 /* ================= Rendu ================= */
 function applyAppearance() {
@@ -1166,6 +1186,7 @@ function render() {
   $("selFont").value = s.font;
   $("selSize").value = String(s.fontSize);
   $("btnUndo").disabled = undoStack.length === 0;
+  $("btnRedo").disabled = redoStack.length === 0;
 
   const name = projectHandle ? projectHandle.name : "Nouveau projet (non enregistré)";
   $("fileName").textContent = name;
@@ -2256,7 +2277,12 @@ function cellHtml(c, x) {
 }
 
 function renderActTable(act) {
-  const def = ACT_DEFS[act], ui = actUI[act], cols = actColumns(act);
+  const def = ACT_DEFS[act], ui = actUI[act], allCols = actColumns(act);
+  const hidden = hiddenCols[act] || [];
+  const cols = allCols.filter(c => !hidden.includes(c.k));
+  const cb = document.querySelector('.cols-btn[data-cols="' + act + '"]');
+  cb.classList.toggle("on", cols.length < allCols.length);
+  cb.dataset.tipRole = "Choisit les colonnes à afficher ou masquer dans le tableau (" + cols.length + " sur " + allCols.length + " affichées)";
   const body = $(def.page + "Body"), quick = $(def.page + "Quick");
   $("prepaFrom").value = prepaUI.from;
   $("prepaTo").value = prepaUI.to;
@@ -2269,7 +2295,7 @@ function renderActTable(act) {
   const from = prepaUI.from ? new Date(prepaUI.from + "T00:00") : null;
   const to = prepaUI.to ? new Date(prepaUI.to + "T00:00") : null;
   const assigned = state.assign[act] || {};
-  for (const x of res.list) x.ressource = resourceName(assigned[x.id]);
+  for (const x of res.list) x.ressource = assignLabel(assigned[x.id]);
   const dk = def.dateKey;
   const inPeriod = res.list.filter(x => x[dk] && (!from || x[dk] >= from) && (!to || x[dk] <= to));
   const inRange = ui.enCours ? inPeriod.filter(x => !def.isDone(x)) : inPeriod;
@@ -2278,7 +2304,7 @@ function renderActTable(act) {
   actRows[act] = rows;
   const nFilters = Object.keys(ui.filters).length + (ui.enCours ? 1 : 0);
   for (const b of quick.children) b.classList.toggle("on", b.dataset.q === "encours" ? ui.enCours : !nFilters);
-  const col = cols.find(c => c.k === ui.sort) || cols.find(c => c.k === dk);
+  const col = allCols.find(c => c.k === ui.sort) || allCols.find(c => c.k === dk);
   rows.sort((a, b) => {
     const va = a[col.k], vb = b[col.k];
     if (va == null && vb == null) return 0;
@@ -2307,7 +2333,7 @@ function renderActTable(act) {
     for (const c of cols) {
       if (c.heures) h += '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
         (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && dt.unknown ? " ⚠" : "") + "</b></td>";
-      else if (c.k === "ressource") h += '<td class="res-cell">' + resourceSelect(act, x.id, assigned[x.id]) + "</td>";
+      else if (c.k === "ressource") h += '<td class="res-cell">' + resourceInput(act, x.id, assigned[x.id]) + "</td>";
       else h += "<td" + (c.num ? ' class="num"' : c.wrap ? ' class="wrap"' : c.date ? ' class="nowrap"' : "") + ">" + cellHtml(c, x) + "</td>";
     }
     h += "</tr>";
@@ -2317,9 +2343,14 @@ function renderActTable(act) {
   h += "</tbody>";
   if (rows.length) {
     const nAff = rows.filter(x => x.ressource).length;
-    h += '<tfoot><tr><td colspan="' + (cols.length - 2) + '">Total (' + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") +
-      ')</td><td class="num">' + fmtHours(totalH * 3600) + "</td>" +
-      '<td class="res-cell muted">' + fmtInt(nAff) + " / " + fmtInt(rows.length) + " affectés</td></tr></tfoot>";
+    // Le libellé du total occupe les colonnes de gauche ; Temps (h) et Ressource gardent leur total s'ils sont affichés.
+    const lead = cols.filter(c => !c.heures && c.k !== "ressource").length;
+    h += "<tfoot><tr>" + (lead ? '<td colspan="' + lead + '">Total (' + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")</td>" : "");
+    for (const c of cols) {
+      if (c.heures) h += '<td class="num">' + fmtHours(totalH * 3600) + "</td>";
+      else if (c.k === "ressource") h += '<td class="res-cell muted">' + fmtInt(nAff) + " / " + fmtInt(rows.length) + " affectés</td>";
+    }
+    h += "</tr></tfoot>";
   }
   body.innerHTML = h + "</table></div></div>";
 }
@@ -2332,15 +2363,40 @@ $("prepaReset").onclick = () => {
   renderPrepa();
 };
 
-function resourceSelect(act, id, current) {
-  const known = state.resources.some(r => r.id === current);
-  return '<select class="res-sel" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
-    (state.resources.length ? ' data-tip-name="Ressource" data-tip-role="Affecte cette ligne à une ressource (« — » pour retirer l’affectation)"'
-      : ' disabled data-tip-name="Aucune ressource" data-tip-role="Créez la liste dans Paramètres › Ressources"') + ">" +
-    '<option value="">—</option>' +
-    state.resources.map(r => '<option value="' + esc(r.id) + '"' + (r.id === current ? " selected" : "") + ">" + esc(r.name) + "</option>").join("") +
-    (current && !known ? '<option value="" selected>(supprimée)</option>' : "") +
-    "</select>";
+// Texte affiché d'une affectation : nom de la ressource de la liste, ou texte libre saisi.
+function assignLabel(v) { return v ? resourceName(v) || (state.resources.some(r => r.id === v) ? "" : v) : ""; }
+// Valeur enregistrée pour un texte saisi : l'id de la ressource du même nom, sinon le texte lui-même.
+function assignValue(text) {
+  const t = text.trim();
+  const r = state.resources.find(x => stripAccents(x.name) === stripAccents(t));
+  return r ? r.id : t;
+}
+
+function resourceInput(act, id, current) {
+  return '<input type="text" class="res-in" autocomplete="off" spellcheck="false" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
+    ' value="' + esc(assignLabel(current)) + '" placeholder="—"' +
+    ' data-tip-name="Ressource" data-tip-role="Cliquez et saisissez la ressource ; un début de texte déjà saisi dans la colonne est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">';
+}
+
+// Propositions pour la complétion : textes déjà saisis dans la colonne (dans l'ordre du tableau), puis la liste des ressources.
+function assignSuggestions(act) {
+  const seen = [];
+  const add = t => { if (t && !seen.some(x => stripAccents(x) === stripAccents(t))) seen.push(t); };
+  const m = state.assign[act] || {};
+  for (const x of actRows[act] || []) add(assignLabel(m[x.id]));
+  for (const v of Object.values(m)) add(assignLabel(v));
+  for (const r of state.resources) add(r.name);
+  return seen;
+}
+
+function saveAssign(act, el) {
+  const id = el.dataset.id, v = assignValue(el.value);
+  const cur = (state.assign[act] || {})[id] || "";
+  if (v === cur) { el.value = assignLabel(cur); return; }
+  commit(st => {
+    const m = st.assign[act] || (st.assign[act] = {});
+    if (v) m[id] = v; else delete m[id];
+  });
 }
 
 // Événements des pages d'activité : tri, filtre, affectation, boutons rapides.
@@ -2356,13 +2412,38 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     renderPrepa();
   });
   body.addEventListener("change", e => {
-    const el = e.target.closest(".res-sel");
+    const el = e.target.closest(".res-in");
+    if (el) saveAssign(act, el);
+  });
+  // Saisie dans la colonne Ressource : complétion du texte, Entrée / ↑ / ↓ pour valider et changer de ligne.
+  body.addEventListener("input", e => {
+    const el = e.target.closest(".res-in");
+    if (!el || (e.inputType || "").startsWith("delete")) return;
+    const typed = el.value;
+    if (!typed.trim() || el.selectionStart !== typed.length) return;
+    const q = stripAccents(typed);
+    const hit = assignSuggestions(act).find(t => t.length > typed.length && stripAccents(t).startsWith(q));
+    if (!hit) return;
+    el.value = hit; // comme Excel, la valeur proposée garde son écriture d'origine
+    el.setSelectionRange(typed.length, el.value.length);
+  });
+  body.addEventListener("keydown", e => {
+    const el = e.target.closest(".res-in");
     if (!el) return;
-    const id = el.dataset.id, v = el.value;
-    commit(st => {
-      const m = st.assign[act] || (st.assign[act] = {});
-      if (v) m[id] = v; else delete m[id];
-    });
+    if (e.key === "Escape") {
+      e.preventDefault(); e.stopPropagation();
+      el.value = assignLabel((state.assign[act] || {})[el.dataset.id]);
+      el.blur();
+      return;
+    }
+    if (e.key !== "Enter" && e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    const inputs = [...body.querySelectorAll(".res-in")];
+    const next = inputs[inputs.indexOf(el) + (e.key === "ArrowUp" ? -1 : 1)];
+    const fk = next ? next.dataset.fk : null;
+    saveAssign(act, el);
+    const target = fk && body.querySelector('[data-fk="' + CSS.escape(fk) + '"]');
+    if (target) { target.focus(); target.select(); }
   });
   $(def.page + "Quick").onclick = e => {
     const b = e.target.closest("[data-q]");
@@ -2403,6 +2484,55 @@ for (const ctl of document.querySelectorAll(".zoom-ctl")) ctl.onclick = e => {
   if (z === "fit") fitTableZoom(ctl.closest(".page"));
   else setTableZoom(z === "0" ? 1 : tblZoom + Number(z) * 0.1);
 };
+
+/* ---------- Colonnes affichées (mémorisées sur ce poste) ---------- */
+let hiddenCols = {};
+try { hiddenCols = JSON.parse(localStorage.getItem("cc.hiddenCols")) || {}; } catch (e) { /* stockage indisponible */ }
+
+function openColumns(act, anchor) {
+  if (fpopKey === act + ":cols") return closeFilter();
+  const cols = actColumns(act);
+  const checked = new Set(cols.map(c => c.k).filter(k => !(hiddenCols[act] || []).includes(k)));
+  fpopKey = act + ":cols";
+  hideTip();
+  const pop = $("fpop");
+  pop.innerHTML = '<div class="fhead">Colonnes affichées</div>' +
+    '<div class="flist" id="flist" data-tip-name="Colonnes" data-tip-role="Cochez les colonnes à afficher, décochez celles à masquer"></div>' +
+    '<div class="fbtns"><button class="btn" data-fa="cancel" data-tip-name="Annuler" data-tip-role="Ferme le menu sans changer les colonnes">Annuler</button>' +
+    '<button class="btn primary" data-fa="ok" data-tip-name="OK" data-tip-role="Affiche les colonnes cochées et masque les autres">OK</button></div>';
+  const list = $("flist");
+  function draw() {
+    const allOn = cols.every(c => checked.has(c.k));
+    list.innerHTML = '<label class="all"><input type="checkbox" data-all' + (allOn ? " checked" : "") + "> (Sélectionner tout)</label>" +
+      cols.map(c => '<label><input type="checkbox" data-v="' + esc(c.k) + '"' + (checked.has(c.k) ? " checked" : "") + "> " + esc(c.t) + "</label>").join("");
+    list.querySelector("[data-all]").indeterminate = !allOn && checked.size > 0;
+  }
+  draw();
+  list.onchange = e => {
+    const el = e.target;
+    if (el.hasAttribute("data-all")) { for (const c of cols) el.checked ? checked.add(c.k) : checked.delete(c.k); }
+    else el.checked ? checked.add(el.dataset.v) : checked.delete(el.dataset.v);
+    draw();
+  };
+  pop.onclick = e => {
+    const b = e.target.closest("[data-fa]");
+    if (!b) return;
+    if (b.dataset.fa === "ok") {
+      if (!checked.size) return toast("Cochez au moins une colonne.", true);
+      const hide = cols.map(c => c.k).filter(k => !checked.has(k));
+      if (hide.length) hiddenCols[act] = hide; else delete hiddenCols[act];
+      try { localStorage.setItem("cc.hiddenCols", JSON.stringify(hiddenCols)); } catch (e) { /* stockage indisponible */ }
+      renderPrepa();
+    }
+    closeFilter();
+  };
+  pop.classList.add("show");
+  const r = anchor.getBoundingClientRect();
+  const w = pop.offsetWidth, h = pop.offsetHeight;
+  pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + "px";
+  pop.style.top = (r.bottom + h + 12 > innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + "px";
+}
+for (const b of document.querySelectorAll(".cols-btn")) b.onclick = e => { e.stopPropagation(); openColumns(b.dataset.cols, b); };
 
 /* ---------- Filtres de colonnes (type Excel) ---------- */
 function cellText(c, x) {
@@ -2515,7 +2645,7 @@ function openFilter(act, key, anchor) {
 }
 
 document.addEventListener("mousedown", e => {
-  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
+  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
 });
 document.addEventListener("keydown", e => {
   // Échap ferme d'abord le menu de filtre, sans fermer la fenêtre qui le contient.
@@ -2570,11 +2700,14 @@ function chartModel(acts, from, to) {
     const res = actList(act);
     if (res.error) errors.push(ACT_DEFS[act].name + " : " + res.error);
   }
+  // Par activité et par jour : charge soldée et charge en cours.
   const loads = acts.map(act => {
-    const m = new Map(), dk = ACT_DEFS[act].dateKey;
+    const m = new Map(), def = ACT_DEFS[act], dk = def.dateKey;
     for (const x of actRows[act] || []) if (x[dk] && x.heures != null) {
       const k = localISO(x[dk]);
-      m.set(k, (m.get(k) || 0) + x.heures);
+      const o = m.get(k) || { done: 0, open: 0 };
+      if (def.isDone(x)) o.done += x.heures; else o.open += x.heures;
+      m.set(k, o);
     }
     return m;
   });
@@ -2582,8 +2715,9 @@ function chartModel(acts, from, to) {
   for (let d = new Date(from); d <= to && days.length <= 3700; d = addDays(d, 1)) days.push(new Date(d));
   const data = days.map(d => {
     const iso = localISO(d);
-    const parts = loads.map(m => m.get(iso) || 0);
-    return { d, iso, parts, load: parts.reduce((a, v) => a + v, 0), cap: capLoaded && sel.length ? capacityOn(iso, sel) : null };
+    const day = loads.map(m => m.get(iso) || { done: 0, open: 0 });
+    const done = day.reduce((a, o) => a + o.done, 0), open = day.reduce((a, o) => a + o.open, 0);
+    return { d, iso, parts: day.map(o => o.done + o.open), done, open, load: done + open, cap: capLoaded && sel.length ? capacityOn(iso, sel) : null };
   });
   return { data, sel, capLoaded, errors };
 }
@@ -2607,6 +2741,7 @@ function renderChartView(v, acts, single) {
   const data = m.data, sel = m.sel;
   const hasCap = data.some(x => x.cap != null);
   const totL = data.reduce((a, x) => a + x.load, 0);
+  const totDone = data.reduce((a, x) => a + x.done, 0);
   const totC = data.reduce((a, x) => a + (x.cap || 0), 0);
   const series = acts.length > 1 ? acts.map(a => ACT_DEFS[a].name) : null;
 
@@ -2615,7 +2750,9 @@ function renderChartView(v, acts, single) {
   else if (!sel.length) notices.push("Aucun groupe / niveau de capacité choisi pour " + (single ? "cette activité" : "les activités") + " (Paramètres › Fichiers sources, colonne « Capacité »).");
 
   let h = '<div class="chart-stats">' +
-    '<div class="chart-stat"><div class="v">' + fmtH(totL) + ' h</div><div class="l">Charge (Temps h)</div></div>';
+    '<div class="chart-stat"><div class="v">' + fmtH(totL) + ' h</div><div class="l">Charge (Temps h)</div></div>' +
+    '<div class="chart-stat"><div class="v k-done-t">' + fmtH(totDone) + ' h</div><div class="l">dont soldée</div></div>' +
+    '<div class="chart-stat"><div class="v k-open-t">' + fmtH(totL - totDone) + ' h</div><div class="l">dont en cours</div></div>';
   if (series) series.forEach((n, j) => {
     const t = data.reduce((a, x) => a + x.parts[j], 0);
     h += '<div class="chart-stat"><div class="v">' + fmtH(t) + ' h</div><div class="l">' + esc(n) + "</div></div>";
@@ -2625,8 +2762,7 @@ function renderChartView(v, acts, single) {
   h += "</div>";
   for (const n of notices) h += '<p class="muted small" style="margin:4px 0">' + esc(n) + "</p>";
   if (hasCap) h += '<div class="small muted" style="margin:0 0 4px">Capacité : ' + esc(sel.join(" ; ")) + "</div>";
-  h += '<div class="chart-legend">' + (series ? series.map((n, j) => '<span><span class="k-bar s' + j + '"></span>' + esc(n) + "</span>").join("")
-    : '<span><span class="k-bar"></span>Charge (Temps h)</span>') +
+  h += '<div class="chart-legend"><span><span class="k-bar k-done"></span>Charge soldée</span><span><span class="k-bar k-open"></span>Charge en cours</span>' +
     (hasCap ? '<span><span class="k-line"></span>Capacité (Heure productivité)</span>' : "") + "</div>";
   h += '<div class="chart-wrap"><svg class="chart-svg" role="img" aria-label="Charge et capacité"></svg><div class="chart-tip"></div></div>';
   v.body.innerHTML = h;
@@ -2665,9 +2801,11 @@ function groupChartData(days, gran) {
   for (const x of days) {
     const k = GRANS[gran].key(x.d);
     let b = out.length && out[out.length - 1].k === k ? out[out.length - 1] : null;
-    if (!b) out.push(b = { k, d: x.d, last: x.d, load: 0, parts: x.parts.map(() => 0), cap: x.cap == null ? null : 0, n: 0 });
+    if (!b) out.push(b = { k, d: x.d, last: x.d, load: 0, done: 0, open: 0, parts: x.parts.map(() => 0), cap: x.cap == null ? null : 0, n: 0 });
     b.last = x.d;
     b.load += x.load;
+    b.done += x.done;
+    b.open += x.open;
     x.parts.forEach((v, j) => { b.parts[j] += v; });
     if (x.cap != null) b.cap = (b.cap || 0) + x.cap;
     b.n++;
@@ -2729,11 +2867,11 @@ function drawChart(svg, data, hasCap, gran, series) {
   }
   g += '<text x="4" y="' + (M.t + 10) + '">h</text>';
   // Barres : bords arrondis côté valeur, ancrées sur la ligne de base.
-  // Plusieurs activités : barres empilées, seul le segment du haut est arrondi.
+  // Barres empilées : charge soldée en bas, charge en cours au-dessus ; seul le segment du haut est arrondi.
   data.forEach((x, i) => {
     if (x.load <= 0) return;
     const x0 = xc(i) - bw / 2;
-    const parts = series ? x.parts : [x.load];
+    const parts = [x.done, x.open];
     const topJ = parts.reduce((t, v, j) => v > 0 ? j : t, -1);
     let base = 0;
     parts.forEach((v, j) => {
@@ -2741,7 +2879,7 @@ function drawChart(svg, data, hasCap, gran, series) {
       const yb = y(base), y0 = y(base + v), hh = yb - y0;
       base += v;
       const r = j === topJ ? Math.min(4, bw / 2, hh) : 0;
-      g += '<path class="bar' + (series ? " s" + j : "") + '" data-i="' + i + '" d="M' + x0 + "," + yb + "V" + (y0 + r) + "Q" + x0 + "," + y0 + " " + (x0 + r) + "," + y0 +
+      g += '<path class="bar ' + (j ? "s-open" : "s-done") + '" data-i="' + i + '" d="M' + x0 + "," + yb + "V" + (y0 + r) + "Q" + x0 + "," + y0 + " " + (x0 + r) + "," + y0 +
         "H" + (x0 + bw - r) + "Q" + (x0 + bw) + "," + y0 + " " + (x0 + bw) + "," + (y0 + r) + "V" + yb + 'Z"/>';
     });
   });
@@ -2818,8 +2956,9 @@ function bindChartHover(svg, data, hasCap, xc, series) {
       head.className = "tip-day";
       head.textContent = x.title;
       tip.append(head);
-      if (series) series.forEach((n, j) => tip.append(row("k-bar s" + j, fmtH(x.parts[j]) + " h", n)));
-      tip.append(row(series ? "k-none" : "k-bar", fmtH(x.load) + " h", series ? "Charge totale" : "Charge"));
+      tip.append(row("k-bar k-done", fmtH(x.done) + " h", "Charge soldée"), row("k-bar k-open", fmtH(x.open) + " h", "Charge en cours"));
+      if (series) series.forEach((n, j) => tip.append(row("k-none", fmtH(x.parts[j]) + " h", n)));
+      tip.append(row("k-none", fmtH(x.load) + " h", "Charge totale"));
       if (hasCap) {
         tip.append(row("k-line", fmtH(x.cap) + " h", "Capacité"));
         const gap = x.cap - x.load;
@@ -2869,7 +3008,8 @@ function stateToWorkbook() {
 
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Id", "Ressource"]].concat(state.resources.map(r => [r.id, r.name]))), "Ressources");
   const aff = [["Activité", "Dossier", "Id ressource", "Ressource"]];
-  for (const [act, m] of Object.entries(state.assign)) for (const [doss, rid] of Object.entries(m)) aff.push([act, doss, rid, resourceName(rid)]);
+  for (const [act, m] of Object.entries(state.assign)) for (const [doss, v] of Object.entries(m))
+    aff.push([act, doss, state.resources.some(r => r.id === v) ? v : "", assignLabel(v)]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aff), "Affectations");
 
   const gam = [["Id gamme", "Gamme", "Onglet des lignes", "Colonne dossier", "Colonne quantité", "Découper par date", "Colonne d'exclusion", "Préfixe exclu"]];
@@ -2931,9 +3071,11 @@ function workbookToState(wb) {
   if (resRows) st.resources = resRows.filter(r => str(r[0]) && str(r[1])).map(r => ({ id: str(r[0]), name: str(r[1]) }));
   const affRows = rowsOf("Affectations");
   if (affRows) for (const r of affRows) {
+    // Ressource de la liste (par son id) ou texte libre saisi dans le tableau.
     const act = str(r[0]), doss = str(r[1]), rid = str(r[2]);
-    if (!act || !doss || !st.resources.some(x => x.id === rid)) continue;
-    (st.assign[act] || (st.assign[act] = {}))[doss] = rid;
+    const v = st.resources.some(x => x.id === rid) ? rid : str(r[3]);
+    if (!act || !doss || !v) continue;
+    (st.assign[act] || (st.assign[act] = {}))[doss] = v;
   }
 
   const gam = rowsOf("Gammes");
@@ -3015,6 +3157,7 @@ async function readProject(h) {
     const wb = XLSX.read(await file.arrayBuffer(), { cellDates: true });
     state = workbookToState(wb);
     undoStack = [];
+    redoStack = [];
     projectHandle = h;
     await idbSet("projectHandle", h);
     cacheState();
@@ -3144,6 +3287,7 @@ document.addEventListener("fullscreenchange", () => {
 
 /* ================= Événements ================= */
 $("btnUndo").onclick = undo;
+$("btnRedo").onclick = redo;
 $("btnSave").onclick = save;
 $("btnFull").onclick = toggleFullscreen;
 $("btnSettings").onclick = () => settingsOpen() ? closeSettings() : openSettings();
@@ -3153,6 +3297,7 @@ $("btnNew").onclick = async () => {
   if (saveState === "dirty" && !confirm("Des modifications ne sont pas enregistrées. Les abandonner ?")) return;
   state = clone(DEFAULT_STATE);
   undoStack = [];
+  redoStack = [];
   projectHandle = null;
   for (const k of Object.keys(srcData)) delete srcData[k];
   render();
@@ -3185,6 +3330,7 @@ document.addEventListener("keydown", e => {
   const k = e.key.toLowerCase();
   if (e.ctrlKey && !e.shiftKey && k === "s") { e.preventDefault(); save(); }
   else if (e.ctrlKey && !e.shiftKey && k === "z" && !e.target.matches("input, textarea")) { e.preventDefault(); undo(); }
+  else if (e.ctrlKey && (k === "y" || e.shiftKey && k === "z") && !e.target.matches("input, textarea")) { e.preventDefault(); redo(); }
   else if (e.ctrlKey && e.shiftKey && k === "f") { e.preventDefault(); toggleFullscreen(); }
   else if (e.ctrlKey && k === ",") { e.preventDefault(); settingsOpen() ? closeSettings() : openSettings(); }
 });
