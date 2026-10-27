@@ -24,6 +24,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Période (Du → Au) | Plage de dates commune à toutes les activités ; à l'ouverture : J – 15 à J + 30 | – |
 | Flèche retour | Annule la dernière modification | Ctrl + Z |
 | Flèche avant | **Rétablit** la dernière action annulée (annuler une annulation, comme Excel). Toute nouvelle modification vide la liste des actions à rétablir | Ctrl + Y |
+| Actualiser (deux flèches, à gauche de la disquette) | Recharge les fichiers sources. **Noir** : les données chargées correspondent exactement aux fichiers sur le disque ; **orange** : au moins un fichier est à actualiser (non chargé, lecture à autoriser après une actualisation de la page, modifié depuis son chargement, ou erreur) — la bulle détaille lesquels. Le clic ne relit que les fichiers concernés (ou tous si tout est à jour) et redemande l'accès au navigateur si besoin. Les fichiers ne sont jamais rechargés automatiquement, sauf à l'ouverture de l'application | F9 |
 | Disquette | Enregistre le projet. **Noire** : tout est enregistré ; **orange** : modifications non enregistrées, pas encore de classeur ou dernier enregistrement en échec (la bulle précise le cas) | Ctrl + S |
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
@@ -85,6 +86,7 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 - Le bouton **⟳** relit un fichier ; **Tout recharger** relit tous les fichiers.
 - Au lancement, les fichiers sont relus automatiquement si le navigateur l'autorise ; sinon cliquez sur **Autoriser la lecture**.
 - **Un même fichier pour plusieurs activités** (ex. un seul export pour Prépa OF et Prépa Expéd) : il n'est **lu qu'une fois**, même s'il a été choisi séparément sur chaque ligne. Sous l'état, la mention « = *autre source* » indique le partage ; recharger l'une de ces lignes (⟳ ou « À actualiser ») met à jour toutes celles du même fichier.
+- Le bouton **Actualiser** du ruban (F9) recharge en un clic tous les fichiers à actualiser ; il est orange tant que les données chargées ne correspondent pas aux fichiers sources.
 - La date des fichiers est revérifiée **chaque minute** et à chaque retour sur l'application : un fichier enregistré entre-temps passe **À actualiser**.
 - Les données lues restent dans le navigateur : elles **ne sont pas copiées** dans le classeur projet (seuls le nom du fichier et les dates le sont).
 - Pour les CSV, le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou ANSI) sont détectés automatiquement.
@@ -163,10 +165,10 @@ La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce po
 
 ### Date affectation
 
-Chaque activité a une colonne **Date affectation** (avant *Temps (h)*) : c'est le **jour où le dossier est planifié**, en général avant sa date due (Début opé pour Prépa OF, Date expédition pour Prépa Expéd).
+Chaque activité a une colonne **Date affectation** (juste à droite de la colonne *Affectation*) : c'est le **jour où le dossier est planifié**, en général avant sa date due (Début opé pour Prépa OF, Date expédition pour Prépa Expéd).
 - **Par défaut** : date due − *x* jours ouvrés, *x* étant réglé pour chaque activité dans *Paramètres › Général › Date d'affectation* (2 par défaut). Elle s'affiche alors en gris italique et suit la date due si l'export change.
 - **Pour avancer un dossier** (par exemple pour lisser un pic), changez sa date dans la case : elle passe en **bleu gras** et est enregistrée dans le classeur projet (onglet *Dates affectation*). Videz la case (ou remettez la date par défaut) pour revenir au calcul automatique.
-- Une date **postérieure à la date due** s'affiche en **rouge**.
+- Une date **postérieure à la date due** s'affiche en **rouge**, précédée d'un logo **⚠** (la bulle rappelle les deux dates).
 - Avec des **lignes cochées**, la date saisie sur l'une d'elles est recopiée sur toutes les lignes cochées (une seule action, annulable par Ctrl + Z).
 - La colonne se trie et se filtre comme les autres. La vue **Affectation par capacité** place la charge à la **date d'affectation** (et non à la date due) ; la période du ruban et les autres graphiques restent basés sur la date due.
 
