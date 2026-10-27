@@ -80,6 +80,7 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 
 - Le bouton **⟳** relit un fichier ; **Tout recharger** relit tous les fichiers.
 - Au lancement, les fichiers sont relus automatiquement si le navigateur l'autorise ; sinon cliquez sur **Autoriser la lecture**.
+- **Un même fichier pour plusieurs activités** (ex. un seul export pour Prépa OF et Prépa Expéd) : il n'est **lu qu'une fois**, même s'il a été choisi séparément sur chaque ligne. Sous l'état, la mention « = *autre source* » indique le partage ; recharger l'une de ces lignes (⟳ ou « À actualiser ») met à jour toutes celles du même fichier.
 - La date des fichiers est revérifiée **chaque minute** et à chaque retour sur l'application : un fichier enregistré entre-temps passe **À actualiser**.
 - Les données lues restent dans le navigateur : elles **ne sont pas copiées** dans le classeur projet (seuls le nom du fichier et les dates le sont).
 - Pour les CSV, le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou ANSI) sont détectés automatiquement.

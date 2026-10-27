@@ -1263,6 +1263,16 @@ function fileDateCell(s) {
 
 function sourceBadge(s) {
   const d = srcData[s.id];
+  const twins = d && d.twins && d.twins.length && d.status !== "error" ? d.twins.map(o => {
+    const r = srcRec(state, o);
+    return o === CAP_ID ? "Capacité de travail" : r ? r.label || r.fileName || "source sans nom" : "";
+  }).filter(Boolean) : [];
+  const badge = sourceBadgeMain(s, d);
+  return twins.length ? badge + '<div class="small muted twin" data-tip-name="Fichier partagé" data-tip-role="' +
+    esc("Même fichier que : " + twins.join(", ") + ". Il n’est lu qu’une fois ; le recharger met à jour toutes ces sources.") + '">= ' + esc(twins.join(", ")) + "</div>" : badge;
+}
+
+function sourceBadgeMain(s, d) {
   if (!s.fileName) return '<span class="badge off">Aucun fichier</span>';
   if (!d) return '<span class="badge off">Non chargé</span>';
   if (d.status === "perm") return '<button class="btn small" data-act="src-allow" data-sid="' + esc(s.id) + '"' +
@@ -1549,16 +1559,19 @@ async function loadSource(id, ask) {
   await tick();
   try {
     const file = await h.getFile();
-    const sheets = await parseSourceFile(file);
-    srcData[id] = { status: "loaded", sheets };
-    if (id === CAP_ID) {
-      const cap = buildCapIndex(sheets);
-      if (cap.error) srcData[id] = { status: "error", error: cap.error };
-      else srcData[id].cap = cap;
+    // Un fichier source de plusieurs activités n'est lu qu'une fois : on reprend la lecture d'une
+    // source « jumelle » si elle est à jour, sinon on lit le fichier et on met aussi à jour les jumelles.
+    const twins = await sameFileIds(id, h);
+    const fresh = twins.find(o => srcData[o] && srcData[o].sheets && srcRec(state, o).fileDate === file.lastModified);
+    const sheets = fresh ? srcData[fresh].sheets : await parseSourceFile(file);
+    setLoaded(id, h, file, sheets, twins);
+    for (const o of twins) {
+      const od = srcData[o];
+      if (od && od.sheets === sheets) { od.twins = twinsOf(o, id, twins); continue; }
+      const oh = await idbGet("src:" + o).catch(() => null);
+      if (!oh || await oh.queryPermission({ mode: "read" }) !== "granted") continue;
+      setLoaded(o, oh, file, sheets, twinsOf(o, id, twins));
     }
-    s.fileName = h.name;
-    s.fileDate = file.lastModified;
-    s.loadedAt = Date.now();
     cacheState();
   } catch (e) {
     console.error(e);
@@ -1566,6 +1579,33 @@ async function loadSource(id, ask) {
   }
   overlay(null);
   render();
+}
+
+// Autres sources (activités ou capacité) qui désignent le même fichier, même choisi séparément.
+async function sameFileIds(id, h) {
+  const out = [];
+  for (const o of allSourceIds()) {
+    const os = srcRec(state, o);
+    if (o === id || !os || !os.fileName) continue;
+    const oh = await idbGet("src:" + o).catch(() => null);
+    try { if (oh && await oh.isSameEntry(h)) out.push(o); } catch (e) { /* comparaison impossible : fichiers considérés distincts */ }
+  }
+  return out;
+}
+// Jumelles de « o » : la source chargée et les autres jumelles, sauf « o » lui-même.
+function twinsOf(o, id, twins) { return [id].concat(twins).filter(x => x !== o); }
+
+function setLoaded(id, h, file, sheets, twins) {
+  const s = srcRec(state, id);
+  srcData[id] = { status: "loaded", sheets, twins };
+  if (id === CAP_ID) {
+    const cap = buildCapIndex(sheets);
+    if (cap.error) srcData[id] = { status: "error", error: cap.error };
+    else srcData[id].cap = cap;
+  }
+  s.fileName = h.name;
+  s.fileDate = file.lastModified;
+  s.loadedAt = Date.now();
 }
 
 async function pickSource(id) {
