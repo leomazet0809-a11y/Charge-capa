@@ -64,6 +64,7 @@ La fenêtre **Paramètres** (engrenage du ruban ou Ctrl + ,) contient un menu à
 
 - **Classeur projet** : ouvrir, créer, enregistrer sous, sauvegarde automatique toutes les 10 minutes (voir ci-dessus).
 - **Apparence** : thème *Clair*, *Sombre* ou *Comme Windows* (suit le réglage de Windows).
+- **Date d'affectation** : pour chaque activité, le nombre de **jours ouvrés** (lundi à vendredi) entre la date d'affectation par défaut et la date due (2 par défaut). Voir « Date affectation » ci-dessous.
 - **Polices d'écriture** : choix de la police (Inter, Segoe UI, Aptos, Bahnschrift, Calibri, Arial) et de la taille du texte, avec aperçu.
 
 ### 4.2 Fichiers sources
@@ -160,6 +161,15 @@ Premier onglet, à gauche des activités : **un seul graphique** qui additionne 
 - **Ajuster** choisit la plus grande taille qui fait tenir toutes les colonnes dans la largeur de l'écran.
 La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce poste** (pas dans le classeur projet).
 
+### Date affectation
+
+Chaque activité a une colonne **Date affectation** (avant *Temps (h)*) : c'est le **jour où le dossier est planifié**, en général avant sa date due (Début opé pour Prépa OF, Date expédition pour Prépa Expéd).
+- **Par défaut** : date due − *x* jours ouvrés, *x* étant réglé pour chaque activité dans *Paramètres › Général › Date d'affectation* (2 par défaut). Elle s'affiche alors en gris italique et suit la date due si l'export change.
+- **Pour avancer un dossier** (par exemple pour lisser un pic), changez sa date dans la case : elle passe en **bleu gras** et est enregistrée dans le classeur projet (onglet *Dates affectation*). Videz la case (ou remettez la date par défaut) pour revenir au calcul automatique.
+- Une date **postérieure à la date due** s'affiche en **rouge**.
+- Avec des **lignes cochées**, la date saisie sur l'une d'elles est recopiée sur toutes les lignes cochées (une seule action, annulable par Ctrl + Z).
+- La colonne se trie et se filtre comme les autres. La vue **Affectation par capacité** place la charge à la **date d'affectation** (et non à la date due) ; la période du ruban et les autres graphiques restent basés sur la date due.
+
 ### Cases à cocher et affectation en masse
 
 Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Windows : elle apparaît au survol de la ligne, et reste visible dès qu'une ligne est cochée.
@@ -177,6 +187,7 @@ Le bouton **Affectation par capacité** (à gauche du bouton Colonnes) ouvre une
 
 La vue présente **un histogramme empilé par jour**, les jours les uns sous les autres (faites défiler la vue vers le haut ou le bas). Chaque histogramme a **une barre par ressource de l'activité** ce jour-là :
 - les ressources sont les personnes du **fichier de capacité** (colonne *nom_complet*) appartenant aux **groupes / niveaux choisis pour l'activité** (Paramètres › Fichiers sources, colonne « Capacité »), plus toute ressource à qui du temps est affecté ce jour-là ;
+- chaque dossier compte au jour de sa **Date affectation** (voir ci-dessus), et non à sa date due ;
 - **gris clair** : temps **affecté** à la ressource ce jour-là (toutes activités confondues ; le survol précise la part des autres activités) ;
 - **vert** : temps **restant à affecter** = temps disponible sur la journée (*Heure productivité*) – temps déjà affecté ;
 - **rouge vif** : **surcharge**, quand le temps affecté dépasse le temps disponible.
