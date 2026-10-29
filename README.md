@@ -34,7 +34,7 @@ Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activit
 Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargement, une fenêtre indique le fichier, l'étape en cours (lecture, analyse des onglets, calcul des temps) et le temps écoulé.
 
 **Mêmes gestes partout** :
-- **Échap** ferme ce qui est ouvert, dans l'ordre : un menu (filtre, colonnes, liste d'affectation…), une fenêtre (graphique, Paramètres, rappel), puis décoche les lignes cochées, puis ferme la vue *Affectation par capacité* ;
+- **Échap** ferme ce qui est ouvert, dans l'ordre : un menu (filtre, colonnes, liste d'affectation…), une fenêtre (graphique, Paramètres, rappel), puis décoche les lignes cochées, puis ferme la vue *Affectation* ;
 - **Entrée** valide le menu ou la fenêtre ouverte (comme OK / Enregistrer) ;
 - **Ctrl + Z** annule et **Ctrl + Y** rétablit toute action, sauf pendant une saisie dans un champ (le champ garde alors sa propre annulation).
 
@@ -173,7 +173,7 @@ Chaque activité a une colonne **Date affectation** (juste à droite de la colon
 - **Pour avancer un dossier** (par exemple pour lisser un pic), changez sa date dans la case : elle passe en **bleu gras** et est enregistrée dans le classeur projet (onglet *Dates affectation*). Videz la case (ou remettez la date par défaut) pour revenir au calcul automatique.
 - Une date **postérieure à la date due** s'affiche en **rouge**, précédée d'un logo **⚠** (la bulle rappelle les deux dates).
 - Avec des **lignes cochées**, la date saisie sur l'une d'elles est recopiée sur toutes les lignes cochées (une seule action, annulable par Ctrl + Z).
-- La colonne se trie et se filtre comme les autres. La vue **Affectation par capacité** place la charge à la **date d'affectation** (et non à la date due) ; la période du ruban et les autres graphiques restent basés sur la date due.
+- La colonne se trie et se filtre comme les autres. La vue **Affectation** place la charge à la **date d'affectation** (et non à la date due) ; la période du ruban et les autres graphiques restent basés sur la date due.
 
 ### Affectations orphelines
 
@@ -191,9 +191,9 @@ Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Window
 
 Ensuite, **saisissez l'affectation dans la case Affectation de l'une des lignes cochées** (au clavier ou par la liste ▾) : dès la validation, elle est **recopiée sur toutes les lignes cochées**, puis les cases sont décochées. L'opération compte comme une seule action, annulable par Ctrl + Z. Une saisie sur une ligne non cochée ne concerne que cette ligne.
 
-### Affectation par capacité
+### Vue Affectation (bouton du bandeau)
 
-Le bouton **Affectation par capacité** (à gauche du bouton Colonnes) ouvre une vue qui glisse depuis la droite, à côté du tableau. **Faites glisser son bord gauche** pour l'élargir ou la réduire (largeur mémorisée sur ce poste).
+Le bouton **Affectation** du bandeau de l'activité (à gauche du bouton Colonnes) ouvre une vue qui glisse depuis la droite, à côté du tableau. **Faites glisser son bord gauche** pour l'élargir ou la réduire (largeur mémorisée sur ce poste).
 
 La vue présente **un histogramme empilé par jour**, les jours les uns sous les autres (faites défiler la vue vers le haut ou le bas). Chaque histogramme a **une barre par ressource de l'activité** ce jour-là :
 - les affectations affichées sont les noms du **fichier de capacité** (colonne *nom_complet*) appartenant aux **groupes / niveaux choisis pour l'activité** (Paramètres › Fichiers sources, colonne « Capacité »), plus toute ressource à qui du temps est affecté ce jour-là ;

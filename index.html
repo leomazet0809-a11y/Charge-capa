@@ -2462,7 +2462,7 @@ function buildActivityPages() {
           '<button data-q="tout" data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours, filtres de colonnes et filtre posé depuis un graphique)">Tout</button>' +
         "</div>" +
         '<span class="spacer"></span>' +
-        '<button class="btn cap-btn" data-cap="' + act + '" data-tip-name="Affectation par capacité" data-tip-role="Ouvre à droite le graphique par jour de chaque affectation : temps affecté, temps restant à affecter et surcharge">' + ICON_CAP + '<span>Affectation par capacité</span><b class="cap-alert" hidden></b></button>' +
+        '<button class="btn cap-btn" data-cap="' + act + '" data-tip-name="Affectation" data-tip-role="Ouvre à droite le graphique par jour de chaque affectation : temps affecté, temps restant à affecter et surcharge">' + ICON_CAP + '<span>Affectation</span><b class="cap-alert" hidden></b></button>' +
         '<button class="icon-btn cols-btn" data-cols="' + act + '" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau, et leur ordre">' + ICON_COLS + "</button>" +
         '<div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">' +
           '<button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>' +
@@ -2474,10 +2474,10 @@ function buildActivityPages() {
       '<div class="act-split">' +
         '<div class="act-body" id="' + d.page + 'Body"></div>' +
         '<aside class="cap-panel" id="' + d.page + 'Cap" hidden>' +
-          '<div class="cap-resizer" data-tip-name="Largeur de la vue" data-tip-role="Faites glisser pour élargir ou réduire la vue Affectation par capacité"></div>' +
-          '<div class="cap-head"><b>Affectation par capacité</b><span class="cap-sum muted small"></span><span class="spacer" style="flex:1"></span>' +
+          '<div class="cap-resizer" data-tip-name="Largeur de la vue" data-tip-role="Faites glisser pour élargir ou réduire la vue Affectation"></div>' +
+          '<div class="cap-head"><b>Affectation</b><span class="cap-sum muted small"></span><span class="spacer" style="flex:1"></span>' +
             '<label class="check small" data-tip-name="Surcharges seulement" data-tip-role="N’affiche que les affectations dont le temps affecté dépasse le temps disponible"><input type="checkbox" class="cap-only"> Surcharges</label>' +
-            '<button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation par capacité" data-tip-key="Échap">' + ICON_X + "</button></div>" +
+            '<button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation" data-tip-key="Échap">' + ICON_X + "</button></div>" +
           '<div class="cap-legend small"><span><i class="k k-aff"></i>Temps affecté</span><span><i class="k k-rest"></i>Temps restant à affecter</span><span><i class="k k-over"></i>Surcharge</span></div>' +
           '<div class="cap-body"></div>' +
         "</aside>" +
@@ -3271,7 +3271,7 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     e.dataTransfer.setDragImage(ghost, -10, -10);
     hideTip();
     document.body.classList.add("dragging-rows");
-    if (!capOpen[act]) toast("Ouvrez la vue « Affectation par capacité » pour déposer les dossiers sur une affectation et un jour.");
+    if (!capOpen[act]) toast("Ouvrez la vue « Affectation » (bouton du bandeau) pour déposer les dossiers sur une affectation et un jour.");
   });
   body.addEventListener("dragend", () => {
     dragInfo = null;
