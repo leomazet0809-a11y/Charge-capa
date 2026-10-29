@@ -3215,14 +3215,15 @@ function selectRow(act, id, e) {
     const a = ids.indexOf(ui.anchor), b = ids.indexOf(id);
     if (!(e.ctrlKey || e.metaKey)) ui.sel.clear();
     for (let i = Math.min(a, b); i <= Math.max(a, b); i++) ui.sel.add(ids[i]);
+    ui.cursor = id;
   } else if (e.ctrlKey || e.metaKey) {
     if (ui.sel.has(id)) ui.sel.delete(id); else ui.sel.add(id);
-    ui.anchor = id;
+    ui.anchor = ui.cursor = id;
   } else {
     const only = ui.sel.size === 1 && ui.sel.has(id);
     ui.sel.clear();
     if (!only) ui.sel.add(id);
-    ui.anchor = id;
+    ui.anchor = ui.cursor = id;
   }
   paintSelection(act);
 }
@@ -4653,6 +4654,25 @@ document.addEventListener("keydown", e => {
     for (const x of actRows[act] || []) ui.sel.add(x.id);
     getSelection().removeAllRanges();
     paintSelection(act);
+    return;
+  }
+  // Maj + ↑ / ↓ : étend (ou réduit) la sélection d'une ligne, depuis la ligne d'ancrage, comme dans l'Explorateur Windows.
+  if (e.shiftKey && !e.ctrlKey && !e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown") && tableFocusAct &&
+      !e.target.matches(TEXT_FIELDS + ", select") && $("page-" + ACT_DEFS[tableFocusAct].page).classList.contains("active") &&
+      !settingsOpen() && !chartOpen && !fpopKey) {
+    const act = tableFocusAct, ui = actUI[act], ids = (actRows[act] || []).map(x => x.id);
+    if (!ui.sel.size || !ids.length) return;
+    e.preventDefault();
+    if (!ids.includes(ui.anchor)) ui.anchor = ids.find(id => ui.sel.has(id));
+    const from = ids.includes(ui.cursor) ? ui.cursor : ui.anchor;
+    const i = Math.max(0, Math.min(ids.length - 1, ids.indexOf(from) + (e.key === "ArrowDown" ? 1 : -1)));
+    ui.cursor = ids[i];
+    const a = ids.indexOf(ui.anchor);
+    ui.sel.clear();
+    for (let k = Math.min(a, i); k <= Math.max(a, i); k++) ui.sel.add(ids[k]);
+    paintSelection(act);
+    const tr = $(ACT_DEFS[act].page + "Body").querySelector('tbody tr[data-row="' + CSS.escape(ui.cursor) + '"]');
+    if (tr) tr.scrollIntoView({ block: "nearest" });
     return;
   }
   if (e.ctrlKey && !e.shiftKey && k === "s") { e.preventDefault(); save(); }
