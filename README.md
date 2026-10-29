@@ -199,6 +199,7 @@ Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Window
 - la case de l'**en-tête** coche ou décoche toutes les lignes affichées ;
 - un clic sur la ligne elle-même ne coche que cette ligne (Ctrl + clic : ajoute ou retire) ;
 - **Échap** décoche tout.
+- **Copier une cellule** : double-cliquez sur une cellule du tableau : son contenu est surligné, puis **Ctrl + C** (ou clic droit › Copier) le copie. Pour coller, cliquez dans une case **Affectation** ou **Date affectation** puis **Ctrl + V**.
 - Dès qu'un dossier est coché, une pastille **« Sélection : n OF · x h »** s'affiche dans le bandeau de l'activité, à droite de *En cours / Tout* : nombre de dossiers cochés et **somme de leurs Temps (h)**. Cliquez dessus (✕) ou appuyez sur **Échap** pour tout décocher.
 
 Ensuite, **saisissez l'affectation dans la case Affectation de l'une des lignes cochées** (au clavier ou par la liste ▾) : dès la validation, elle est **recopiée sur toutes les lignes cochées**, puis les cases sont décochées. L'opération compte comme une seule action, annulable par Ctrl + Z. Une saisie sur une ligne non cochée ne concerne que cette ligne.

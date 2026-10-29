@@ -3526,7 +3526,8 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
   // La ligne n'est « déplaçable » que si l'on part d'une zone sans champ de saisie.
   body.addEventListener("mousedown", e => {
     const tr = e.target.closest("tbody tr[data-row]");
-    if (tr) tr.draggable = !e.target.closest("input, button, select, a, .res-combo");
+    // Clic droit : la ligne reste non déplaçable pour garder le texte surligné (menu Copier).
+    if (tr && e.button === 0) tr.draggable = !e.target.closest("input, button, select, a, .res-combo");
   });
   body.addEventListener("dragstart", e => {
     const tr = e.target.closest && e.target.closest("tbody tr[data-row]");
@@ -3548,6 +3549,18 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     dragInfo = null;
     document.body.classList.remove("dragging-rows");
     for (const tr of body.querySelectorAll("tr[draggable]")) tr.removeAttribute("draggable");
+  });
+  // Double-clic sur une cellule (hors champ de saisie) : son contenu est surligné, prêt à copier (Ctrl + C ou clic droit).
+  // Les lignes étant déplaçables, le navigateur ne sélectionne pas le texte de lui-même.
+  body.addEventListener("dblclick", e => {
+    const td = e.target.closest("tbody tr[data-row] td");
+    if (!td || e.target.closest("input, button, select, .res-combo") || !td.textContent.trim()) return;
+    td.parentElement.draggable = false; // une ligne déplaçable n'autorise pas la sélection de texte
+    const r = document.createRange();
+    r.selectNodeContents(td);
+    const sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
   });
   // Maj + clic ne doit pas sélectionner le texte de la page.
   body.addEventListener("mousedown", e => {
