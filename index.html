@@ -85,6 +85,8 @@ button, input, select { font: inherit; color: inherit; }
 .range { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 .range-label { color: var(--text-2); font-size: .9em; font-weight: 500; }
 .range-sep { color: var(--text-2); }
+.week-btns { margin-left: 4px; }
+.week-btns button { padding: 3px 10px; font-weight: 600; }
 .range input[type="date"] { padding: 3px 8px; height: 30px; }
 .tools { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
 .tools .group {
@@ -757,6 +759,10 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
     <span class="range-sep">au</span>
     <input type="date" id="prepaTo"
       data-tip-name="Date de fin" data-tip-role="Dernier jour de la période, pour toutes les activités">
+    <div class="segmented week-btns">
+      <button data-week="0" data-tip-name="Semaine en cours" data-tip-role="Période du lundi au vendredi de la semaine en cours (selon la date du jour)">S</button>
+      <button data-week="1" data-tip-name="Semaine prochaine" data-tip-role="Période du lundi au vendredi de la semaine prochaine (selon la date du jour)">S+1</button>
+    </div>
   </div>
   <div class="tools">
     <div class="group">
@@ -2546,6 +2552,13 @@ const prepaUI = {
   get from() { const p = state.settings.period; return p && p.from || localISO(addDays(new Date(), -15)); },
   get to() { const p = state.settings.period; return p && p.to || localISO(addDays(new Date(), 30)); }
 };
+// Semaine ouvrée (lundi → vendredi) en cours (n = 0) ou suivante (n = 1), calculée à partir de la date du jour.
+function weekRange(n) {
+  const t = today0(), mon = new Date(t.getFullYear(), t.getMonth(), t.getDate() - (t.getDay() + 6) % 7 + 7 * n);
+  return { from: localISO(mon), to: localISO(new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 4)) };
+}
+for (const b of document.querySelectorAll(".week-btns button")) b.onclick = () => { const w = weekRange(Number(b.dataset.week)); setPeriod(w.from, w.to); };
+
 function setPeriod(from, to) {
   if (from === prepaUI.from && to === prepaUI.to) return;
   commit(st => { st.settings.period = { from, to }; });
@@ -2840,6 +2853,10 @@ function renderActTable(act) {
   cb.dataset.tipRole = "Choisit les colonnes à afficher ou masquer dans le tableau (" + cols.length + " sur " + allCols.length + " affichées)";
   const body = $(def.page + "Body"), quick = $(def.page + "Quick");
   $("prepaFrom").value = prepaUI.from;
+  for (const b of document.querySelectorAll(".week-btns button")) {
+    const w = weekRange(Number(b.dataset.week));
+    b.classList.toggle("on", prepaUI.from === w.from && prepaUI.to === w.to);
+  }
   $("prepaTo").value = prepaUI.to;
   const res = actList(act);
   if (res.error) {
