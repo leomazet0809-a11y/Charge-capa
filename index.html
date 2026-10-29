@@ -3726,6 +3726,8 @@ function renderChartView(v, acts, single) {
   if (hasCap) h += '<div class="chart-stat"><div class="v">' + fmtH(totC) + ' h</div><div class="l">Capacité (Heure productivité)</div></div>' +
     '<div class="chart-stat"><div class="v">' + (totC ? Math.round(totL / totC * 100) + " %" : "–") + '</div><div class="l">Taux de charge</div></div>';
   h += "</div>";
+  // Charge globale : pas de totaux de période au-dessus du graphique (les valeurs restent au survol).
+  if (!single) h = "";
   for (const n of notices) h += '<p class="muted small" style="margin:4px 0">' + esc(n) + "</p>";
   if (hasCap) h += '<div class="small muted" style="margin:0 0 4px">Capacité : ' + esc(sel.join(" ; ")) + "</div>";
   h += '<div class="chart-legend"><span><span class="k-bar k-done"></span>Charge soldée</span><span><span class="k-bar k-open"></span>Charge en cours</span>' +

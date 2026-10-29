@@ -152,7 +152,7 @@ Il n'y a plus de liste à paramétrer : les affectations proposées dans la colo
 Premier onglet, à gauche des activités : **un seul graphique** qui additionne la charge et la capacité de toutes les activités sur la période du ruban.
 - **Barres empilées** : charge **soldée** en bleu (en bas) et charge **en cours** en noir grisé (au-dessus), toutes activités additionnées ; la hauteur totale est la charge totale du jour ;
 - **Courbe** : capacité des groupes / niveaux choisis pour les activités (un groupe choisi pour deux activités n'est compté qu'une fois) ;
-- en haut : charge totale, dont soldée, dont en cours, charge de chaque activité, capacité totale et taux de charge ;
+- pas de totaux de la période au-dessus du graphique : les valeurs de chaque jour (charge soldée, en cours, par activité, capacité) s'affichent au survol ;
 - boutons **Jour / Semaine / Mois / Année**, axe des dates et survol comme le graphique d'une activité ; le survol détaille la charge de chaque activité ;
 - chaque activité y compte les lignes affichées dans son tableau : ses **filtres** (En cours, filtres de colonnes) s'appliquent aussi ici (rappelé à côté du titre).
 
