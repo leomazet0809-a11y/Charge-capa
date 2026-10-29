@@ -115,7 +115,8 @@ button, input, select { font: inherit; color: inherit; }
 #btnRefresh[data-state="loading"] svg { animation: spin 1s linear infinite; }
 /* Disquette : noire quand tout est enregistré, orange sinon. */
 #btnSave, #btnSave:hover { color: var(--warn); }
-#btnSave[data-state="saved"], #btnSave[data-state="saved"]:hover { color: var(--text); }
+#btnSave[data-state="saved"], #btnSave[data-state="saved"]:hover,
+#btnSave[data-state="none"], #btnSave[data-state="none"]:hover { color: var(--text); }
 #btnSave[data-state="saving"] svg { animation: pulse 0.8s ease-in-out infinite alternate; }
 @keyframes pulse { to { opacity: .35; } }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -301,7 +302,19 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-svg .aff { fill: var(--cap-aff); }
 .cap-svg .rest { fill: var(--cap-rest); }
 .cap-svg .over { fill: var(--cap-over); }
-.cap-svg .hit { fill: transparent; }
+.cap-svg .hit { fill: transparent; cursor: pointer; }
+.orphan-chip { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 0 0 8px; padding: 4px 12px;
+  border-radius: 999px; border: 1px solid color-mix(in srgb, var(--warn) 60%, transparent); background: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  color: var(--warn); font-weight: 600; cursor: pointer; font-family: inherit; font-size: .92em; }
+.orphan-chip:hover { background: color-mix(in srgb, var(--warn) 20%, var(--surface)); }
+.fpop.orph { width: 420px; }
+.fpop.orph .olist { max-height: min(340px, 50vh); overflow: auto; border: 1px solid var(--border); border-radius: 6px; }
+.fpop.orph .orow { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; padding: 5px 8px; border-bottom: 1px solid var(--border); }
+.fpop.orph .orow:last-child { border-bottom: 0; }
+.fpop.orph .orow .w { color: var(--warn); font-weight: 700; }
+.cap-svg .hit.picked { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: var(--accent); stroke-width: 1.5; }
+.cap-filter-chip { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 0 0 8px; padding: 4px 6px 4px 12px;
+  border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
 .cap-svg .hit.drop-on { fill: color-mix(in srgb, var(--accent) 22%, transparent); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .cap-chart.drop-on { outline: 2px dashed var(--accent); outline-offset: -2px; border-radius: 8px; }
 body.dragging-rows .cap-body { background: color-mix(in srgb, var(--accent) 5%, transparent); }
@@ -325,6 +338,7 @@ body.dragging-rows .cap-body { background: color-mix(in srgb, var(--accent) 5%, 
 .act-page .tbl tbody tr.sel td { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
 .act-page .tbl tbody tr { cursor: default; }
 /* Cases à cocher de sélection (comme dans l'Explorateur Windows) : visibles au survol, quand cochées ou dès qu'une ligne est cochée. */
+.act-page .tbl tfoot tr.sel-foot td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); font-weight: 600; }
 .act-page .tbl .sel-cell { width: 2.2em; min-width: 2.2em; padding-left: .5em !important; padding-right: 0 !important; text-align: center; }
 .act-page .tbl .sel-cell input { width: 1.05em; height: 1.05em; margin: 0; cursor: pointer; accent-color: var(--accent); opacity: 0; transition: opacity .12s; }
 .act-page .tbl tr:hover .sel-cell input, .act-page .tbl .sel-cell input:checked, .act-page .tbl .sel-cell input:focus-visible,
@@ -592,7 +606,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 .chart-svg text.wk { font-weight: 600; }
 .chart-svg text.mo { fill: var(--text); font-weight: 600; font-size: 12px; }
 .chart-svg .wkend { fill: var(--surface-2); }
-.chart-svg .bar { fill: var(--series-1); }
+.chart-svg .bar { fill: var(--series-1); stroke: var(--surface); stroke-width: 1; } /* liseré entre les segments empilés */
 .chart-svg .cap { fill: none; stroke: var(--series-2); stroke-width: 2; stroke-linejoin: round; }
 .chart-svg .dot { fill: var(--series-2); stroke: var(--surface); stroke-width: 2; }
 .chart-svg .hit { fill: transparent; }
@@ -768,8 +782,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 
 <nav class="tabs" id="tabs">
   <button class="tab" data-page="global" data-tip-name="Charge globale" data-tip-role="Graphique de la charge (Temps h) et de la capacité cumulées de toutes les activités">Charge globale</button>
-  <button class="tab active" data-page="prepa" data-tip-name="Prépa OF" data-tip-role="Affiche la liste des OF à préparer et leur temps de préparation">Prépa OF</button>
-  <button class="tab" data-page="exped" data-tip-name="Prépa Expéd" data-tip-role="Affiche les commandes à préparer pour l’expédition (une ligne par commande et date d’expédition)">Prépa Expéd</button>
 </nav>
 
 <main>
@@ -789,87 +801,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
     <div class="card" id="globalBody"></div>
   </section>
 
-  <section class="page act-page active" id="page-prepa">
-    <div class="toolbar prepa-head">
-      <button class="icon-btn chart-btn" data-chart="prepa-of" data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de Prépa OF"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg></button>
-      <h1>Prépa OF</h1>
-      <div class="segmented quick-filters" id="prepaQuick">
-        <button data-q="encours"
-          data-tip-name="En cours" data-tip-role="Affiche seulement les OF dont le Statut opé n'est pas « Soldée »">En cours</button>
-        <button data-q="tout"
-          data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
-      </div>
-      <span class="spacer"></span>
-      <button class="btn cap-btn" data-cap="prepa-of" data-tip-name="Affectation par capacité" data-tip-role="Ouvre à droite la vue par jour et par ressource : capacité, charge affectée et capacité restante (alertes de surcharge)"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1"/><line x1="18" y1="9" x2="18" y2="20"/><line x1="22" y1="13" x2="22" y2="20"/></svg><span>Affectation par capacité</span><b class="cap-alert" hidden></b></button>
-      <button class="icon-btn cols-btn" data-cols="prepa-of" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></button>
-      <div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">
-        <button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>
-        <button data-z="0" class="zoom-val" data-tip-name="Taille normale" data-tip-role="Revient à la taille de texte normale (100 %)">100 %</button>
-        <button data-z="1" data-tip-name="Agrandir" data-tip-role="Augmente la taille du texte du tableau">A+</button>
-        <button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>
-      </div>
-    </div>
-    <div class="act-split">
-      <div class="act-body" id="prepaBody"></div>
-      <aside class="cap-panel" id="prepaCap" hidden>
-        <div class="cap-resizer" data-tip-name="Largeur de la vue" data-tip-role="Faites glisser pour élargir ou réduire la vue Affectation par capacité"></div>
-        <div class="cap-head">
-          <b>Affectation par capacité</b>
-          <span class="cap-sum muted small"></span>
-          <span class="spacer" style="flex:1"></span>
-          <label class="check small" data-tip-name="Surcharges seulement" data-tip-role="N’affiche que les ressources dont la charge affectée dépasse la capacité"><input type="checkbox" class="cap-only"> Surcharges</label>
-          <button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation par capacité"><svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-        </div>
-        <div class="cap-legend small">
-          <span><i class="k k-aff"></i>Temps affecté</span>
-          <span><i class="k k-rest"></i>Temps restant à affecter</span>
-          <span><i class="k k-over"></i>Surcharge</span>
-        </div>
-        <div class="cap-body"></div>
-      </aside>
-    </div>
-  </section>
-
-  <section class="page act-page" id="page-exped">
-    <div class="toolbar prepa-head">
-      <button class="icon-btn chart-btn" data-chart="prepa-exped" data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de Prépa Expéd"><svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg></button>
-      <h1>Prépa Expéd</h1>
-      <div class="segmented quick-filters" id="expedQuick">
-        <button data-q="encours"
-          data-tip-name="En cours" data-tip-role="Affiche seulement les commandes-dates qui ne sont pas entièrement soldées">En cours</button>
-        <button data-q="tout"
-          data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours et filtres de colonnes)">Tout</button>
-      </div>
-      <span class="spacer"></span>
-      <button class="btn cap-btn" data-cap="prepa-exped" data-tip-name="Affectation par capacité" data-tip-role="Ouvre à droite la vue par jour et par ressource : capacité, charge affectée et capacité restante (alertes de surcharge)"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1"/><line x1="18" y1="9" x2="18" y2="20"/><line x1="22" y1="13" x2="22" y2="20"/></svg><span>Affectation par capacité</span><b class="cap-alert" hidden></b></button>
-      <button class="icon-btn cols-btn" data-cols="prepa-exped" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></button>
-      <div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">
-        <button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>
-        <button data-z="0" class="zoom-val" data-tip-name="Taille normale" data-tip-role="Revient à la taille de texte normale (100 %)">100 %</button>
-        <button data-z="1" data-tip-name="Agrandir" data-tip-role="Augmente la taille du texte du tableau">A+</button>
-        <button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>
-      </div>
-    </div>
-    <div class="act-split">
-      <div class="act-body" id="expedBody"></div>
-      <aside class="cap-panel" id="expedCap" hidden>
-        <div class="cap-resizer" data-tip-name="Largeur de la vue" data-tip-role="Faites glisser pour élargir ou réduire la vue Affectation par capacité"></div>
-        <div class="cap-head">
-          <b>Affectation par capacité</b>
-          <span class="cap-sum muted small"></span>
-          <span class="spacer" style="flex:1"></span>
-          <label class="check small" data-tip-name="Surcharges seulement" data-tip-role="N’affiche que les ressources dont la charge affectée dépasse la capacité"><input type="checkbox" class="cap-only"> Surcharges</label>
-          <button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation par capacité"><svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-        </div>
-        <div class="cap-legend small">
-          <span><i class="k k-aff"></i>Temps affecté</span>
-          <span><i class="k k-rest"></i>Temps restant à affecter</span>
-          <span><i class="k k-over"></i>Surcharge</span>
-        </div>
-        <div class="cap-body"></div>
-      </aside>
-    </div>
-  </section>
+  <!-- Pages des activités : générées à partir de ACT_DEFS (voir buildActivityPages). -->
 
 </main>
 
@@ -1061,7 +993,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
     <h2 id="remindTitle">Modifications non enregistrées</h2>
     <p id="remindText" class="muted"></p>
     <div class="fbtns">
-      <button class="btn" id="remindLater" data-tip-name="Plus tard" data-tip-role="Ferme ce rappel ; il reviendra après une nouvelle modification">Plus tard</button>
+      <button class="btn" id="remindLater" data-tip-name="Plus tard" data-tip-role="Ferme ce rappel ; il reviendra dans 10 minutes si des modifications restent non enregistrées">Plus tard</button>
       <button class="btn primary" id="remindSave" data-tip-name="Enregistrer" data-tip-role="Enregistre le projet dans son classeur Excel" data-tip-key="Ctrl + S">Enregistrer</button>
     </div>
   </div>
@@ -1102,7 +1034,8 @@ const FONTS = [
   { name: "Calibri", css: 'Calibri, "Segoe UI", sans-serif' },
   { name: "Arial", css: 'Arial, sans-serif' }
 ];
-const ACTIVITIES = [{ id: "prepa-of", name: "Prépa OF" }, { id: "prepa-exped", name: "Prépa Expéd" }];
+// Liste des activités (identifiant, nom) : remplie à partir de ACT_DEFS, la définition unique de chaque activité.
+let ACTIVITIES = [];
 const AFFECTATIONS = ["Forfait", "Ligne", "Quantité", "Calcul"];
 const AFFECT_HELP = {
   Forfait: "Compté 1 seule fois par dossier (OF)",
@@ -1276,6 +1209,17 @@ function cacheState() {
   try { localStorage.setItem("cc.state", JSON.stringify(state)); } catch (e) { /* stockage indisponible */ }
 }
 
+// Disquette orange seulement si les données diffèrent de la dernière version enregistrée (ou ouverte) :
+// revenir par Ctrl + Z à l'état enregistré la remet en noir. Les dates de lecture des fichiers sources ne comptent pas.
+let savedSnapshot = null;
+const dataKey = st => JSON.stringify(st, (k, v) => k === "loadedAt" || k === "fileDate" ? undefined : v);
+function markSaved(snap) { savedSnapshot = snap == null ? dataKey(state) : snap; lastSaveTime = Date.now(); firstUnsavedTime = null; }
+function refreshSaveState() {
+  if (saveState === "saving") return;
+  if (savedSnapshot != null && dataKey(state) === savedSnapshot) setSaveState(projectHandle ? "saved" : "none");
+  else { if (!firstUnsavedTime) firstUnsavedTime = Date.now(); setSaveState("dirty"); }
+}
+
 // Toute modification passe par commit() pour pouvoir être annulée.
 function commit(mutator) {
   undoStack.push(JSON.stringify(state));
@@ -1283,14 +1227,14 @@ function commit(mutator) {
   redoStack = [];
   mutator(state);
   cacheState();
-  setSaveState("dirty");
+  refreshSaveState();
   render();
 }
 
 // Les filtres du tableau s'annulent aussi, sans toucher au projet (ils ne sont pas enregistrés).
 function filtersSnapshot(act) {
   const ui = actUI[act];
-  return { act, filters: Object.fromEntries(Object.entries(ui.filters).map(([k, v]) => [k, [...v]])), enCours: ui.enCours };
+  return { act, filters: Object.fromEntries(Object.entries(ui.filters).map(([k, v]) => [k, [...v]])), enCours: ui.enCours, cap: ui.capFilter || null };
 }
 function sameFilters(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
 function changeFilters(act, mutator) {
@@ -1308,11 +1252,21 @@ function changeFilters(act, mutator) {
 function stepHistory(from, to, undoing) {
   if (!from.length) return;
   const last = from.pop();
+  if (typeof last === "object" && last.pref) {
+    // Préférence d'affichage de ce poste (colonnes, taille du tableau) : on échange l'état avant / après.
+    to.push({ pref: last.pref, value: last.pref.get() });
+    last.pref.set(last.value);
+    closeFilter();
+    render();
+    toast(undoing ? "Affichage annulé" : "Affichage rétabli");
+    return;
+  }
   if (typeof last === "object") {
     const ui = actUI[last.filters.act];
     to.push({ filters: filtersSnapshot(last.filters.act) });
     ui.filters = Object.fromEntries(Object.entries(last.filters.filters).map(([k, v]) => [k, new Set(v)]));
     ui.enCours = last.filters.enCours;
+    ui.capFilter = last.filters.cap || null;
     closeFilter();
     render();
     toast(undoing ? "Filtre annulé" : "Filtre rétabli");
@@ -1321,7 +1275,7 @@ function stepHistory(from, to, undoing) {
   to.push(JSON.stringify(state));
   state = JSON.parse(last);
   cacheState();
-  setSaveState("dirty");
+  refreshSaveState();
   render();
   toast(undoing ? "Action annulée" : "Action rétablie");
 }
@@ -2351,6 +2305,8 @@ function joinDistinct(rows, i) {
 const ACT_DEFS = {
   "prepa-of": {
     page: "prepa", name: "Prépa OF", unit: "OF", dateKey: "debut", dateLabel: "Début opé",
+    tabRole: "Affiche la liste des OF à préparer et leur temps de préparation",
+    enCoursRole: "Affiche seulement les OF dont le Statut opé n'est pas « Soldée »",
     isDone: x => stripAccents(x.statutOpe) === "soldee",
     sheets: { OF: ["OF", "Commande liée", "Article PF", "Lot PF", "Qté PF", "Statut allocation", "Palette", "Statut opé",
       "Début opé", "Type", "Fiche suiveuse", "Bon de sortie matière", "Manquants"],
@@ -2423,6 +2379,8 @@ const ACT_DEFS = {
 
   "prepa-exped": {
     page: "exped", name: "Prépa Expéd", unit: "commande(s)", dateKey: "dateExp", dateLabel: "Date expédition",
+    tabRole: "Affiche les commandes à préparer pour l’expédition (une ligne par commande et date d’expédition)",
+    enCoursRole: "Affiche seulement les commandes-dates qui ne sont pas entièrement soldées",
     isDone: x => x.soldee === "Oui",
     sheets: { "Commandes ventes": ["Commande", "Référence commande", "Client", "Gestionnaire", "Mode livraison", "Instruction livraison",
       "Type", "RFF", "Validée", "Article", "Qté commandée US", "Date expédition", "Soldée", "Manquants",
@@ -2494,6 +2452,52 @@ const ACT_DEFS = {
 };
 
 // Colonnes communes ajoutées à droite de chaque activité.
+ACTIVITIES = Object.entries(ACT_DEFS).map(([id, d]) => ({ id, name: d.name }));
+
+// Onglet et page de chaque activité, générés à partir de sa définition : ajouter une activité dans ACT_DEFS suffit.
+function buildActivityPages() {
+  const ICON_CHART = '<svg class="i" viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="9" rx="1"/><rect x="11" y="7" width="3" height="13" rx="1"/><rect x="16" y="13" width="3" height="7" rx="1"/><polyline points="4 9 9 6 14 8 20 3"/></svg>';
+  const ICON_CAP = '<svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1"/><line x1="18" y1="9" x2="18" y2="20"/><line x1="22" y1="13" x2="22" y2="20"/></svg>';
+  const ICON_COLS = '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>';
+  const ICON_X = '<svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  const tabs = $("tabs"), main = document.querySelector("main");
+  Object.entries(ACT_DEFS).forEach(([act, d], i) => {
+    const first = i === 0; // la première activité est affichée à l'ouverture
+    tabs.insertAdjacentHTML("beforeend", '<button class="tab' + (first ? " active" : "") + '" data-page="' + d.page + '" data-tip-name="' + esc(d.name) + '" data-tip-role="' + esc(d.tabRole) + '">' + esc(d.name) + "</button>");
+    main.insertAdjacentHTML("beforeend",
+      '<section class="page act-page' + (first ? " active" : "") + '" id="page-' + d.page + '">' +
+      '<div class="toolbar prepa-head">' +
+        '<button class="icon-btn chart-btn" data-chart="' + act + '" data-tip-name="Graphique charge / capacité" data-tip-role="Compare chaque jour la charge (Temps h) et la capacité (Heure productivité) de ' + esc(d.name) + '">' + ICON_CHART + "</button>" +
+        "<h1>" + esc(d.name) + "</h1>" +
+        '<div class="segmented quick-filters" id="' + d.page + 'Quick">' +
+          '<button data-q="encours" data-tip-name="En cours" data-tip-role="' + esc(d.enCoursRole) + '">En cours</button>' +
+          '<button data-q="tout" data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours, filtres de colonnes et filtre posé depuis un graphique)">Tout</button>' +
+        "</div>" +
+        '<span class="spacer"></span>' +
+        '<button class="btn cap-btn" data-cap="' + act + '" data-tip-name="Affectation" data-tip-role="Ouvre à droite le graphique par jour de chaque affectation : temps affecté, temps restant à affecter et surcharge">' + ICON_CAP + '<span>Affectation</span><b class="cap-alert" hidden></b></button>' +
+        '<button class="icon-btn cols-btn" data-cols="' + act + '" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau, et leur ordre">' + ICON_COLS + "</button>" +
+        '<div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">' +
+          '<button data-z="-1" data-tip-name="Réduire" data-tip-role="Réduit la taille du texte du tableau pour en voir davantage">A−</button>' +
+          '<button data-z="0" class="zoom-val" data-tip-name="Taille normale" data-tip-role="Revient à la taille de texte normale (100 %)">100 %</button>' +
+          '<button data-z="1" data-tip-name="Agrandir" data-tip-role="Augmente la taille du texte du tableau">A+</button>' +
+          '<button data-z="fit" data-tip-name="Ajuster à l’écran" data-tip-role="Choisit la taille de texte qui fait tenir toutes les colonnes dans la largeur de l’écran">Ajuster</button>' +
+        "</div>" +
+      "</div>" +
+      '<div class="act-split">' +
+        '<div class="act-body" id="' + d.page + 'Body"></div>' +
+        '<aside class="cap-panel" id="' + d.page + 'Cap" hidden>' +
+          '<div class="cap-resizer" data-tip-name="Largeur de la vue" data-tip-role="Faites glisser pour élargir ou réduire la vue Affectation"></div>' +
+          '<div class="cap-head"><b>Affectation</b><span class="cap-sum muted small"></span><span class="spacer" style="flex:1"></span>' +
+            '<label class="check small" data-tip-name="Surcharges seulement" data-tip-role="N’affiche que les affectations dont le temps affecté dépasse le temps disponible"><input type="checkbox" class="cap-only"> Surcharges</label>' +
+            '<button class="icon-btn cap-close" data-tip-name="Fermer" data-tip-role="Ferme la vue Affectation" data-tip-key="Échap">' + ICON_X + "</button></div>" +
+          '<div class="cap-legend small"><span><i class="k k-aff"></i>Temps affecté</span><span><i class="k k-rest"></i>Temps restant à affecter</span><span><i class="k k-over"></i>Surcharge</span></div>' +
+          '<div class="cap-body"></div>' +
+        "</aside>" +
+      "</div></section>");
+  });
+}
+buildActivityPages();
+
 function actColumns(act) {
   const cols = ACT_DEFS[act].columns.concat([
     { k: "heures", t: "Temps (h)", num: true, heures: true },
@@ -2588,7 +2592,12 @@ function renderActTable(act) {
   const assigned = state.assign[act] || {};
   for (const x of res.list) { x.ressource = assignLabel(assigned[x.id]); x.dateAff = affDate(act, x); }
   const dk = def.dateKey;
-  const inPeriod = res.list.filter(x => x[dk] && (!from || x[dk] >= from) && (!to || x[dk] <= to));
+  // Filtre posé depuis la vue Affectation par capacité : dossiers de cette personne à ce jour d'affectation
+  // (même si leur date due est hors de la période).
+  const cf = ui.capFilter;
+  const inPeriod = cf
+    ? res.list.filter(x => x.ressource && personKey(x.ressource) === personKey(cf.name) && x.dateAff && localISO(x.dateAff) === cf.iso)
+    : res.list.filter(x => x[dk] && (!from || x[dk] >= from) && (!to || x[dk] <= to));
   const inRange = ui.enCours ? inPeriod.filter(x => !def.isDone(x)) : inPeriod;
   actInRange[act] = inRange;
   const rows = applyColumnFilters(act, inRange);
@@ -2596,7 +2605,7 @@ function renderActTable(act) {
   // La sélection ne garde que les lignes encore affichées.
   const shown = new Set(rows.map(x => x.id));
   for (const id of ui.sel) if (!shown.has(id)) ui.sel.delete(id);
-  const nFilters = Object.keys(ui.filters).length + (ui.enCours ? 1 : 0);
+  const nFilters = Object.keys(ui.filters).length + (ui.enCours ? 1 : 0) + (cf ? 1 : 0);
   for (const b of quick.children) b.classList.toggle("on", b.dataset.q === "encours" ? ui.enCours : !nFilters);
   const col = allCols.find(c => c.k === ui.sort) || allCols.find(c => c.k === dk);
   rows.sort((a, b) => {
@@ -2610,6 +2619,14 @@ function renderActTable(act) {
 
   const totalH = rows.reduce((a, x) => a + (x.heures || 0), 0);
   let h = res.warning ? '<div class="card muted">' + esc(res.warning) + "</div>" : "";
+  // Affectations orphelines : affectation ou date saisie pour un dossier absent du fichier source actuel.
+  const orphans = orphanIds(act, res.list);
+  if (orphans.length) h += '<button class="orphan-chip" data-orphans data-tip-name="Affectations orphelines" data-tip-role="' +
+    esc(orphans.length + " dossier(s) ont une affectation ou une date d’affectation enregistrée dans le projet mais ne figurent plus dans le fichier source (dossier soldé, supprimé, ou commande dont la date d’expédition a changé). Cliquez pour les voir et les supprimer") +
+    '">⚠ ' + fmtInt(orphans.length) + " affectation" + (orphans.length > 1 ? "s" : "") + " orpheline" + (orphans.length > 1 ? "s" : "") + "</button>";
+  if (cf) h += '<div class="cap-filter-chip">Dossiers affectés à <b>' + esc(cf.name) + "</b> le <b>" +
+    esc(new Date(cf.iso + "T00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit" })) + "</b>" +
+    '<button class="mini" data-capfilter-off data-tip-name="Retirer ce filtre" data-tip-role="Affiche à nouveau tous les dossiers de la période (ou recliquez sur la barre dans le graphique)" data-tip-key="Ctrl + Z">✕</button></div>';
   const nSel = rows.filter(x => ui.sel.has(x.id)).length;
   h += '<div class="card prepa-card"><div class="tbl-wrap tall"><table class="tbl' + (nSel ? " has-sel" : "") + '"><thead><tr>' +
     '<th class="sel-cell"><input type="checkbox" class="all-chk"' + (rows.length && nSel === rows.length ? " checked" : "") + (rows.length ? "" : " disabled") +
@@ -2639,31 +2656,106 @@ function renderActTable(act) {
     h += "</tr>";
   }
   if (!rows.length) h += '<tr><td colspan="' + (cols.length + 1) + '" class="muted">' +
-    (inPeriod.length ? "Aucune ligne ne correspond aux filtres." : "Aucune ligne dont la " + def.dateLabel + " est dans cette plage.") + "</td></tr>";
+    (inPeriod.length ? "Aucune ligne ne correspond aux filtres." : cf ? "Aucun dossier pour cette affectation ce jour-là." : "Aucune ligne dont la " + def.dateLabel + " est dans cette plage.") + "</td></tr>";
   h += "</tbody>";
   if (rows.length) {
     const nAff = rows.filter(x => x.ressource).length;
     // Le libellé du total occupe les colonnes de gauche ; Temps (h) et Affectation gardent leur total s'ils sont affichés.
     // Les colonnes voisines sans total sont fusionnées ; la première porte le libellé du total.
-    const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")" +
-      (nSel ? " · " + fmtInt(nSel) + " cochée" + (nSel > 1 ? "s" : "") : "");
-    let labelled = false, span = 0;
-    const flush = () => {
-      if (!span) return;
-      h += '<td colspan="' + span + '">' + (labelled ? "" : label) + "</td>";
-      labelled = true; span = 0;
-    };
-    h += '<tfoot><tr><td class="sel-cell"></td>';
-    for (const c of cols) {
-      if (c.heures) { flush(); h += '<td class="num"' + (labelled ? "" : ' data-tip-name="Total" data-tip-role="' + esc(label) + '"') + ">" + fmtHours(totalH * 3600) + "</td>"; }
-      else if (c.k === "ressource") { flush(); h += '<td class="res-cell col-res muted">' + fmtInt(nAff) + " / " + fmtInt(rows.length) + " affectés</td>"; }
-      else span++;
-    }
-    flush();
-    h += "</tr></tfoot>";
+    const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")";
+    ui.footCols = cols;
+    h += "<tfoot>" + footRowHtml(cols, label, totalH, nAff, rows.length, "") + selFootHtml(act) + "</tfoot>";
   }
+  // Le tableau garde sa position de défilement quand il est reconstruit (affectation, glisser-déposer, filtre…).
+  const oldWrap = body.querySelector(".tbl-wrap");
+  const scroll = oldWrap ? [oldWrap.scrollLeft, oldWrap.scrollTop] : null;
   body.innerHTML = h + "</table></div></div>";
+  const wrap = body.querySelector(".tbl-wrap");
+  if (scroll && wrap) { wrap.scrollLeft = scroll[0]; wrap.scrollTop = scroll[1]; }
   renderCapPanel(act);
+}
+
+/* ---------- Affectations orphelines ---------- */
+// Dossiers ayant une affectation ou une date d'affectation dans le projet, absents des données chargées.
+function orphanIds(act, list) {
+  const ids = new Set(list.map(x => x.id));
+  const keys = new Set(Object.keys(state.assign[act] || {}).concat(Object.keys(state.planned[act] || {})));
+  return [...keys].filter(k => !ids.has(k)).sort((a, b) => a.localeCompare(b, "fr", { numeric: true }));
+}
+function openOrphans(act, anchor) {
+  if (fpopKey === act + ":orph") return closeFilter();
+  const res = actList(act);
+  if (res.error) return;
+  const ids = orphanIds(act, res.list);
+  const present = new Map();
+  for (const x of res.list) { const base = x.id.split("|")[0]; if (!present.has(base)) present.set(base, []); present.get(base).push(x); }
+  const label = id => {
+    const [base, iso] = id.split("|");
+    return esc(base) + (iso ? " · " + fmtDate(new Date(iso + "T00:00")) : "");
+  };
+  const note = id => {
+    const base = id.split("|")[0], other = id.includes("|") && present.get(base);
+    return other ? " — la commande existe à une autre date (" + other.map(x => fmtDate(x[ACT_DEFS[act].dateKey])).join(", ") + ")" : "";
+  };
+  closeFilter();
+  fpopKey = act + ":orph";
+  hideTip();
+  const pop = $("fpop");
+  pop.classList.add("orph");
+  pop.innerHTML = '<div class="fhead">⚠ Affectations orphelines (' + ids.length + ")</div>" +
+    '<p class="muted small" style="margin:0 10px 8px">Ces dossiers ont une affectation ou une date d’affectation enregistrée, mais ne figurent plus dans le fichier source chargé.</p>' +
+    '<div class="olist">' + ids.map(id => {
+      const a = assignLabel((state.assign[act] || {})[id]), d = (state.planned[act] || {})[id];
+      return '<div class="orow"><span class="w">⚠</span><span><b>' + label(id) + "</b><br><span class=\"muted small\">" +
+        esc((a ? "Affectation : " + a : "Sans affectation") + (d ? " · date d’affectation " + fmtDate(new Date(d + "T00:00")) : "") + note(id)) + "</span></span>" +
+        '<button class="mini danger" data-odel="' + esc(id) + '" data-tip-name="Supprimer" data-tip-role="Supprime l’affectation et la date d’affectation enregistrées pour ce dossier">' + ICON.trash + "</button></div>";
+    }).join("") + "</div>" +
+    '<div class="fbtns"><button class="btn" data-fa="cancel" data-tip-name="Fermer" data-tip-role="Ferme la liste sans rien changer" data-tip-key="Échap">Fermer</button>' +
+    '<button class="btn primary" data-fa="ok" data-tip-name="Tout supprimer" data-tip-role="Supprime les affectations et dates de tous ces dossiers (annulable par Ctrl + Z)" data-tip-key="Entrée">Tout supprimer</button></div>';
+  const drop = list => commit(st => { for (const id of list) { if (st.assign[act]) delete st.assign[act][id]; if (st.planned[act]) delete st.planned[act][id]; } });
+  pop.onclick = e => {
+    const del = e.target.closest("[data-odel]");
+    if (del) { drop([del.dataset.odel]); toast("Affectation orpheline supprimée"); if (orphanIds(act, res.list).length) openOrphansAgain(); else closeFilter(); return; }
+    const b = e.target.closest("[data-fa]");
+    if (!b) return;
+    if (b.dataset.fa === "ok") { drop(ids); toast(ids.length + " affectation(s) orpheline(s) supprimée(s)"); }
+    closeFilter();
+  };
+  function openOrphansAgain() {
+    closeFilter();
+    const chip = $(ACT_DEFS[act].page + "Body").querySelector("[data-orphans]");
+    if (chip) openOrphans(act, chip);
+  }
+  pop.classList.add("show");
+  const r = anchor.getBoundingClientRect();
+  pop.style.left = Math.max(8, Math.min(r.left, innerWidth - pop.offsetWidth - 8)) + "px";
+  pop.style.top = (r.bottom + 6) + "px";
+}
+
+// Ligne de pied du tableau : le libellé occupe les colonnes de gauche ; Temps (h) et Affectation gardent leur total
+// s'ils sont affichés. Les colonnes voisines sans total sont fusionnées ; la première porte le libellé.
+function footRowHtml(cols, label, hours, nAff, n, cls) {
+  let h = "<tr" + (cls ? ' class="' + cls + '"' : "") + '><td class="sel-cell"></td>', labelled = false, span = 0;
+  const flush = () => {
+    if (!span) return;
+    h += '<td colspan="' + span + '">' + (labelled ? "" : esc(label)) + "</td>";
+    labelled = true; span = 0;
+  };
+  for (const c of cols) {
+    if (c.heures) { flush(); h += '<td class="num"' + (labelled ? "" : ' data-tip-name="' + esc(label) + '" data-tip-role="Somme des Temps (h)"') + ">" + fmtHours(hours * 3600) + "</td>"; }
+    else if (c.k === "ressource") { flush(); h += '<td class="res-cell col-res muted">' + fmtInt(nAff) + " / " + fmtInt(n) + " affectés</td>"; }
+    else span++;
+  }
+  flush();
+  return h + "</tr>";
+}
+// Ligne « Sélection » du pied de tableau : nombre et somme des Temps (h) des dossiers sélectionnés (dès 2 dossiers).
+function selFootHtml(act) {
+  const ui = actUI[act], cols = ui.footCols;
+  const rows = (actRows[act] || []).filter(x => ui.sel.has(x.id));
+  if (!cols || rows.length < 2) return "";
+  const hours = rows.reduce((a, x) => a + (x.heures || 0), 0);
+  return footRowHtml(cols, "Sélection (" + fmtInt(rows.length) + " " + ACT_DEFS[act].unit + ")", hours, rows.filter(x => x.ressource).length, rows.length, "sel-foot");
 }
 
 $("prepaFrom").onchange = e => { prepaUI.from = e.target.value; renderPrepa(); };
@@ -2671,7 +2763,7 @@ $("prepaTo").onchange = e => { prepaUI.to = e.target.value; renderPrepa(); };
 
 // Texte affiché d'une affectation : nom de la ressource de la liste, ou texte libre saisi.
 function assignLabel(v) { return v ? resourceName(v) || v : ""; }
-// Valeur enregistrée pour un texte saisi : l'id de la ressource du même nom, sinon le texte lui-même.
+// Valeur enregistrée pour un texte saisi : le nom exact du fichier de capacité s'il correspond, sinon le texte lui-même.
 function assignValue(text) {
   const t = text.trim();
   // Un nom du fichier de capacité reprend son écriture exacte (majuscules et accents ignorés à la saisie).
@@ -2683,8 +2775,8 @@ function assignValue(text) {
 function resourceInput(act, id, current) {
   return '<div class="res-combo"><input type="text" class="res-in" autocomplete="off" spellcheck="false" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
     ' value="' + esc(assignLabel(current)) + '" placeholder="—"' +
-    '  data-tip-name="Affectation" data-tip-role="Cliquez dans la case : la liste des personnes du fichier de capacité s’ouvre et se filtre au fil de la saisie ; un début de nom est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">' +
-    '<button class="res-dd" tabindex="-1" data-id="' + esc(id) + '" data-tip-name="Liste des personnes" data-tip-role="Ouvre ou ferme la liste déroulante des personnes du fichier de capacité" data-tip-key="Alt + ↓">' + ICON.down + "</button></div>";
+    '  data-tip-name="Affectation" data-tip-role="Cliquez dans la case : la liste des affectations (fichier de capacité) s’ouvre et se filtre au fil de la saisie ; un début de nom est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">' +
+    '<button class="res-dd" tabindex="-1" data-id="' + esc(id) + '" data-tip-name="Liste des affectations" data-tip-role="Ouvre ou ferme la liste déroulante des affectations (fichier de capacité)" data-tip-key="Alt + ↓">' + ICON.down + "</button></div>";
 }
 
 // Liste déroulante d'une case Affectation : ressources de la liste, puis autres textes déjà saisis dans la colonne.
@@ -2709,9 +2801,9 @@ function openAssignMenu(act, btn, refresh) {
   pop.classList.add("dd");
   pop.innerHTML = '<div class="fhead">Affectation</div><div class="ddlist">' +
     item("", "— Aucune affectation", "Retire l’affectation de cette ligne") +
-    (shownNames.length ? "<hr>" + shownNames.map(n => item(n, n, "Affecte cette ligne à cette personne (fichier de capacité)")).join("")
-      : names.length ? '<div class="muted small dd-note">Aucune personne ne commence par « ' + esc(typed.trim()) + " ».</div>"
-      : '<div class="muted small dd-note">Aucune personne : chargez le fichier de capacité (colonne nom_complet) dans Paramètres › Fichiers sources.</div>') +
+    (shownNames.length ? "<hr>" + shownNames.map(n => item(n, n, "Choisit cette affectation pour la ligne (fichier de capacité)")).join("")
+      : names.length ? '<div class="muted small dd-note">Aucune affectation ne commence par « ' + esc(typed.trim()) + " ».</div>"
+      : '<div class="muted small dd-note">Aucune affectation proposée : chargez le fichier de capacité (colonne nom_complet) dans Paramètres › Fichiers sources.</div>') +
     (shownOthers.length ? '<hr><div class="muted small dd-note">Autres saisies de la colonne</div>' +
       shownOthers.map(n => item(n, n, "Reprend ce texte déjà saisi dans la colonne")).join("") : "") +
     "</div>";
@@ -2835,8 +2927,12 @@ function paintSelection(act) {
   const tbl = body.querySelector("table.tbl"), all = body.querySelector(".all-chk");
   if (tbl) tbl.classList.toggle("has-sel", n > 0);
   if (all) { all.checked = total > 0 && n === total; all.indeterminate = n > 0 && n < total; }
-  const foot = body.querySelector("tfoot td[colspan]");
-  if (foot) foot.textContent = foot.textContent.replace(/ · \d[\d\s ]* cochées?$/, "") + (n ? " · " + fmtInt(n) + " cochée" + (n > 1 ? "s" : "") : "");
+  const tfoot = body.querySelector("tfoot");
+  if (tfoot) {
+    const old = tfoot.querySelector(".sel-foot");
+    if (old) old.remove();
+    tfoot.insertAdjacentHTML("beforeend", selFootHtml(act));
+  }
 }
 function clearSelection(act) {
   const ui = actUI[act];
@@ -2958,7 +3054,7 @@ function capDaySvg(rows, max, width) {
         "H" + (x0 + bw - r) + "Q" + (x0 + bw) + "," + yt + " " + (x0 + bw) + "," + (yt + r) + "V" + yb + 'Z"/>';
       base += v;
     });
-    g += '<rect class="hit" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
+    g += '<rect class="hit' + (r.picked ? " picked" : "") + '" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
     const label = r.name.length > 20 ? r.name.slice(0, 19) + "…" : r.name;
     g += rot
       ? '<text class="who' + (r.over ? " over" : "") + '" text-anchor="end" transform="translate(' + (xc + 4) + "," + (M.t + ih + 12) + ') rotate(-35)">' + esc(label) + "</text>"
@@ -2978,7 +3074,7 @@ function renderCapPanel(act) {
   const alert = btn.querySelector(".cap-alert");
   alert.hidden = !(m.over > 0);
   alert.textContent = m.over || "";
-  btn.dataset.tipRole = "Ouvre à droite le graphique par jour de chaque ressource : temps affecté, temps restant à affecter et surcharge" +
+  btn.dataset.tipRole = "Ouvre à droite le graphique par jour de chaque affectation : temps affecté, temps restant à affecter et surcharge" +
     (m.over ? " — " + m.over + " surcharge(s) sur la période" : "");
   if (!open) return;
   const body = panel.querySelector(".cap-body");
@@ -2990,8 +3086,8 @@ function renderCapPanel(act) {
   sum.classList.toggle("over", m.over > 0);
   const notes = [];
   if (!m.capD) notes.push("Aucun fichier de capacité chargé : seul le temps affecté est affiché (Paramètres › Fichiers sources).");
-  else if (!m.withNames) notes.push("Le fichier de capacité n’a pas de colonne nom_complet : temps disponible par ressource inconnu.");
-  else if (!m.selCount) notes.push("Aucun groupe / niveau de capacité choisi pour " + def.name + " : toutes les personnes du fichier de capacité sont affichées (Fichiers sources, colonne « Capacité »).");
+  else if (!m.withNames) notes.push("Le fichier de capacité n’a pas de colonne nom_complet : temps disponible par affectation inconnu.");
+  else if (!m.selCount) notes.push("Aucun groupe / niveau de capacité choisi pour " + def.name + " : toutes les affectations du fichier de capacité sont affichées (Fichiers sources, colonne « Capacité »).");
   let h = notes.map(n => '<p class="muted small">' + esc(n) + "</p>").join("");
   const width = Math.max(240, body.clientWidth - 8);
   const shownDays = [];
@@ -2999,16 +3095,18 @@ function renderCapPanel(act) {
     const rows = onlyOver ? day.rows.filter(r => r.over) : day.rows;
     if (onlyOver && !rows.length) continue;
     shownDays.push({ day, rows });
+    const cfp = actUI[act].capFilter;
+    if (cfp && cfp.iso === day.iso) rows.forEach(r => { r.picked = personKey(r.name) === personKey(cfp.name); });
     const nOver = rows.filter(r => r.over).length;
     h += '<section class="cap-chart" data-d="' + (shownDays.length - 1) + '">' +
       '<div class="cap-day">' + esc(cap1(day.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit" }))) +
       ' <span class="muted small">S' + isoWeek(day.d).week +
       (day.unassigned ? " · non affecté : " + fmtH(day.unassigned) + " h" : "") + "</span>" +
       (nOver ? ' <span class="cap-warn small">⚠ ' + nOver + " surcharge" + (nOver > 1 ? "s" : "") + "</span>" : "") + "</div>" +
-      (rows.length ? '<div class="cap-scroll">' + capDaySvg(rows, m.max, width) + "</div>" : '<div class="muted small">Aucune ressource ce jour-là.</div>') +
+      (rows.length ? '<div class="cap-scroll">' + capDaySvg(rows, m.max, width) + "</div>" : '<div class="muted small">Aucune affectation ce jour-là.</div>') +
       "</section>";
   }
-  if (!shownDays.length) h += '<p class="muted cap-empty">' + (onlyOver ? "Aucune surcharge sur la période." : "Aucune ressource ni temps affecté sur la période.") + "</p>";
+  if (!shownDays.length) h += '<p class="muted cap-empty">' + (onlyOver ? "Aucune surcharge sur la période." : "Aucune affectation ni temps affecté sur la période.") + "</p>";
   body.innerHTML = h + '<div class="chart-tip cap-tip"></div>';
   panel.capShown = shownDays;
   body.scrollTop = scroll;
@@ -3069,16 +3167,27 @@ function dropOnCapacity(act, ids, day, name) {
 for (const act of Object.keys(ACT_DEFS)) {
   const def = ACT_DEFS[act], panel = $(def.page + "Cap");
   const capBody = panel.querySelector(".cap-body");
+  // Clic sur la barre d'une personne : filtre le tableau sur ses dossiers de ce jour ; nouveau clic : retire le filtre.
+  capBody.addEventListener("click", e => {
+    const t = capDropTarget(panel, e);
+    if (!t || !t.row) return;
+    const ui = actUI[act], cur = ui.capFilter;
+    const same = cur && cur.iso === t.day.iso && personKey(cur.name) === personKey(t.row.name);
+    changeFilters(act, () => { ui.capFilter = same ? null : { name: t.row.name, iso: t.day.iso }; });
+    hideTip();
+    renderPrepa();
+  });
   capBody.addEventListener("dragover", e => {
     if (!dragInfo || dragInfo.act !== act) return;
+    // Dépôt uniquement sur un couple (personne, jour) : la barre d'une personne dans le graphique d'un jour.
     const t = capDropTarget(panel, e);
     clearDropMarks(panel);
-    if (!t) return;
+    if (!t || !t.row) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    (t.bar || t.sec).classList.add("drop-on");
+    t.bar.classList.add("drop-on");
     const hint = $("dropHint");
-    hint.textContent = (t.row ? "Affecter à « " + t.row.name + " » le " : "Planifier le ") + t.day.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" });
+    hint.textContent = "Affecter à « " + t.row.name + " » le " + t.day.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" });
     hint.style.left = (e.clientX + 14) + "px";
     hint.style.top = (e.clientY + 14) + "px";
     hint.classList.add("show");
@@ -3088,12 +3197,12 @@ for (const act of Object.keys(ACT_DEFS)) {
     if (!dragInfo || dragInfo.act !== act) return;
     const t = capDropTarget(panel, e);
     clearDropMarks(panel);
-    if (!t) return;
+    if (!t || !t.row) return;
     e.preventDefault();
     const ids = dragInfo.ids;
     dragInfo = null;
     document.body.classList.remove("dragging-rows");
-    dropOnCapacity(act, ids, t.day, t.row ? t.row.name : "");
+    dropOnCapacity(act, ids, t.day, t.row.name);
   });
   const toggle = open => {
     if (open) capOpen[act] = true; else delete capOpen[act];
@@ -3132,6 +3241,9 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
   body.addEventListener("click", e => {
     const dd = e.target.closest(".res-dd");
     if (dd) { e.stopPropagation(); openAssignMenu(act, dd); return; }
+    const oc = e.target.closest("[data-orphans]");
+    if (oc) { e.stopPropagation(); openOrphans(act, oc); return; }
+    if (e.target.closest("[data-capfilter-off]")) { changeFilters(act, () => { ui.capFilter = null; }); renderPrepa(); return; }
     const fb = e.target.closest("[data-filter]");
     if (fb) { e.stopPropagation(); openFilter(act, fb.dataset.filter, fb); return; }
     const all = e.target.closest(".all-chk");
@@ -3171,7 +3283,7 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     e.dataTransfer.setDragImage(ghost, -10, -10);
     hideTip();
     document.body.classList.add("dragging-rows");
-    if (!capOpen[act]) toast("Ouvrez la vue « Affectation par capacité » pour déposer les dossiers sur une ressource et un jour.");
+    if (!capOpen[act]) toast("Ouvrez la vue « Affectation » (bouton du bandeau) pour déposer les dossiers sur une affectation et un jour.");
   });
   body.addEventListener("dragend", () => {
     dragInfo = null;
@@ -3231,7 +3343,7 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     if (!b) return;
     changeFilters(act, () => {
       if (b.dataset.q === "encours") ui.enCours = !ui.enCours;
-      else { ui.enCours = false; ui.filters = {}; }
+      else { ui.enCours = false; ui.filters = {}; ui.capFilter = null; }
     });
     closeFilter();
     renderPrepa();
@@ -3242,6 +3354,19 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
 const ZOOM_MIN = 0.5, ZOOM_MAX = 1.6;
 let tblZoom = 1;
 try { tblZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(localStorage.getItem("cc.tableZoom")) || 1)); } catch (e) { /* stockage indisponible */ }
+// Change une préférence d'affichage en l'inscrivant dans l'historique (Ctrl + Z / Ctrl + Y), sans toucher au projet.
+function changePref(pref, mutator) {
+  const before = pref.get();
+  mutator();
+  if (JSON.stringify(before) === JSON.stringify(pref.get())) return;
+  undoStack.push({ pref, value: before });
+  if (undoStack.length > 100) undoStack.shift();
+  redoStack = [];
+  $("btnUndo").disabled = false;
+  $("btnRedo").disabled = true;
+}
+const ZOOM_PREF = { get: () => tblZoom, set: v => setTableZoom(v) };
+
 function setTableZoom(z) {
   tblZoom = Math.round(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z)) * 100) / 100;
   document.documentElement.style.setProperty("--tbl-zoom", tblZoom);
@@ -3261,6 +3386,13 @@ setTableZoom(tblZoom);
 for (const ctl of document.querySelectorAll(".zoom-ctl")) ctl.onclick = e => {
   const b = e.target.closest("[data-z]");
   if (!b) return;
+  const before = tblZoom;
+  setTimeout(() => {
+    if (tblZoom === before) return;
+    const after = tblZoom;
+    setTableZoom(before);
+    changePref(ZOOM_PREF, () => setTableZoom(after));
+  });
   const z = b.dataset.z;
   if (z === "fit") fitTableZoom(ctl.closest(".page"));
   else setTableZoom(z === "0" ? 1 : tblZoom + Number(z) * 0.1);
@@ -3270,6 +3402,21 @@ for (const ctl of document.querySelectorAll(".zoom-ctl")) ctl.onclick = e => {
 let hiddenCols = {}, colOrder = {};
 try { hiddenCols = JSON.parse(localStorage.getItem("cc.hiddenCols")) || {}; } catch (e) { /* stockage indisponible */ }
 try { colOrder = JSON.parse(localStorage.getItem("cc.colOrder")) || {}; } catch (e) { /* stockage indisponible */ }
+
+// Colonnes masquées et ordre d'une activité (préférence de ce poste), lus et écrits d'un bloc pour l'annulation.
+function colsPref(act) {
+  return {
+    get: () => ({ hidden: hiddenCols[act] || null, order: colOrder[act] || null }),
+    set: v => {
+      if (v.hidden) hiddenCols[act] = v.hidden; else delete hiddenCols[act];
+      if (v.order) colOrder[act] = v.order; else delete colOrder[act];
+      try {
+        localStorage.setItem("cc.hiddenCols", JSON.stringify(hiddenCols));
+        localStorage.setItem("cc.colOrder", JSON.stringify(colOrder));
+      } catch (e) { /* stockage indisponible */ }
+    }
+  };
+}
 
 function openColumns(act, anchor) {
   if (fpopKey === act + ":cols") return closeFilter();
@@ -3325,13 +3472,8 @@ function openColumns(act, anchor) {
     if (b.dataset.fa === "ok") {
       if (!checked.size) return toast("Cochez au moins une colonne.", true);
       const hide = cols.map(c => c.k).filter(k => !checked.has(k));
-      if (hide.length) hiddenCols[act] = hide; else delete hiddenCols[act];
       const keys = cols.map(c => c.k);
-      if (keys.join() === defaultKeys.join()) delete colOrder[act]; else colOrder[act] = keys;
-      try {
-        localStorage.setItem("cc.hiddenCols", JSON.stringify(hiddenCols));
-        localStorage.setItem("cc.colOrder", JSON.stringify(colOrder));
-      } catch (e) { /* stockage indisponible */ }
+      changePref(colsPref(act), () => colsPref(act).set({ hidden: hide.length ? hide : null, order: keys.join() === defaultKeys.join() ? null : keys }));
       renderPrepa();
     }
     closeFilter();
@@ -3380,7 +3522,7 @@ function distinctValues(act, c) {
 }
 
 let fpopKey = null;
-function closeFilter() { const p = $("fpop"); p.classList.remove("show", "cols", "dd"); p.style.minWidth = ""; fpopKey = null; }
+function closeFilter() { const p = $("fpop"); p.classList.remove("show", "cols", "dd", "orph"); p.style.minWidth = ""; fpopKey = null; }
 
 function openFilter(act, key, anchor) {
   if (fpopKey === act + ":" + key) return closeFilter();
@@ -3455,16 +3597,18 @@ function openFilter(act, key, anchor) {
 }
 
 document.addEventListener("mousedown", e => {
-  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest(".res-dd") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
+  if (fpopKey && !e.target.closest("#fpop") && !e.target.closest("[data-filter]") && !e.target.closest(".cols-btn") && !e.target.closest(".res-dd") && !e.target.closest("[data-orphans]") && !e.target.closest('[data-act="cap-pick"]')) closeFilter();
 });
 document.addEventListener("keydown", e => {
   // Échap ferme d'abord le menu de filtre, sans fermer la fenêtre qui le contient.
   if (e.key === "Escape" && fpopKey) { closeFilter(); e.stopImmediatePropagation(); return; }
   // Échap (hors saisie et hors fenêtre) annule la sélection de lignes de l'activité affichée.
-  if (e.key === "Escape" && !e.target.matches("input[type=text], textarea, select") && !chartOpen && !settingsOpen()) {
+  if (e.key === "Escape" && !e.target.matches("input[type=text], textarea, select") && !chartOpen && !settingsOpen() && !$("remindModal").classList.contains("show")) {
     const page = document.querySelector(".act-page.active");
     const act = page && Object.keys(ACT_DEFS).find(a => "page-" + ACT_DEFS[a].page === page.id);
     if (act && actUI[act].sel.size) { clearSelection(act); e.stopImmediatePropagation(); }
+    // Puis Échap ferme la vue Affectation par capacité.
+    else if (act && capOpen[act]) { $(ACT_DEFS[act].page + "Cap").querySelector(".cap-close").click(); e.stopImmediatePropagation(); }
   }
   // Entrée valide le menu ouvert (filtre ou colonnes), comme le bouton OK.
   if (e.key === "Enter" && fpopKey) {
@@ -3486,6 +3630,7 @@ $("chartClose").onclick = closeChart;
 for (const btn of $("chartGran").children) btn.onclick = () => { chartUI.gran = btn.dataset.v; renderChart(); };
 $("chartModal").addEventListener("mousedown", e => { if (e.target.id === "chartModal") closeChart(); });
 document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && $("remindModal").classList.contains("show")) { e.preventDefault(); $("remindSave").click(); return; }
   if (e.key !== "Escape" || fpopKey) return;
   if ($("remindModal").classList.contains("show")) { $("remindLater").click(); return; }
   if (chartOpen) closeChart();
@@ -3581,6 +3726,8 @@ function renderChartView(v, acts, single) {
   if (hasCap) h += '<div class="chart-stat"><div class="v">' + fmtH(totC) + ' h</div><div class="l">Capacité (Heure productivité)</div></div>' +
     '<div class="chart-stat"><div class="v">' + (totC ? Math.round(totL / totC * 100) + " %" : "–") + '</div><div class="l">Taux de charge</div></div>';
   h += "</div>";
+  // Charge globale : pas de totaux de période au-dessus du graphique (les valeurs restent au survol).
+  if (!single) h = "";
   for (const n of notices) h += '<p class="muted small" style="margin:4px 0">' + esc(n) + "</p>";
   if (hasCap) h += '<div class="small muted" style="margin:0 0 4px">Capacité : ' + esc(sel.join(" ; ")) + "</div>";
   h += '<div class="chart-legend"><span><span class="k-bar k-done"></span>Charge soldée</span><span><span class="k-bar k-open"></span>Charge en cours</span>' +
@@ -3944,6 +4091,7 @@ function workbookToState(wb) {
 // quiet : sauvegarde automatique, sans reconstruire l'écran (une saisie en cours n'est pas perdue).
 async function writeProject(handle, quiet) {
   setSaveState("saving");
+  const snap = dataKey(state); // version réellement écrite (des modifications peuvent suivre pendant l'écriture)
   try {
     const data = XLSX.write(stateToWorkbook(), { type: "array", bookType: "xlsx" });
     const w = await handle.createWritable();
@@ -3951,7 +4099,9 @@ async function writeProject(handle, quiet) {
     await w.close();
     projectHandle = handle;
     await idbSet("projectHandle", handle);
-    setSaveState("saved");
+    saveState = "saved";
+    markSaved(snap);
+    refreshSaveState();
     if (quiet) { $("autoSaveInfo").textContent = "Dernière sauvegarde automatique : " + new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); toast("Sauvegarde automatique effectuée"); }
     else { render(); toast("Projet enregistré"); }
     return true;
@@ -4019,6 +4169,7 @@ async function readProject(h) {
     projectHandle = h;
     await idbSet("projectHandle", h);
     cacheState();
+    markSaved();
     setSaveState("saved");
     render();
     toast("Projet « " + h.name + " » ouvert");
@@ -4158,6 +4309,8 @@ $("btnNew").onclick = async () => {
   redoStack = [];
   projectHandle = null;
   for (const k of Object.keys(srcData)) delete srcData[k];
+  markSaved();
+  setSaveState("none");
   render();
   await saveAs();
 };
@@ -4184,12 +4337,14 @@ for (const b of $("themeSeg").children) b.onclick = () => {
 };
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyAppearance);
 
+const TEXT_FIELDS = "input[type=text], input[type=number], input[type=date], input:not([type]), textarea";
 document.addEventListener("keydown", e => {
   const k = e.key.toLowerCase();
   if (e.ctrlKey && !e.shiftKey && k === "s") { e.preventDefault(); save(); }
   else if (e.key === "F9" && !e.ctrlKey && !e.altKey) { e.preventDefault(); refreshSources(); }
-  else if (e.ctrlKey && !e.shiftKey && k === "z" && !e.target.matches("input, textarea")) { e.preventDefault(); undo(); }
-  else if (e.ctrlKey && (k === "y" || e.shiftKey && k === "z") && !e.target.matches("input, textarea")) { e.preventDefault(); redo(); }
+  // Ctrl + Z / Ctrl + Y annulent dans l'application, sauf pendant une saisie (le champ garde son annulation).
+  else if (e.ctrlKey && !e.shiftKey && k === "z" && !e.target.matches(TEXT_FIELDS)) { e.preventDefault(); undo(); }
+  else if (e.ctrlKey && (k === "y" || e.shiftKey && k === "z") && !e.target.matches(TEXT_FIELDS)) { e.preventDefault(); redo(); }
   else if (e.ctrlKey && e.shiftKey && k === "f") { e.preventDefault(); toggleFullscreen(); }
   else if (e.ctrlKey && k === ",") { e.preventDefault(); settingsOpen() ? closeSettings() : openSettings(); }
 });
@@ -4203,7 +4358,10 @@ window.addEventListener("beforeunload", e => {
 // l'application (autre onglet, autre fenêtre, réduction) avec des modifications non
 // enregistrées, une fenêtre propose d'enregistrer au retour.
 let editVersion = 0;          // augmente à chaque modification
-let remindDismissed = -1;     // version pour laquelle « Plus tard » a été choisi
+let lastSaveTime = Date.now(); // dernier enregistrement (ou ouverture du projet)
+let firstUnsavedTime = null;   // première modification non enregistrée depuis
+let remindSnoozeUntil = 0;     // « Plus tard » : pas de rappel avant cette heure
+const REMIND_AFTER_MS = 10 * 60 * 1000;
 let leftWithChanges = false;
 let nativeDialogs = 0;        // sélecteurs de fichiers et confirmations ouverts par l'application
 
@@ -4211,11 +4369,24 @@ const hasUnsaved = () => saveState === "dirty" || saveState === "error";
 function markLeave() {
   if (!nativeDialogs && hasUnsaved()) leftWithChanges = true;
 }
+// Le rappel ne s'affiche que si des modifications attendent depuis au moins 10 minutes sans enregistrement.
+function reminderDue() {
+  if (!hasUnsaved() || Date.now() < remindSnoozeUntil || $("remindModal").classList.contains("show")) return false;
+  // 10 minutes après le dernier enregistrement (ou, sans enregistrement, après la première modification).
+  const since = projectHandle ? lastSaveTime : Math.max(lastSaveTime, firstUnsavedTime || 0);
+  return Date.now() - since >= REMIND_AFTER_MS;
+}
 function checkReturn() {
   if (!leftWithChanges || document.visibilityState !== "visible") return;
   leftWithChanges = false;
-  if (hasUnsaved() && remindDismissed !== editVersion) openSaveReminder();
+  if (reminderDue()) openSaveReminder();
 }
+// Vérification régulière, aussi sans quitter l'application (jamais pendant une saisie ou un menu ouvert).
+setInterval(() => {
+  if (document.visibilityState !== "visible" || fpopKey || chartOpen || settingsOpen()) return;
+  if (document.activeElement && document.activeElement.matches("input[type=text], input[type=date], input[type=number], textarea")) return;
+  if (reminderDue()) openSaveReminder();
+}, 30000);
 document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" ? markLeave() : checkReturn());
 window.addEventListener("blur", markLeave);
 window.addEventListener("focus", checkReturn);
@@ -4243,11 +4414,12 @@ function openSaveReminder() {
   $("remindSave").focus();
 }
 function closeSaveReminder() { $("remindModal").classList.remove("show"); }
-$("remindLater").onclick = () => { remindDismissed = editVersion; closeSaveReminder(); };
+$("remindLater").onclick = () => { remindSnoozeUntil = Date.now() + REMIND_AFTER_MS; closeSaveReminder(); };
 $("remindSave").onclick = async () => { closeSaveReminder(); await save(); };
 
 /* ================= Démarrage ================= */
 (async function init() {
+  markSaved();
   setSaveState("none");
   render();
   if (!FS_OK) { $("bannerBrowser").classList.add("show"); return; }

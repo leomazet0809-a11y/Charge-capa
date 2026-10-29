@@ -22,16 +22,21 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 |---|---|---|
 | Logo + nom en gras | Nom du classeur projet ouvert | – |
 | Période (Du → Au) | Plage de dates commune à toutes les activités ; à l'ouverture : J – 15 à J + 30 | – |
-| Flèche retour | Annule la dernière modification | Ctrl + Z |
+| Flèche retour | Annule la dernière modification (y compris filtres, colonnes affichées et taille du tableau) | Ctrl + Z |
 | Flèche avant | **Rétablit** la dernière action annulée (annuler une annulation, comme Excel). Toute nouvelle modification vide la liste des actions à rétablir | Ctrl + Y |
 | Actualiser (deux flèches, à gauche de la disquette) | Recharge les fichiers sources. **Noir** : les données chargées correspondent exactement aux fichiers sur le disque ; **orange** : au moins un fichier est à actualiser (non chargé, lecture à autoriser après une actualisation de la page, modifié depuis son chargement, ou erreur) — la bulle détaille lesquels. Le clic ne relit que les fichiers concernés (ou tous si tout est à jour) et redemande l'accès au navigateur si besoin. Les fichiers ne sont jamais rechargés automatiquement, sauf à l'ouverture de l'application | F9 |
-| Disquette | Enregistre le projet. **Noire** : tout est enregistré ; **orange** : modifications non enregistrées, pas encore de classeur ou dernier enregistrement en échec (la bulle précise le cas) | Ctrl + S |
+| Disquette | Enregistre le projet. **Noire** : aucune modification depuis le dernier enregistrement (ou l'ouverture) — y compris si vous êtes revenu à l'état enregistré par Ctrl + Z ; **orange** : des données ont été modifiées et pas encore enregistrées (ou le dernier enregistrement a échoué). Recharger les fichiers sources ne compte pas comme une modification | Ctrl + S |
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
 Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
 Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargement, une fenêtre indique le fichier, l'étape en cours (lecture, analyse des onglets, calcul des temps) et le temps écoulé.
+
+**Mêmes gestes partout** :
+- **Échap** ferme ce qui est ouvert, dans l'ordre : un menu (filtre, colonnes, liste d'affectation…), une fenêtre (graphique, Paramètres, rappel), puis décoche les lignes cochées, puis ferme la vue *Affectation* ;
+- **Entrée** valide le menu ou la fenêtre ouverte (comme OK / Enregistrer) ;
+- **Ctrl + Z** annule et **Ctrl + Y** rétablit toute action, sauf pendant une saisie dans un champ (le champ garde alors sa propre annulation).
 
 Laissez la souris **2 secondes** sur n'importe quel élément cliquable (bouton, liste, case, champ, onglet…) pour voir une bulle d'aide indiquant sa fonction (et son raccourci s'il en a un).
 
@@ -51,9 +56,9 @@ Au lancement suivant, l'application propose de **reprendre le dernier projet** :
 
 ⚠ **Fermez le classeur projet dans Excel avant d'enregistrer** : Windows bloque l'écriture d'un fichier ouvert dans Excel. La disquette reste alors orange ; fermez Excel et refaites Ctrl + S.
 
-**Rappel d'enregistrement** : si vous quittez l'application (autre onglet, autre fenêtre, navigateur réduit) alors que des modifications ne sont pas enregistrées, une fenêtre **« Modifications non enregistrées »** s'affiche à votre retour :
+**Rappel d'enregistrement** : la fenêtre **« Modifications non enregistrées »** ne s'affiche que s'il y a des modifications non enregistrées **et** que le dernier enregistrement date d'**au moins 10 minutes** (sans classeur : 10 minutes après la première modification). Elle apparaît dans l'application (jamais pendant une saisie ou un menu ouvert) ou à votre retour si vous l'aviez quittée :
 - **Enregistrer** enregistre dans le classeur projet (ou demande où le créer s'il n'existe pas encore) ;
-- **Plus tard** (ou Échap) ferme le rappel ; il reviendra après une nouvelle modification.
+- **Plus tard** (ou Échap) ferme le rappel ; il reviendra 10 minutes plus tard s'il reste des modifications non enregistrées. **Entrée** enregistre.
 
 Si vous **fermez** l'onglet ou le navigateur avec des modifications non enregistrées, le navigateur affiche son propre avertissement « Quitter le site ? » (les navigateurs n'autorisent pas d'autre fenêtre à ce moment-là) : choisissez *Annuler* puis faites Ctrl + S.
 
@@ -137,7 +142,7 @@ La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN d
 
 ### 4.4 Ressources à affecter
 
-Il n'y a plus de liste à paramétrer : les ressources proposées dans la colonne **Affectation** sont les **personnes du fichier de capacité** (colonne *nom_complet*).
+Il n'y a plus de liste à paramétrer : les affectations proposées dans la colonne **Affectation** sont les **noms du fichier de capacité** (colonne *nom_complet*).
 - Pour une activité, ce sont les personnes des **groupes / niveaux de capacité choisis pour cette activité** (*Fichiers sources*, colonne « Capacité ») ; si aucun n'est choisi, toutes les personnes du fichier.
 - Une saisie identique à un nom du fichier (majuscules et accents ignorés) reprend l'écriture exacte du nom ; un autre texte reste accepté (texte libre).
 - Les projets enregistrés avec l'ancienne liste *Paramètres › Ressources* sont convertis automatiquement : chaque affectation garde le nom de sa ressource.
@@ -147,7 +152,7 @@ Il n'y a plus de liste à paramétrer : les ressources proposées dans la colonn
 Premier onglet, à gauche des activités : **un seul graphique** qui additionne la charge et la capacité de toutes les activités sur la période du ruban.
 - **Barres empilées** : charge **soldée** en bleu (en bas) et charge **en cours** en noir grisé (au-dessus), toutes activités additionnées ; la hauteur totale est la charge totale du jour ;
 - **Courbe** : capacité des groupes / niveaux choisis pour les activités (un groupe choisi pour deux activités n'est compté qu'une fois) ;
-- en haut : charge totale, dont soldée, dont en cours, charge de chaque activité, capacité totale et taux de charge ;
+- pas de totaux de la période au-dessus du graphique : les valeurs de chaque jour (charge soldée, en cours, par activité, capacité) s'affichent au survol ;
 - boutons **Jour / Semaine / Mois / Année**, axe des dates et survol comme le graphique d'une activité ; le survol détaille la charge de chaque activité ;
 - chaque activité y compte les lignes affichées dans son tableau : ses **filtres** (En cours, filtres de colonnes) s'appliquent aussi ici (rappelé à côté du titre).
 
@@ -168,7 +173,11 @@ Chaque activité a une colonne **Date affectation** (juste à droite de la colon
 - **Pour avancer un dossier** (par exemple pour lisser un pic), changez sa date dans la case : elle passe en **bleu gras** et est enregistrée dans le classeur projet (onglet *Dates affectation*). Videz la case (ou remettez la date par défaut) pour revenir au calcul automatique.
 - Une date **postérieure à la date due** s'affiche en **rouge**, précédée d'un logo **⚠** (la bulle rappelle les deux dates).
 - Avec des **lignes cochées**, la date saisie sur l'une d'elles est recopiée sur toutes les lignes cochées (une seule action, annulable par Ctrl + Z).
-- La colonne se trie et se filtre comme les autres. La vue **Affectation par capacité** place la charge à la **date d'affectation** (et non à la date due) ; la période du ruban et les autres graphiques restent basés sur la date due.
+- La colonne se trie et se filtre comme les autres. La vue **Affectation** place la charge à la **date d'affectation** (et non à la date due) ; la période du ruban et les autres graphiques restent basés sur la date due.
+
+### Affectations orphelines
+
+Si un dossier a une affectation ou une date d'affectation enregistrée dans le projet mais **ne figure plus dans le fichier source** (dossier soldé ou supprimé de l'export, commande dont la date d'expédition a changé), un bouton **⚠ n affectations orphelines** apparaît au-dessus du tableau. Il ouvre la liste de ces dossiers (avec leur affectation, leur date, et pour une commande les autres dates où elle existe encore) ; chaque ligne peut être supprimée (🗑), ou toutes avec **Tout supprimer** (Entrée). Annulable par Ctrl + Z.
 
 ### Cases à cocher et affectation en masse
 
@@ -177,28 +186,29 @@ Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Window
 - **Maj + clic sur la case** : coche toutes les lignes entre la dernière case cliquée et celle-ci ;
 - la case de l'**en-tête** coche ou décoche toutes les lignes affichées ;
 - un clic sur la ligne elle-même ne coche que cette ligne (Ctrl + clic : ajoute ou retire) ;
-- **Échap** décoche tout. Le pied du tableau indique le nombre de lignes cochées.
+- **Échap** décoche tout.
+- Dès que **2 dossiers ou plus** sont sélectionnés (cochés, ou Ctrl + clic), une ligne **« Sélection (n …) »** s'ajoute au pied du tableau, sous le Total : elle donne la **somme des Temps (h)** des dossiers sélectionnés et combien sont affectés.
 
 Ensuite, **saisissez l'affectation dans la case Affectation de l'une des lignes cochées** (au clavier ou par la liste ▾) : dès la validation, elle est **recopiée sur toutes les lignes cochées**, puis les cases sont décochées. L'opération compte comme une seule action, annulable par Ctrl + Z. Une saisie sur une ligne non cochée ne concerne que cette ligne.
 
-### Affectation par capacité
+### Vue Affectation (bouton du bandeau)
 
-Le bouton **Affectation par capacité** (à gauche du bouton Colonnes) ouvre une vue qui glisse depuis la droite, à côté du tableau. **Faites glisser son bord gauche** pour l'élargir ou la réduire (largeur mémorisée sur ce poste).
+Le bouton **Affectation** du bandeau de l'activité (à gauche du bouton Colonnes) ouvre une vue qui glisse depuis la droite, à côté du tableau. **Faites glisser son bord gauche** pour l'élargir ou la réduire (largeur mémorisée sur ce poste).
 
 La vue présente **un histogramme empilé par jour**, les jours les uns sous les autres (faites défiler la vue vers le haut ou le bas). Chaque histogramme a **une barre par ressource de l'activité** ce jour-là :
-- les ressources sont les personnes du **fichier de capacité** (colonne *nom_complet*) appartenant aux **groupes / niveaux choisis pour l'activité** (Paramètres › Fichiers sources, colonne « Capacité »), plus toute ressource à qui du temps est affecté ce jour-là ;
+- les affectations affichées sont les noms du **fichier de capacité** (colonne *nom_complet*) appartenant aux **groupes / niveaux choisis pour l'activité** (Paramètres › Fichiers sources, colonne « Capacité »), plus toute ressource à qui du temps est affecté ce jour-là ;
 - chaque dossier compte au jour de sa **Date affectation** (voir ci-dessus), et non à sa date due ;
-- **vert** : temps **affecté** à la ressource ce jour-là (toutes activités confondues ; le survol précise la part des autres activités) ;
+- **vert** : temps **affecté** à cette affectation ce jour-là (toutes activités confondues ; le survol précise la part des autres activités) ;
 - **gris clair** : temps **restant à affecter** = temps disponible sur la journée (*Heure productivité*) – temps déjà affecté ;
 - **rouge vif** : **surcharge**, quand le temps affecté dépasse le temps disponible.
 
 Au survol d'une barre, ses valeurs s'affichent immédiatement.
 
-**Glisser-déposer** : faites glisser une ligne du tableau (ou, si elle est cochée, toutes les lignes cochées) et déposez-la dans la vue :
-- **sur la barre d'une personne** : les dossiers lui sont affectés **et** leur *Date affectation* devient le jour de ce graphique ;
-- **ailleurs dans le graphique d'un jour** (titre, fond) : seule la *Date affectation* change, l'affectation est conservée.
+**Filtrer le tableau depuis un graphique** : cliquez sur la barre d'une personne dans le graphique d'un jour : le tableau n'affiche plus que les **dossiers affectés à cette personne ce jour-là** (date d'affectation), même si leur date due est hors de la période. La barre est encadrée et un bandeau bleu au-dessus du tableau rappelle le filtre. **Recliquez sur la même barre** (ou sur ✕ du bandeau, ou sur **Tout**) pour revenir au tableau complet. Le filtre s'annule aussi avec Ctrl + Z.
 
-Pendant le glisser, la barre visée est encadrée et une bulle indique « Affecter à … le … ». L'opération compte comme une seule action, annulable par Ctrl + Z. Partez d'une zone de la ligne sans champ de saisie (pas des cases Affectation ou Date affectation). Sous le nom de chaque jour figurent la semaine, la charge **non affectée** de l'activité et le nombre de surcharges. Le total des surcharges de la période s'affiche en haut de la vue et en **pastille rouge** sur le bouton ; la case **Surcharges** ne garde que les ressources en dépassement. Toutes les lignes affectées de la période sont comptées, quels que soient les filtres du tableau.
+**Glisser-déposer** : faites glisser une ligne du tableau (ou, si elle est cochée, toutes les lignes cochées) et déposez-la **sur la barre d'une affectation dans le graphique d'un jour** : les dossiers sont affectés à cette affectation **et** leur *Date affectation* devient ce jour. Le dépôt n'est possible que sur ce couple *jour + affectation* : ailleurs dans le graphique, il est refusé.
+
+Pendant le glisser, la barre visée est encadrée et une bulle indique « Affecter à … le … ». L'opération compte comme une seule action, annulable par Ctrl + Z. Partez d'une zone de la ligne sans champ de saisie (pas des cases Affectation ou Date affectation). Le tableau garde sa position de défilement après le dépôt (et après toute modification). Sous le nom de chaque jour figurent la semaine, la charge **non affectée** de l'activité et le nombre de surcharges. Le total des surcharges de la période s'affiche en haut de la vue et en **pastille rouge** sur le bouton ; la case **Surcharges** ne garde que les ressources en dépassement. Toutes les lignes affectées de la période sont comptées, quels que soient les filtres du tableau.
 
 > Les noms des affectations doivent être les mêmes que ceux de la colonne *nom_complet* du fichier de capacité (majuscules et accents ignorés) ; les noms des personnes sont écrits en petit sous chaque barre. Sans groupe / niveau choisi pour l'activité, la vue affiche toutes les personnes du fichier de capacité.
 
@@ -243,7 +253,7 @@ Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des 
 
 Liste des commandes à préparer pour l'expédition : **une ligne par commande et par date d'expédition** (une commande livrée à deux dates donne deux lignes). Source : onglet `Commandes ventes` du fichier de l'activité *Prépa Expéd* (Paramètres › Fichiers sources).
 
-Période, tri, filtres Excel, boutons rapides, total, affectation des ressources, graphique et taille du tableau fonctionnent comme pour Prépa OF :
+Période, tri, filtres Excel, boutons rapides, total, affectations, graphique et taille du tableau fonctionnent comme pour Prépa OF :
 - la période porte sur la **Date expédition** ;
 - **En cours** masque les commandes-dates entièrement soldées (Soldée = Oui) ; **Tout** retire tous les filtres.
 
@@ -259,13 +269,14 @@ Période, tri, filtres Excel, boutons rapides, total, affectation des ressources
 | Instruction livraison | En petit, sur plusieurs lignes |
 | Soldée | **Oui** si tous les articles de la commande-date sont « Soldé », sinon **Non** |
 | Temps (h) | Temps de préparation calculé avec la gamme *Prépa Expéd* sur toutes les lignes (soldées comprises), **sauf les articles commençant par 9** ; quantité = *Qté commandée US* |
-| Affectation | Liste déroulante des ressources et saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
+| Affectation | Liste déroulante des affectations et saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
 
 ---
 
 ### Informations techniques
 
 - Une page `index.html` en HTML/CSS/JavaScript, sans framework.
+- Les onglets et pages d'activité sont **générés à partir de la définition de chaque activité** (`ACT_DEFS` dans `index.html`) : ajouter une activité consiste à la décrire une fois (fichier, colonnes, calculs), et son onglet, son tableau, ses filtres, sa vue capacité et son graphique sont créés automatiquement.
 - `lib/xlsx.full.min.js` : lecture/écriture des fichiers Excel (SheetJS, licence Apache 2.0), embarquée pour fonctionner hors connexion.
 - `fonts/inter.woff2` : police Inter (licence SIL OFL), embarquée.
 - Les fichiers choisis sont mémorisés par le navigateur (aucune donnée n'est envoyée sur internet).
