@@ -79,7 +79,7 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 | Colonne | Rôle |
 |---|---|
 | Libellé | Nom libre de la source |
-| Activité | Activité alimentée par ce fichier, ou « — Base de données » pour un fichier complémentaire (ex. future base des DN) |
+| Activité | Activité alimentée par ce fichier, ou « — Base de données » pour un fichier complémentaire |
 | Fichier source | Cliquez pour choisir le fichier dans un dossier Windows |
 | Date du fichier | Date de **dernière modification du fichier** sur le disque : elle indique de quand datent les données sources. En orange si le fichier est plus récent que les données chargées |
 | Dernier chargement | Date à laquelle l'application a lu le fichier |
@@ -129,15 +129,16 @@ Les totaux Forfait / Ligne / Quantité s'affichent sous le tableau.
 
 **Tableau de calcul** (un par tâche « Calcul ») :
 1. Donnez un *libellé* (ex. `DN`).
-2. Choisissez le *fichier source*, l'*onglet* et la *colonne des valeurs*.
-   Si ce fichier n'est pas celui de l'activité (ex. base des DN), indiquez les deux colonnes de *liaison* (ex. `Composant OF` ↔ `Article`).
-3. **Importer les valeurs de la colonne** ajoute les valeurs trouvées (doublons supprimés) avec un temps de 0 s ; les temps déjà saisis ne sont jamais écrasés.
+2. Choisissez l'**origine de la valeur** :
+   - **Colonne d'un fichier source** : choisissez le *fichier source*, l'*onglet* et la *colonne des valeurs*. Si ce fichier n'est pas celui de l'activité, indiquez les deux colonnes de *liaison*.
+   - **Table de correspondance (dans le projet)** : indiquez la *colonne des lignes* à chercher (ex. `Composant OF`) et le *nom de la clé* (ex. `Article`), puis remplissez la table de correspondance (voir « Base des DN » ci-dessous).
+3. **Importer les valeurs** ajoute les valeurs trouvées (dans la colonne ou dans la table de correspondance, doublons supprimés) avec un temps de 0 s ; les temps déjà saisis ne sont jamais écrasés.
 4. Saisissez le **Tps (sec)** de chaque valeur. La ligne **(vide)** s'applique aux lignes sans valeur.
 
 Temps de la tâche pour une ligne = Tps (sec) de sa valeur × quantité de la ligne.
 Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
-La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence (DN10 à DN200, dont DN125 à 60 s comme DN100), relié à la **Base DN** (voir ci-dessous) ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée).
+La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence (DN10 à DN200, dont DN125 à 60 s comme DN100), relié à la **table de correspondance Article → DN** (voir ci-dessous) ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée).
 
 ### 4.4 Ressources à affecter
 
@@ -155,7 +156,18 @@ Premier onglet, à gauche des activités : **un seul graphique** qui additionne 
 - boutons **Jour / Semaine / Mois / Année**, axe des dates et survol comme le graphique d'une activité ; le survol détaille la charge de chaque activité ;
 - chaque activité y compte les lignes affichées dans son tableau : ses **filtres** (En cours, filtres de colonnes) s'appliquent aussi ici (rappelé à côté du titre).
 
-**Base DN** : dans *Fichiers sources*, la ligne **Base DN** (« — Base de données ») attend le fichier des DN par article (onglet unique, colonnes **Article** et **DN**). Choisissez-le une fois : la tâche *Compter et déposer les pièces* de Prépa OF retrouve alors le DN de chaque ligne en reliant *Composant OF* (fichier Prépa OF) à *Article* (base DN), et applique le temps du tableau DN. Un composant absent de la base prend le temps de la ligne « (vide) ». Comme les autres sources, la base reste sur votre poste : seul le lien vers le fichier est enregistré dans le projet.
+**Base des DN (correspondance Article → DN)** : le temps de la tâche *Compter et déposer les pièces dans la préparation* se calcule en deux étapes, pour chaque ligne de l'OF :
+*Composant OF* → **DN** (table de correspondance Article → DN) → **Tps (sec)** (tableau DN → Tps) × *Qté besoin*.
+
+Pour remplir la table de correspondance (une seule fois, puis à chaque mise à jour de la base) :
+1. *Paramètres › Temps gammes* → **Prépa OF** → carte *Tableau de calcul – Compter et déposer les pièces dans la préparation*.
+2. Partie **Correspondance Article → DN** : **Importer depuis un fichier…** et choisissez le fichier des DN par article (Excel ou CSV).
+3. Vérifiez l'onglet et les colonnes **Article** et **DN** (choisies automatiquement si elles portent ces noms), puis **Importer** (Entrée).
+4. La table est **copiée dans le projet** (onglet *Gammes - Correspondances* du classeur) et remplace la précédente ; enregistrez (Ctrl + S). Le fichier d'origine n'est plus nécessaire.
+
+La table affiche le nombre d'articles et les 200 premières lignes ; la zone **Rechercher…** retrouve un article ou un DN. Chaque DN se modifie directement dans la table, **+ Ajouter** ajoute (ou corrige) un article, 🗑 le supprime ; tout est annulable par Ctrl + Z. Un **⚠** à côté d'un DN signale qu'il n'a pas de temps dans le tableau DN → Tps (utilisez **Importer les DN de la correspondance**).
+
+Un composant **absent de la correspondance** compte **0 s** et la cellule *Temps (h)* du dossier affiche **⚠** (la bulle donne le nombre de lignes concernées) ; une ligne sans composant prend le temps « (vide) ». Les projets créés avec l'ancienne ligne *Base DN* des fichiers sources passent automatiquement à la table de correspondance (vide) : importez-la une fois.
 
 ## 6. Colonnes et taille des tableaux
 
@@ -244,9 +256,9 @@ Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie 
 | Affectation | **Colonne de saisie** (elle défile avec les autres colonnes). **Liste déroulante toujours proposée** : dès que vous cliquez dans la case, la liste des personnes du fichier de capacité s'ouvre sous la case (puis les autres textes déjà saisis dans la colonne) ; cliquez sur un nom pour le choisir, ou « — Aucune affectation » pour retirer. Le bouton ▾ (ou **Alt + ↓**) l'ouvre ou la ferme. **Saisie à la main** : tapez le début d'un nom ; la liste se réduit aux noms qui commencent ainsi et l'application **complète** le premier nom : continuez à taper pour l'ignorer, ou validez. **Entrée** ou **↓** valide et passe à la ligne du dessous, **↑** à la ligne du dessus, **Échap** annule la saisie ; videz la case pour retirer l'affectation. Le pied du tableau indique « n / N affectés ». |
 
 **Calcul du Temps (h)** pour un OF = somme des temps *Forfait* + somme des temps *Ligne* × nombre de lignes + somme des temps *Quantité* × total des *Qté besoin* + pour chaque tâche *Calcul* : Σ (Tps de la valeur de la ligne × *Qté besoin* de la ligne).
-Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes dont la valeur n'est pas dans le tableau de calcul (comptées 0 s).
+Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des lignes comptées 0 s : article absent de la correspondance Article → DN, ou valeur absente du tableau de calcul.
 
-> Sans fichier **Base DN** chargé (Paramètres › Fichiers sources), toutes les lignes prennent le temps « (vide) » du tableau DN (1 s par pièce).
+> Tant que la correspondance Article → DN n'est pas importée (Paramètres › Temps gammes › Prépa OF), les composants comptent 0 s et chaque OF est signalé par ⚠.
 
 ## 8. Prépa Expéd
 
