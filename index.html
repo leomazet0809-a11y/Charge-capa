@@ -767,7 +767,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
         <svg class="i" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       </button>
       <button class="icon-btn" id="btnFull"
-        data-tip-name="Plein écran" data-tip-role="Affiche l'application en plein écran" data-tip-key="Ctrl + Maj + F">
+        data-tip-name="Plein écran" data-tip-role="Affiche l'application en plein écran ; Échap n'en sort pas (re-cliquer, Ctrl + Maj + F, ou maintenir Échap 2 s)" data-tip-key="Ctrl + Maj + F">
         <svg class="i" viewBox="0 0 24 24" id="icoFull"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
       </button>
       <button class="icon-btn" id="btnSettings"
@@ -4551,8 +4551,12 @@ function toggleFullscreen() {
   if (document.fullscreenElement) document.exitFullscreen();
   else document.documentElement.requestFullscreen().catch(() => {});
 }
+// En plein écran, Échap reste à l'application (fermer un menu, annuler une sélection…) au lieu de quitter le plein écran :
+// verrouillage clavier de Chrome / Edge. Le navigateur garde une sortie : maintenir Échap enfoncé 2 s.
 document.addEventListener("fullscreenchange", () => {
   const full = !!document.fullscreenElement;
+  const kb = navigator.keyboard;
+  if (kb && kb.lock) { if (full) kb.lock(["Escape"]).catch(() => {}); else kb.unlock(); }
   $("icoFull").innerHTML = full
     ? '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>'
     : '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';
