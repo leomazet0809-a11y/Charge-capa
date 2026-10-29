@@ -199,6 +199,7 @@ Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Window
 - la case de l'**en-tête** coche ou décoche toutes les lignes affichées ;
 - un clic sur la ligne elle-même ne coche que cette ligne (Ctrl + clic : ajoute ou retire) ;
 - **Échap** décoche tout.
+- **Étendre la sélection : Maj + ↑ / Maj + ↓** — une fois un dossier coché (clic, case à cocher ou Maj + clic), Maj + ↓ ajoute la ligne du dessous et Maj + ↑ la ligne du dessus, comme dans l'Explorateur Windows : la sélection va de la ligne de départ à la ligne atteinte (revenir en arrière la réduit). Le tableau défile pour garder la ligne visible. Sans effet dans une case de saisie.
 - **Tout cocher : Ctrl + A** — après avoir cliqué dans le tableau, Ctrl + A coche **tous les dossiers affichés** (ceux qui passent les filtres). Dans une case de saisie (Affectation, Date affectation, recherche…), Ctrl + A garde son rôle habituel : sélectionner le texte de la case. Échap décoche tout.
 - **Désaffecter la sélection** : dès qu'un dossier est coché, le bouton **Désaffecter la sélection** apparaît à gauche du bouton *Affectation*. Il retire l'**affectation** (personne) et la **date d'affectation** de tous les dossiers cochés, en une seule action annulable par Ctrl + Z ; les dossiers restent cochés.
 - **Copier une cellule** : double-cliquez sur une cellule du tableau : son contenu est surligné, puis **Ctrl + C** (ou clic droit › Copier) le copie. Pour coller, cliquez dans une case **Affectation** ou **Date affectation** puis **Ctrl + V**.
