@@ -348,7 +348,7 @@ body.dragging-rows .cap-body { background: color-mix(in srgb, var(--accent) 5%, 
 /* Cases à cocher de sélection (comme dans l'Explorateur Windows) : visibles au survol, quand cochées ou dès qu'une ligne est cochée. */
 .sel-sum { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; padding: 5px 12px; border: 0; border-radius: 999px; cursor: pointer;
   background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); font: inherit; font-size: 13px; white-space: nowrap; }
-.sel-sum[hidden] { display: none; }
+.sel-sum[hidden], .unassign-btn[hidden] { display: none; }
 .sel-sum:hover { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
 .sel-sum .x { margin-left: 6px; opacity: .7; }
 .act-page .tbl .sel-cell { width: 2.2em; min-width: 2.2em; padding-left: .5em !important; padding-right: 0 !important; text-align: center; }
@@ -2742,6 +2742,7 @@ function buildActivityPages() {
         "</div>" +
         '<button class="sel-sum" id="' + d.page + 'SelSum" hidden data-tip-name="Sélection" data-tip-role="Nombre de ' + esc(d.unit) + ' cochés et somme de leurs Temps (h). Cliquez pour tout décocher" data-tip-key="Échap"></button>' +
         '<span class="spacer"></span>' +
+        '<button class="btn unassign-btn" id="' + d.page + 'Unassign" hidden data-tip-name="Désaffecter la sélection" data-tip-role="Retire l’affectation (personne) et la date d’affectation des ' + esc(d.unit) + ' cochés (annulable par Ctrl + Z)">Désaffecter la sélection</button>' +
         '<button class="btn cap-btn" data-cap="' + act + '" data-tip-name="Affectation" data-tip-role="Ouvre à droite le graphique par jour de chaque affectation : temps affecté, temps restant à affecter et surcharge">' + ICON_CAP + '<span>Affectation</span><b class="cap-alert" hidden></b></button>' +
         '<button class="icon-btn cols-btn" data-cols="' + act + '" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau, et leur ordre">' + ICON_COLS + "</button>" +
         '<div class="segmented zoom-ctl" data-tip-name="Taille du tableau" data-tip-role="Agrandit ou réduit le texte des tableaux d’activité">' +
@@ -3027,11 +3028,24 @@ function paintSelSum(act) {
   const ui = actUI[act], el = $(ACT_DEFS[act].page + "SelSum");
   const rows = (actRows[act] || []).filter(x => ui.sel.has(x.id));
   el.hidden = !rows.length;
+  $(ACT_DEFS[act].page + "Unassign").hidden = !rows.length;
   if (!rows.length) return;
   const hours = rows.reduce((a, x) => a + (x.heures || 0), 0);
   el.innerHTML = "Sélection : <b>" + fmtInt(rows.length) + "</b> " + esc(ACT_DEFS[act].unit) + " · <b>" + fmtHours(hours * 3600) + ' h</b><span class="x">✕</span>';
 }
-for (const act of Object.keys(ACT_DEFS)) $(ACT_DEFS[act].page + "SelSum").onclick = () => clearSelection(act);
+for (const act of Object.keys(ACT_DEFS)) {
+  $(ACT_DEFS[act].page + "SelSum").onclick = () => clearSelection(act);
+  $(ACT_DEFS[act].page + "Unassign").onclick = () => unassignSelection(act);
+}
+// Désaffecter : retire personne et date d'affectation des dossiers cochés (une seule action annulable). La sélection reste.
+function unassignSelection(act) {
+  const ids = [...actUI[act].sel];
+  const a0 = state.assign[act] || {}, p0 = state.planned[act] || {};
+  const n = ids.filter(id => a0[id] || p0[id]).length;
+  if (!n) return toast("Aucune affectation à retirer sur la sélection.");
+  commit(st => { for (const id of ids) { if (st.assign[act]) delete st.assign[act][id]; if (st.planned[act]) delete st.planned[act][id]; } });
+  toast(n + " " + ACT_DEFS[act].unit + " désaffecté" + (n > 1 ? "s" : "") + " (Ctrl + Z pour annuler)");
+}
 
 $("prepaFrom").onchange = e => setPeriod(e.target.value, prepaUI.to);
 $("prepaTo").onchange = e => setPeriod(prepaUI.from, e.target.value);
