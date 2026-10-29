@@ -338,7 +338,11 @@ body.dragging-rows .cap-body { background: color-mix(in srgb, var(--accent) 5%, 
 .act-page .tbl tbody tr.sel td { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
 .act-page .tbl tbody tr { cursor: default; }
 /* Cases à cocher de sélection (comme dans l'Explorateur Windows) : visibles au survol, quand cochées ou dès qu'une ligne est cochée. */
-.act-page .tbl tfoot tr.sel-foot td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); font-weight: 600; }
+.sel-sum { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; padding: 5px 12px; border: 0; border-radius: 999px; cursor: pointer;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); font: inherit; font-size: 13px; white-space: nowrap; }
+.sel-sum[hidden] { display: none; }
+.sel-sum:hover { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+.sel-sum .x { margin-left: 6px; opacity: .7; }
 .act-page .tbl .sel-cell { width: 2.2em; min-width: 2.2em; padding-left: .5em !important; padding-right: 0 !important; text-align: center; }
 .act-page .tbl .sel-cell input { width: 1.05em; height: 1.05em; margin: 0; cursor: pointer; accent-color: var(--accent); opacity: 0; transition: opacity .12s; }
 .act-page .tbl tr:hover .sel-cell input, .act-page .tbl .sel-cell input:checked, .act-page .tbl .sel-cell input:focus-visible,
@@ -2724,6 +2728,7 @@ function buildActivityPages() {
           '<button data-q="encours" data-tip-name="En cours" data-tip-role="' + esc(d.enCoursRole) + '">En cours</button>' +
           '<button data-q="tout" data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours, filtres de colonnes et filtre posé depuis un graphique)">Tout</button>' +
         "</div>" +
+        '<button class="sel-sum" id="' + d.page + 'SelSum" hidden data-tip-name="Sélection" data-tip-role="Nombre de ' + esc(d.unit) + ' cochés et somme de leurs Temps (h). Cliquez pour tout décocher" data-tip-key="Échap"></button>' +
         '<span class="spacer"></span>' +
         '<button class="btn cap-btn" data-cap="' + act + '" data-tip-name="Affectation" data-tip-role="Ouvre à droite le graphique par jour de chaque affectation : temps affecté, temps restant à affecter et surcharge">' + ICON_CAP + '<span>Affectation</span><b class="cap-alert" hidden></b></button>' +
         '<button class="icon-btn cols-btn" data-cols="' + act + '" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau, et leur ordre">' + ICON_COLS + "</button>" +
@@ -2807,7 +2812,7 @@ function actList(act) {
 }
 
 function renderPrepa() {
-  for (const act of Object.keys(ACT_DEFS)) renderActTable(act);
+  for (const act of Object.keys(ACT_DEFS)) { renderActTable(act); paintSelSum(act); }
   if (chartOpen) renderChart();
   renderGlobal();
 }
@@ -2916,7 +2921,7 @@ function renderActTable(act) {
     // Les colonnes voisines sans total sont fusionnées ; la première porte le libellé du total.
     const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")";
     ui.footCols = cols;
-    h += "<tfoot>" + footRowHtml(cols, label, totalH, nAff, rows.length, "") + selFootHtml(act) + "</tfoot>";
+    h += "<tfoot>" + footRowHtml(cols, label, totalH, nAff, rows.length, "") + "</tfoot>";
   }
   // Le tableau garde sa position de défilement quand il est reconstruit (affectation, glisser-déposer, filtre…).
   const oldWrap = body.querySelector(".tbl-wrap");
@@ -3001,14 +3006,16 @@ function footRowHtml(cols, label, hours, nAff, n, cls) {
   flush();
   return h + "</tr>";
 }
-// Ligne « Sélection » du pied de tableau : nombre et somme des Temps (h) des dossiers sélectionnés (dès 2 dossiers).
-function selFootHtml(act) {
-  const ui = actUI[act], cols = ui.footCols;
+// Bandeau de l'activité : nombre de dossiers cochés et somme de leurs Temps (h).
+function paintSelSum(act) {
+  const ui = actUI[act], el = $(ACT_DEFS[act].page + "SelSum");
   const rows = (actRows[act] || []).filter(x => ui.sel.has(x.id));
-  if (!cols || rows.length < 2) return "";
+  el.hidden = !rows.length;
+  if (!rows.length) return;
   const hours = rows.reduce((a, x) => a + (x.heures || 0), 0);
-  return footRowHtml(cols, "Sélection (" + fmtInt(rows.length) + " " + ACT_DEFS[act].unit + ")", hours, rows.filter(x => x.ressource).length, rows.length, "sel-foot");
+  el.innerHTML = "Sélection : <b>" + fmtInt(rows.length) + "</b> " + esc(ACT_DEFS[act].unit) + " · <b>" + fmtHours(hours * 3600) + ' h</b><span class="x">✕</span>';
 }
+for (const act of Object.keys(ACT_DEFS)) $(ACT_DEFS[act].page + "SelSum").onclick = () => clearSelection(act);
 
 $("prepaFrom").onchange = e => setPeriod(e.target.value, prepaUI.to);
 $("prepaTo").onchange = e => setPeriod(prepaUI.from, e.target.value);
@@ -3162,12 +3169,7 @@ function paintSelection(act) {
   const tbl = body.querySelector("table.tbl"), all = body.querySelector(".all-chk");
   if (tbl) tbl.classList.toggle("has-sel", n > 0);
   if (all) { all.checked = total > 0 && n === total; all.indeterminate = n > 0 && n < total; }
-  const tfoot = body.querySelector("tfoot");
-  if (tfoot) {
-    const old = tfoot.querySelector(".sel-foot");
-    if (old) old.remove();
-    tfoot.insertAdjacentHTML("beforeend", selFootHtml(act));
-  }
+  paintSelSum(act);
 }
 function clearSelection(act) {
   const ui = actUI[act];
