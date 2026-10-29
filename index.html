@@ -4638,8 +4638,23 @@ for (const b of $("themeSeg").children) b.onclick = () => {
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyAppearance);
 
 const TEXT_FIELDS = "input[type=text], input[type=number], input[type=date], input:not([type]), textarea";
+// Ctrl + A coche tous les dossiers affichés du tableau, une fois qu'on a cliqué dans ce tableau (hors saisie).
+let tableFocusAct = null;
+document.addEventListener("mousedown", e => {
+  const body = e.target.closest && e.target.closest(".act-body");
+  tableFocusAct = body ? Object.keys(ACT_DEFS).find(a => ACT_DEFS[a].page + "Body" === body.id) || null : null;
+}, true);
 document.addEventListener("keydown", e => {
   const k = e.key.toLowerCase();
+  if (e.ctrlKey && !e.shiftKey && !e.altKey && k === "a" && tableFocusAct && !e.target.matches(TEXT_FIELDS + ", select") &&
+      $("page-" + ACT_DEFS[tableFocusAct].page).classList.contains("active") && !settingsOpen() && !chartOpen) {
+    e.preventDefault();
+    const act = tableFocusAct, ui = actUI[act];
+    for (const x of actRows[act] || []) ui.sel.add(x.id);
+    getSelection().removeAllRanges();
+    paintSelection(act);
+    return;
+  }
   if (e.ctrlKey && !e.shiftKey && k === "s") { e.preventDefault(); save(); }
   else if (e.key === "F9" && !e.ctrlKey && !e.altKey) { e.preventDefault(); refreshSources(); }
   // Ctrl + Z / Ctrl + Y annulent dans l'application, sauf pendant une saisie (le champ garde son annulation).
