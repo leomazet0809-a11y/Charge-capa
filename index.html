@@ -862,12 +862,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
     </div>
 
     <div class="card">
-      <h2>Date d'affectation</h2>
-      <p class="muted small" style="margin-top:0">Date d'affectation par défaut de chaque dossier = date due − ce nombre de jours ouvrés (du lundi au vendredi). Elle se modifie ensuite dossier par dossier dans les tableaux.</p>
-      <div id="leadDays"></div>
-    </div>
-
-    <div class="card">
       <h2>Apparence</h2>
       <div class="row">
         <label>Thème</label>
@@ -1137,8 +1131,7 @@ function ensureActivityDefaults(st) {
 }
 
 const DEFAULT_STATE = {
-  // leadDays : délai par défaut (jours ouvrés) entre la date d'affectation et la date due, par activité.
-  settings: { theme: "auto", font: "Inter", fontSize: 14, autoSave: false, leadDays: { "prepa-of": 2, "prepa-exped": 2 } },
+  settings: { theme: "auto", font: "Inter", fontSize: 14, autoSave: false },
   sources: clone(DEFAULT_SOURCES).concat(clone(DN_SOURCE)),
   gammes: [defaultGammePrepa(), defaultGammeExped()],
   // Source unique de capacité de travail (Heure productivité par jour, groupe et niveau).
@@ -1146,7 +1139,7 @@ const DEFAULT_STATE = {
   // Ressources (préparateurs, postes…) et affectation des dossiers : assign[activité][dossier] = id ressource.
   resources: [], // ancienne liste paramétrée : convertie en noms au chargement (voir migrateResources)
   assign: {},
-  // Dates d'affectation modifiées à la main : planned[activité][dossier] = "AAAA-MM-JJ" (sinon date due − délai).
+  // Dates d'affectation modifiées à la main : planned[activité][dossier] = "AAAA-MM-JJ" (vide = dossier non planifié).
   planned: {}
 };
 const XLSX_TYPES = [{ description: "Classeur Excel", accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"] } }];
@@ -1184,7 +1177,7 @@ function normalizeState(s) {
   const d = clone(DEFAULT_STATE);
   if (!s || typeof s !== "object") return d;
   return migrateResources(ensureActivityDefaults({
-    settings: { ...d.settings, ...(s.settings || {}), leadDays: { ...d.settings.leadDays, ...((s.settings || {}).leadDays || {}) } },
+    settings: { ...d.settings, ...(s.settings || {}) },
     sources: Array.isArray(s.sources) ? s.sources : d.sources,
     gammes: Array.isArray(s.gammes) && s.gammes.length ? s.gammes : d.gammes,
     capacity: { ...d.capacity, ...(s.capacity || {}) },
@@ -1311,10 +1304,6 @@ function render() {
   $("selFont").value = s.font;
   $("selSize").value = String(s.fontSize);
   $("chkAutoSave").checked = !!s.autoSave;
-  $("leadDays").innerHTML = ACTIVITIES.map(a => '<div class="row"><label for="lead-' + a.id + '">' + esc(a.name) + "</label>" +
-    '<input type="number" min="0" max="60" step="1" id="lead-' + a.id + '" class="lead-in" data-act="' + a.id + '" data-fk="lead.' + a.id + '" value="' + leadDays(a.id) + '" style="width:80px"' +
-    ' data-tip-name="Délai ' + esc(a.name) + '" data-tip-role="Nombre de jours ouvrés entre la date d’affectation par défaut et la date due (' + esc(ACT_DEFS[a.id].dateLabel) + ')">' +
-    ' <span class="muted small">jours ouvrés avant la ' + esc(ACT_DEFS[a.id].dateLabel) + "</span></div>").join("");
   $("btnUndo").disabled = undoStack.length === 0;
   updateRefreshBtn();
   $("btnRedo").disabled = redoStack.length === 0;
@@ -2841,32 +2830,18 @@ function assignSuggestions(act) {
 }
 
 /* ---------- Date d'affectation (jour où le dossier est planifié) ---------- */
-function leadDays(act) {
-  const v = Number((state.settings.leadDays || {})[act]);
-  return Number.isFinite(v) && v >= 0 ? v : 2;
-}
-// Recule de n jours ouvrés (lundi à vendredi).
-function subWorkdays(d, n) {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  for (let k = n; k > 0;) { x.setDate(x.getDate() - 1); const w = x.getDay(); if (w !== 0 && w !== 6) k--; }
-  return x;
-}
-function defaultAffDate(act, x) {
-  const due = x[ACT_DEFS[act].dateKey];
-  return due ? subWorkdays(due, leadDays(act)) : null;
-}
-// Date d'affectation : saisie à la main, sinon date due − délai de l'activité.
+// Date d'affectation : uniquement saisie par l'ordonnanceur (aucune date par défaut).
 function affDate(act, x) {
   const iso = (state.planned[act] || {})[x.id];
   if (iso) { const d = new Date(iso + "T00:00"); if (!isNaN(d)) return d; }
-  return defaultAffDate(act, x);
+  return null;
 }
 function affDateInput(act, x) {
-  const set = !!(state.planned[act] || {})[x.id], due = x[ACT_DEFS[act].dateKey], d = x.dateAff;
+  const due = x[ACT_DEFS[act].dateKey], d = x.dateAff, set = !!d;
   const late = d && due && d > due;
-  const role = (set ? "Date modifiée à la main" : "Date par défaut : " + ACT_DEFS[act].dateLabel + " − " + leadDays(act) + " jour(s) ouvré(s)") +
+  const role = (set ? "Jour où le dossier est planifié" : "Dossier non planifié") +
     (late ? ". ⚠ Postérieure à la date due (" + ACT_DEFS[act].dateLabel + ")" : "") +
-    ". Modifiez-la pour avancer le dossier (recopiée sur les lignes cochées) ; videz-la pour revenir à la date par défaut.";
+    ". Saisissez le jour où traiter le dossier (recopié sur les lignes cochées) ; videz-la pour le déplanifier.";
   // Logo attention à gauche quand la date d'affectation dépasse la date due.
   return '<span class="aff-wrap">' + (late ? '<span class="aff-warn" data-tip-name="Date affectation après la date due" data-tip-role="' +
       esc("La date d’affectation (" + fmtDate(d) + ") est postérieure à la date due (" + ACT_DEFS[act].dateLabel + " : " + fmtDate(due) + ")") + '">⚠</span>' : "") +
@@ -2876,18 +2851,15 @@ function affDateInput(act, x) {
 function saveAffDate(act, el) {
   const ui = actUI[act], id = el.dataset.id;
   const ids = ui.sel.has(id) && ui.sel.size > 1 ? [...ui.sel] : [id];
-  const rowsById = new Map((actCache[act] && actCache[act].list || []).map(x => [x.id, x]));
   const v = el.value;
-  // Une date égale à la date par défaut n'est pas mémorisée : elle suivra la date due si celle-ci change.
-  const target = x => !v || (x && defaultAffDate(act, x) && localISO(defaultAffDate(act, x)) === v) ? "" : v;
   const p0 = state.planned[act] || {};
-  if (ids.every(x => (p0[x] || "") === target(rowsById.get(x)))) return;
+  if (ids.every(x => (p0[x] || "") === v)) return;
   if (ids.length > 1) { ui.sel.clear(); ui.anchor = null; }
   commit(st => {
     const m = st.planned[act] || (st.planned[act] = {});
-    for (const x of ids) { const t = target(rowsById.get(x)); if (t) m[x] = t; else delete m[x]; }
+    for (const x of ids) { if (v) m[x] = v; else delete m[x]; }
   });
-  if (ids.length > 1) toast(v ? ids.length + " lignes : date d’affectation au " + fmtDate(new Date(v + "T00:00")) : "Date d’affectation par défaut rétablie sur " + ids.length + " lignes");
+  if (ids.length > 1) toast(v ? ids.length + " lignes : date d’affectation au " + fmtDate(new Date(v + "T00:00")) : "Date d’affectation effacée sur " + ids.length + " lignes");
 }
 
 // Une affectation saisie sur une ligne cochée est recopiée sur toutes les lignes cochées (une seule action annulable).
@@ -3160,8 +3132,7 @@ function dropOnCapacity(act, ids, day, name) {
     const am = st.assign[act] || (st.assign[act] = {}), pm = st.planned[act] || (st.planned[act] = {});
     for (const id of ids) {
       if (name) am[id] = name;
-      const x = rows.get(id), def = x && defaultAffDate(act, x);
-      if (def && localISO(def) === iso) delete pm[id]; else pm[id] = iso;
+      pm[id] = iso;
     }
   });
   const when = day.d.toLocaleDateString("fr-FR", { weekday: "short", day: "2-digit", month: "2-digit" });
@@ -3966,7 +3937,7 @@ function stateToWorkbook() {
     ["sauvegarde_auto", s.autoSave ? "oui" : "non"],
     ["periode_debut", s.period && s.period.from || ""],
     ["periode_fin", s.period && s.period.to || ""]
-  ].concat(ACTIVITIES.map(a => ["delai_affectation_" + a.id, leadDays(a.id)]));
+  ];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Paramètres");
 
   const src = [["Id", "Libellé", "Activité", "Gamme", "Fichier", "Date du fichier", "Dernier chargement", "Capacité (groupe › niveau)"]];
@@ -4032,10 +4003,6 @@ function workbookToState(wb) {
     const iso = v => v instanceof Date ? localISO(dayOf(v)) : /^\d{4}-\d{2}-\d{2}$/.test(String(v || "").trim()) ? String(v).trim() : "";
     const pf = iso(kv.periode_debut), pt = iso(kv.periode_fin);
     if (pf && pt) st.settings.period = { from: pf, to: pt };
-    for (const a of ACTIVITIES) {
-      const v = Number(kv["delai_affectation_" + a.id]);
-      if (kv["delai_affectation_" + a.id] !== undefined && Number.isFinite(v) && v >= 0) st.settings.leadDays[a.id] = Math.round(v);
-    }
   }
 
   const rowsOf = name => wb.Sheets[name] ? XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "" }).slice(1) : null;
@@ -4143,13 +4110,6 @@ async function autoSave() {
   await writeProject(projectHandle, true);
 }
 setInterval(autoSave, AUTO_SAVE_MS);
-$("leadDays").addEventListener("change", e => {
-  const el = e.target.closest(".lead-in");
-  if (!el) return;
-  const v = Math.max(0, Math.min(60, Math.round(Number(el.value) || 0)));
-  if (v !== leadDays(el.dataset.act)) commit(st => { st.settings.leadDays = { ...(st.settings.leadDays || {}), [el.dataset.act]: v }; });
-  else el.value = v;
-});
 $("chkAutoSave").onchange = e => { const v = e.target.checked; commit(st => { st.settings.autoSave = v; }); };
 
 async function saveAs() {
