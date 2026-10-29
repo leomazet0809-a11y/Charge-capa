@@ -614,10 +614,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 .chart-legend { display: flex; gap: 18px; align-items: center; margin: 4px 0 8px; color: var(--text-2); font-size: .92em; flex-wrap: wrap; }
 .chart-legend .k-bar { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: var(--series-1); vertical-align: -1px; margin-right: 6px; }
 .chart-legend .k-line { display: inline-block; width: 16px; height: 2px; background: var(--series-2); vertical-align: 3px; margin-right: 6px; }
-.chart-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
-.chart-stat { background: var(--surface-2); border-radius: 10px; padding: 8px 14px; }
-.chart-stat .v { font-size: 1.3em; font-weight: 700; font-variant-numeric: tabular-nums; }
-.chart-stat .l { color: var(--text-2); font-size: .85em; }
 .chart-svg { width: 100%; display: block; }
 .chart-svg text { fill: var(--text-2); font-size: 11px; font-family: var(--font); }
 .chart-svg .grid { stroke: var(--border); stroke-width: 1; }
@@ -637,8 +633,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 .chart-svg .bar.s-open { fill: var(--series-open); }
 .chart-svg .bar.s-open.on { fill: color-mix(in srgb, var(--series-open) 78%, var(--surface)); }
 .chart-legend .k-bar.k-open, .chart-tip .k-bar.k-open { background: var(--series-open); }
-.chart-stat .v.k-done-t { color: var(--series-1); }
-.chart-stat .v.k-open-t { color: var(--series-open); }
 .chart-svg .xhair { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 3 3; display: none; pointer-events: none; }
 .chart-svg .bar, .chart-svg .dot, .chart-svg .cap { pointer-events: none; }
 .chart-wrap { position: relative; }
@@ -679,7 +673,6 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
   .settings-box { height: calc(100vh - 60px); max-height: calc(100vh - 60px); }
   .modal-head { flex-wrap: wrap; }
   .row > label { min-width: 120px; }
-  .chart-stat { padding: 6px 10px; }
 }
 @media (max-width: 560px) {
   .ribbon .filename { display: none; }
@@ -3978,28 +3971,14 @@ function renderChartView(v, acts, single) {
 
   const data = m.data, sel = m.sel;
   const hasCap = data.some(x => x.cap != null);
-  const totL = data.reduce((a, x) => a + x.load, 0);
-  const totDone = data.reduce((a, x) => a + x.done, 0);
-  const totC = data.reduce((a, x) => a + (x.cap || 0), 0);
   const series = acts.length > 1 ? acts.map(a => ACT_DEFS[a].name) : null;
 
   const notices = m.errors.slice();
   if (!m.capLoaded) notices.push("Aucun fichier de capacité chargé : seule la charge est affichée (Paramètres › Fichiers sources › Capacité de travail).");
   else if (!sel.length) notices.push("Aucun groupe / niveau de capacité choisi pour " + (single ? "cette activité" : "les activités") + " (Paramètres › Fichiers sources, colonne « Capacité »).");
 
-  let h = '<div class="chart-stats">' +
-    '<div class="chart-stat"><div class="v">' + fmtH(totL) + ' h</div><div class="l">Charge (Temps h)</div></div>' +
-    '<div class="chart-stat"><div class="v k-done-t">' + fmtH(totDone) + ' h</div><div class="l">dont soldée</div></div>' +
-    '<div class="chart-stat"><div class="v k-open-t">' + fmtH(totL - totDone) + ' h</div><div class="l">dont en cours</div></div>';
-  if (series) series.forEach((n, j) => {
-    const t = data.reduce((a, x) => a + x.parts[j], 0);
-    h += '<div class="chart-stat"><div class="v">' + fmtH(t) + ' h</div><div class="l">' + esc(n) + "</div></div>";
-  });
-  if (hasCap) h += '<div class="chart-stat"><div class="v">' + fmtH(totC) + ' h</div><div class="l">Capacité (Heure productivité)</div></div>' +
-    '<div class="chart-stat"><div class="v">' + (totC ? Math.round(totL / totC * 100) + " %" : "–") + '</div><div class="l">Taux de charge</div></div>';
-  h += "</div>";
-  // Charge globale : pas de totaux de période au-dessus du graphique (les valeurs restent au survol).
-  if (!single) h = "";
+  // Aucun total de période au-dessus des graphiques : les valeurs de chaque jour restent au survol.
+  let h = "";
   for (const n of notices) h += '<p class="muted small" style="margin:4px 0">' + esc(n) + "</p>";
   if (hasCap) h += '<div class="small muted" style="margin:0 0 4px">Capacité : ' + esc(sel.join(" ; ")) + "</div>";
   h += '<div class="chart-legend"><span><span class="k-bar k-done"></span>Charge soldée</span><span><span class="k-bar k-open"></span>Charge en cours</span>' +
