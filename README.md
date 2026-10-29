@@ -25,7 +25,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Flèche retour | Annule la dernière modification (y compris filtres, colonnes affichées et taille du tableau) | Ctrl + Z |
 | Flèche avant | **Rétablit** la dernière action annulée (annuler une annulation, comme Excel). Toute nouvelle modification vide la liste des actions à rétablir | Ctrl + Y |
 | Actualiser (deux flèches, à gauche de la disquette) | Recharge les fichiers sources. **Noir** : les données chargées correspondent exactement aux fichiers sur le disque ; **orange** : au moins un fichier est à actualiser (non chargé, lecture à autoriser après une actualisation de la page, modifié depuis son chargement, ou erreur) — la bulle détaille lesquels. Le clic ne relit que les fichiers concernés (ou tous si tout est à jour) et redemande l'accès au navigateur si besoin. Les fichiers ne sont jamais rechargés automatiquement, sauf à l'ouverture de l'application | F9 |
-| Disquette | Enregistre le projet. **Noire** : tout est enregistré ; **orange** : modifications non enregistrées, pas encore de classeur ou dernier enregistrement en échec (la bulle précise le cas) | Ctrl + S |
+| Disquette | Enregistre le projet. **Noire** : aucune modification depuis le dernier enregistrement (ou l'ouverture) — y compris si vous êtes revenu à l'état enregistré par Ctrl + Z ; **orange** : des données ont été modifiées et pas encore enregistrées (ou le dernier enregistrement a échoué). Recharger les fichiers sources ne compte pas comme une modification | Ctrl + S |
 | Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
@@ -56,9 +56,9 @@ Au lancement suivant, l'application propose de **reprendre le dernier projet** :
 
 ⚠ **Fermez le classeur projet dans Excel avant d'enregistrer** : Windows bloque l'écriture d'un fichier ouvert dans Excel. La disquette reste alors orange ; fermez Excel et refaites Ctrl + S.
 
-**Rappel d'enregistrement** : si vous quittez l'application (autre onglet, autre fenêtre, navigateur réduit) alors que des modifications ne sont pas enregistrées, une fenêtre **« Modifications non enregistrées »** s'affiche à votre retour :
+**Rappel d'enregistrement** : la fenêtre **« Modifications non enregistrées »** ne s'affiche que s'il y a des modifications non enregistrées **et** que le dernier enregistrement date d'**au moins 10 minutes** (sans classeur : 10 minutes après la première modification). Elle apparaît dans l'application (jamais pendant une saisie ou un menu ouvert) ou à votre retour si vous l'aviez quittée :
 - **Enregistrer** enregistre dans le classeur projet (ou demande où le créer s'il n'existe pas encore) ;
-- **Plus tard** (ou Échap) ferme le rappel ; il reviendra après une nouvelle modification. **Entrée** enregistre.
+- **Plus tard** (ou Échap) ferme le rappel ; il reviendra 10 minutes plus tard s'il reste des modifications non enregistrées. **Entrée** enregistre.
 
 Si vous **fermez** l'onglet ou le navigateur avec des modifications non enregistrées, le navigateur affiche son propre avertissement « Quitter le site ? » (les navigateurs n'autorisent pas d'autre fenêtre à ce moment-là) : choisissez *Annuler* puis faites Ctrl + S.
 

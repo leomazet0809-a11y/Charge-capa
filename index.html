@@ -115,7 +115,8 @@ button, input, select { font: inherit; color: inherit; }
 #btnRefresh[data-state="loading"] svg { animation: spin 1s linear infinite; }
 /* Disquette : noire quand tout est enregistré, orange sinon. */
 #btnSave, #btnSave:hover { color: var(--warn); }
-#btnSave[data-state="saved"], #btnSave[data-state="saved"]:hover { color: var(--text); }
+#btnSave[data-state="saved"], #btnSave[data-state="saved"]:hover,
+#btnSave[data-state="none"], #btnSave[data-state="none"]:hover { color: var(--text); }
 #btnSave[data-state="saving"] svg { animation: pulse 0.8s ease-in-out infinite alternate; }
 @keyframes pulse { to { opacity: .35; } }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -992,7 +993,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
     <h2 id="remindTitle">Modifications non enregistrées</h2>
     <p id="remindText" class="muted"></p>
     <div class="fbtns">
-      <button class="btn" id="remindLater" data-tip-name="Plus tard" data-tip-role="Ferme ce rappel ; il reviendra après une nouvelle modification">Plus tard</button>
+      <button class="btn" id="remindLater" data-tip-name="Plus tard" data-tip-role="Ferme ce rappel ; il reviendra dans 10 minutes si des modifications restent non enregistrées">Plus tard</button>
       <button class="btn primary" id="remindSave" data-tip-name="Enregistrer" data-tip-role="Enregistre le projet dans son classeur Excel" data-tip-key="Ctrl + S">Enregistrer</button>
     </div>
   </div>
@@ -1208,6 +1209,17 @@ function cacheState() {
   try { localStorage.setItem("cc.state", JSON.stringify(state)); } catch (e) { /* stockage indisponible */ }
 }
 
+// Disquette orange seulement si les données diffèrent de la dernière version enregistrée (ou ouverte) :
+// revenir par Ctrl + Z à l'état enregistré la remet en noir. Les dates de lecture des fichiers sources ne comptent pas.
+let savedSnapshot = null;
+const dataKey = st => JSON.stringify(st, (k, v) => k === "loadedAt" || k === "fileDate" ? undefined : v);
+function markSaved(snap) { savedSnapshot = snap == null ? dataKey(state) : snap; lastSaveTime = Date.now(); firstUnsavedTime = null; }
+function refreshSaveState() {
+  if (saveState === "saving") return;
+  if (savedSnapshot != null && dataKey(state) === savedSnapshot) setSaveState(projectHandle ? "saved" : "none");
+  else { if (!firstUnsavedTime) firstUnsavedTime = Date.now(); setSaveState("dirty"); }
+}
+
 // Toute modification passe par commit() pour pouvoir être annulée.
 function commit(mutator) {
   undoStack.push(JSON.stringify(state));
@@ -1215,7 +1227,7 @@ function commit(mutator) {
   redoStack = [];
   mutator(state);
   cacheState();
-  setSaveState("dirty");
+  refreshSaveState();
   render();
 }
 
@@ -1263,7 +1275,7 @@ function stepHistory(from, to, undoing) {
   to.push(JSON.stringify(state));
   state = JSON.parse(last);
   cacheState();
-  setSaveState("dirty");
+  refreshSaveState();
   render();
   toast(undoing ? "Action annulée" : "Action rétablie");
 }
@@ -4077,6 +4089,7 @@ function workbookToState(wb) {
 // quiet : sauvegarde automatique, sans reconstruire l'écran (une saisie en cours n'est pas perdue).
 async function writeProject(handle, quiet) {
   setSaveState("saving");
+  const snap = dataKey(state); // version réellement écrite (des modifications peuvent suivre pendant l'écriture)
   try {
     const data = XLSX.write(stateToWorkbook(), { type: "array", bookType: "xlsx" });
     const w = await handle.createWritable();
@@ -4084,7 +4097,9 @@ async function writeProject(handle, quiet) {
     await w.close();
     projectHandle = handle;
     await idbSet("projectHandle", handle);
-    setSaveState("saved");
+    saveState = "saved";
+    markSaved(snap);
+    refreshSaveState();
     if (quiet) { $("autoSaveInfo").textContent = "Dernière sauvegarde automatique : " + new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); toast("Sauvegarde automatique effectuée"); }
     else { render(); toast("Projet enregistré"); }
     return true;
@@ -4152,6 +4167,7 @@ async function readProject(h) {
     projectHandle = h;
     await idbSet("projectHandle", h);
     cacheState();
+    markSaved();
     setSaveState("saved");
     render();
     toast("Projet « " + h.name + " » ouvert");
@@ -4291,6 +4307,8 @@ $("btnNew").onclick = async () => {
   redoStack = [];
   projectHandle = null;
   for (const k of Object.keys(srcData)) delete srcData[k];
+  markSaved();
+  setSaveState("none");
   render();
   await saveAs();
 };
@@ -4338,7 +4356,10 @@ window.addEventListener("beforeunload", e => {
 // l'application (autre onglet, autre fenêtre, réduction) avec des modifications non
 // enregistrées, une fenêtre propose d'enregistrer au retour.
 let editVersion = 0;          // augmente à chaque modification
-let remindDismissed = -1;     // version pour laquelle « Plus tard » a été choisi
+let lastSaveTime = Date.now(); // dernier enregistrement (ou ouverture du projet)
+let firstUnsavedTime = null;   // première modification non enregistrée depuis
+let remindSnoozeUntil = 0;     // « Plus tard » : pas de rappel avant cette heure
+const REMIND_AFTER_MS = 10 * 60 * 1000;
 let leftWithChanges = false;
 let nativeDialogs = 0;        // sélecteurs de fichiers et confirmations ouverts par l'application
 
@@ -4346,11 +4367,24 @@ const hasUnsaved = () => saveState === "dirty" || saveState === "error";
 function markLeave() {
   if (!nativeDialogs && hasUnsaved()) leftWithChanges = true;
 }
+// Le rappel ne s'affiche que si des modifications attendent depuis au moins 10 minutes sans enregistrement.
+function reminderDue() {
+  if (!hasUnsaved() || Date.now() < remindSnoozeUntil || $("remindModal").classList.contains("show")) return false;
+  // 10 minutes après le dernier enregistrement (ou, sans enregistrement, après la première modification).
+  const since = projectHandle ? lastSaveTime : Math.max(lastSaveTime, firstUnsavedTime || 0);
+  return Date.now() - since >= REMIND_AFTER_MS;
+}
 function checkReturn() {
   if (!leftWithChanges || document.visibilityState !== "visible") return;
   leftWithChanges = false;
-  if (hasUnsaved() && remindDismissed !== editVersion) openSaveReminder();
+  if (reminderDue()) openSaveReminder();
 }
+// Vérification régulière, aussi sans quitter l'application (jamais pendant une saisie ou un menu ouvert).
+setInterval(() => {
+  if (document.visibilityState !== "visible" || fpopKey || chartOpen || settingsOpen()) return;
+  if (document.activeElement && document.activeElement.matches("input[type=text], input[type=date], input[type=number], textarea")) return;
+  if (reminderDue()) openSaveReminder();
+}, 30000);
 document.addEventListener("visibilitychange", () => document.visibilityState === "hidden" ? markLeave() : checkReturn());
 window.addEventListener("blur", markLeave);
 window.addEventListener("focus", checkReturn);
@@ -4378,11 +4412,12 @@ function openSaveReminder() {
   $("remindSave").focus();
 }
 function closeSaveReminder() { $("remindModal").classList.remove("show"); }
-$("remindLater").onclick = () => { remindDismissed = editVersion; closeSaveReminder(); };
+$("remindLater").onclick = () => { remindSnoozeUntil = Date.now() + REMIND_AFTER_MS; closeSaveReminder(); };
 $("remindSave").onclick = async () => { closeSaveReminder(); await save(); };
 
 /* ================= Démarrage ================= */
 (async function init() {
+  markSaved();
   setSaveState("none");
   render();
   if (!FS_OK) { $("bannerBrowser").classList.add("show"); return; }
