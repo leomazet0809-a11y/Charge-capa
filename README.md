@@ -218,7 +218,7 @@ Pendant le glisser, la barre visée est encadrée et une bulle indique « Affect
 - **Courbe** : capacité du jour = somme des *Heure productivité* des groupes/niveaux choisis pour l'activité ;
 - tous les jours de la période du ruban (week-ends grisés) ; le graphique suit aussi les **filtres de colonnes** du tableau ;
 - boutons **Jour / Semaine / Mois / Année** (en haut à droite du graphique) : charge et capacité sont additionnées par semaine, mois ou année ; une semaine ou un mois coupé par la période ne compte que les jours de la période (les dates exactes sont rappelées au survol) ;
-- sous l'axe : jours, **numéros de semaine** (S44, norme ISO : la semaine commence le lundi) puis **mois et année** ; un trait pointillé sépare les mois (ou les années en vue Mois) ;
+- sous l'axe : jours (numéro puis **nom du jour** abrégé : lun., mar.…), **numéros de semaine** (S44, norme ISO : la semaine commence le lundi) puis **mois et année** ; un trait pointillé sépare les mois (ou les années en vue Mois) ;
 - en haut : charge totale, capacité totale, taux de charge ;
 - au survol d'une barre ou d'un point de la courbe, les valeurs du jour s'affichent **immédiatement** (charge, capacité, marge ou dépassement).
 

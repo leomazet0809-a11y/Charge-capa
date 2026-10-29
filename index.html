@@ -604,6 +604,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 .chart-svg .sep { stroke: var(--border); stroke-width: 1; }
 .chart-svg .msep { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 2 4; opacity: .5; }
 .chart-svg text.wk { font-weight: 600; }
+.chart-svg text.wd { font-size: 10px; }
 .chart-svg text.mo { fill: var(--text); font-weight: 600; font-size: 12px; }
 .chart-svg .wkend { fill: var(--surface-2); }
 .chart-svg .bar { fill: var(--series-1); stroke: var(--surface); stroke-width: 1; } /* liseré entre les segments empilés */
@@ -3774,6 +3775,7 @@ function drawChart(svg, data, hasCap, gran, series) {
   const ROWS = {
     day: [
       { each: b => String(b.d.getDate()), min: 22 },
+      { each: b => b.d.toLocaleDateString("fr-FR", { weekday: "short" }), min: 22, cls: "wd", h: 13 },
       { seg: b => isoWeek(b.d).key, label: (b, w) => w >= 26 ? "S" + isoWeek(b.d).week : w >= 14 ? String(isoWeek(b.d).week) : "", cls: "wk" },
       { seg: b => b.d.getFullYear() * 12 + b.d.getMonth(), label: (b, w) => monthLabel(b.d, w), cls: "mo", plotSep: true }
     ],
@@ -3789,7 +3791,7 @@ function drawChart(svg, data, hasCap, gran, series) {
       { each: b => String(b.d.getFullYear()), min: 34, cls: "mo" }
     ]
   }[gran];
-  const M = { l: 48, r: 12, t: 12, b: 16 + ROWS.length * 22 };
+  const M = { l: 48, r: 12, t: 12, b: 16 + ROWS.reduce((t, row) => t + (row.h || 22), 0) };
   const iw = W - M.l - M.r, ih = H - M.t - M.b;
   const maxV = Math.max(1, ...data.map(x => Math.max(x.load, x.cap || 0)));
   const step = niceStep(maxV, 5), top = Math.ceil(maxV / step) * step;
@@ -3831,8 +3833,11 @@ function drawChart(svg, data, hasCap, gran, series) {
     if (band >= 10) data.forEach((x, i) => { g += '<circle class="dot" data-i="' + i + '" cx="' + xc(i) + '" cy="' + y(x.cap || 0) + '" r="4"/>'; });
   }
   // Axe des dates.
-  ROWS.forEach((row, r) => {
-    const yy = yBase + 15 + r * 22;
+  // Chaque ligne d'axe a sa hauteur (22 px, ou h) : le nom du jour se place juste sous son numéro.
+  let off = 0;
+  ROWS.forEach(row => {
+    const yy = yBase + 15 + off - (row.h ? 22 - row.h : 0);
+    off += row.h || 22;
     if (row.each) {
       const every = Math.max(1, Math.ceil(row.min / band));
       data.forEach((x, i) => {
