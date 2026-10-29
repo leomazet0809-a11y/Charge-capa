@@ -646,12 +646,10 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 
 /* ---------- Adaptation à l'écran ---------- */
 @media (max-width: 1100px) {
-  .range-label { display: none; }
   .range input[type="date"] { width: 132px; }
 }
 @media (max-width: 820px) {
   .ribbon { gap: 8px; padding: 0 10px; }
-  .range-sep { display: none; }
   .range input[type="date"] { width: 118px; padding: 4px 4px; }
   main { padding: 10px 8px 8px; }
   h1 { font-size: 1.2em; }
@@ -734,10 +732,10 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
   </svg>
   <div class="filename" id="fileName"></div>
   <div class="range">
-    <span class="range-label" data-tip-name="Période" data-tip-role="Plage de dates appliquée à toutes les activités (Prépa OF : colonne Début opé)">Période</span>
+    <span class="range-label" data-tip-name="Période" data-tip-role="Plage de dates appliquée à toutes les activités (Prépa OF : colonne Début opé), enregistrée dans le projet">Du</span>
     <input type="date" id="prepaFrom"
       data-tip-name="Date de début" data-tip-role="Premier jour de la période, pour toutes les activités">
-    <span class="range-sep">→</span>
+    <span class="range-sep">au</span>
     <input type="date" id="prepaTo"
       data-tip-name="Date de fin" data-tip-role="Dernier jour de la période, pour toutes les activités">
   </div>
