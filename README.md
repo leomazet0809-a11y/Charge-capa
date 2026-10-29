@@ -199,6 +199,8 @@ Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Window
 - la case de l'**en-tête** coche ou décoche toutes les lignes affichées ;
 - un clic sur la ligne elle-même ne coche que cette ligne (Ctrl + clic : ajoute ou retire) ;
 - **Échap** décoche tout.
+- **Désaffecter la sélection** : dès qu'un dossier est coché, le bouton **Désaffecter la sélection** apparaît à gauche du bouton *Affectation*. Il retire l'**affectation** (personne) et la **date d'affectation** de tous les dossiers cochés, en une seule action annulable par Ctrl + Z ; les dossiers restent cochés.
+- **Copier une cellule** : double-cliquez sur une cellule du tableau : son contenu est surligné, puis **Ctrl + C** (ou clic droit › Copier) le copie. Pour coller, cliquez dans une case **Affectation** ou **Date affectation** puis **Ctrl + V**.
 - Dès qu'un dossier est coché, une pastille **« Sélection : n OF · x h »** s'affiche dans le bandeau de l'activité, à droite de *En cours / Tout* : nombre de dossiers cochés et **somme de leurs Temps (h)**. Cliquez dessus (✕) ou appuyez sur **Échap** pour tout décocher.
 
 Ensuite, **saisissez l'affectation dans la case Affectation de l'une des lignes cochées** (au clavier ou par la liste ▾) : dès la validation, elle est **recopiée sur toutes les lignes cochées**, puis les cases sont décochées. L'opération compte comme une seule action, annulable par Ctrl + Z. Une saisie sur une ligne non cochée ne concerne que cette ligne.
@@ -227,12 +229,12 @@ Pendant le glisser, la barre visée est encadrée et une bulle indique « Affect
 ## 7. Prépa OF
 
 **Graphique charge / capacité** : le bouton de graphique placé à gauche du grand titre *Prépa OF* (dans la page) ouvre un panneau (Échap ou ✕ pour le fermer) :
-- **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là, en deux parts : **soldée** en bleu (Statut opé « Soldée » ; pour Prépa Expéd, Soldée = Oui) et **en cours** en noir grisé ; en haut, la charge totale est détaillée « dont soldée / dont en cours » ;
+- **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là, en deux parts : **soldée** en bleu (Statut opé « Soldée » ; pour Prépa Expéd, Soldée = Oui) et **en cours** en noir grisé ; le survol d'une barre détaille « dont soldée / dont en cours » ;
 - **Courbe** : capacité du jour = somme des *Heure productivité* des groupes/niveaux choisis pour l'activité ;
 - tous les jours de la période du ruban (week-ends grisés) ; le graphique suit aussi les **filtres de colonnes** du tableau ;
 - boutons **Jour / Semaine / Mois / Année** (en haut à droite du graphique) : charge et capacité sont additionnées par semaine, mois ou année ; une semaine ou un mois coupé par la période ne compte que les jours de la période (les dates exactes sont rappelées au survol) ;
 - sous l'axe : jours (numéro puis **nom du jour** abrégé : lun., mar.…), **numéros de semaine** (S44, norme ISO : la semaine commence le lundi) puis **mois et année** ; un trait pointillé sépare les mois (ou les années en vue Mois) ;
-- en haut : charge totale, capacité totale, taux de charge ;
+- aucun total de période n'est affiché au-dessus du graphique : les valeurs de chaque jour (ou semaine, mois, année) s'affichent au survol ;
 - au survol d'une barre ou d'un point de la courbe, les valeurs du jour s'affichent **immédiatement** (charge, capacité, marge ou dépassement).
 
 Liste de tous les OF dont le **Début opé** est dans la plage de dates choisie en haut de l'onglet.
