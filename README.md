@@ -195,6 +195,8 @@ La vue présente **un histogramme empilé par jour**, les jours les uns sous les
 
 Au survol d'une barre, ses valeurs s'affichent immédiatement.
 
+**Filtrer le tableau depuis un graphique** : cliquez sur la barre d'une personne dans le graphique d'un jour : le tableau n'affiche plus que les **dossiers affectés à cette personne ce jour-là** (date d'affectation), même si leur date due est hors de la période. La barre est encadrée et un bandeau bleu au-dessus du tableau rappelle le filtre. **Recliquez sur la même barre** (ou sur ✕ du bandeau, ou sur **Tout**) pour revenir au tableau complet. Le filtre s'annule aussi avec Ctrl + Z.
+
 **Glisser-déposer** : faites glisser une ligne du tableau (ou, si elle est cochée, toutes les lignes cochées) et déposez-la dans la vue :
 - **sur la barre d'une personne** : les dossiers lui sont affectés **et** leur *Date affectation* devient le jour de ce graphique ;
 - **ailleurs dans le graphique d'un jour** (titre, fond) : seule la *Date affectation* change, l'affectation est conservée.

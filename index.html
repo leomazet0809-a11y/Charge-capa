@@ -301,7 +301,10 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-svg .aff { fill: var(--cap-aff); }
 .cap-svg .rest { fill: var(--cap-rest); }
 .cap-svg .over { fill: var(--cap-over); }
-.cap-svg .hit { fill: transparent; }
+.cap-svg .hit { fill: transparent; cursor: pointer; }
+.cap-svg .hit.picked { fill: color-mix(in srgb, var(--accent) 12%, transparent); stroke: var(--accent); stroke-width: 1.5; }
+.cap-filter-chip { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 0 0 8px; padding: 4px 6px 4px 12px;
+  border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); }
 .cap-svg .hit.drop-on { fill: color-mix(in srgb, var(--accent) 22%, transparent); stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .cap-chart.drop-on { outline: 2px dashed var(--accent); outline-offset: -2px; border-radius: 8px; }
 body.dragging-rows .cap-body { background: color-mix(in srgb, var(--accent) 5%, transparent); }
@@ -1291,7 +1294,7 @@ function commit(mutator) {
 // Les filtres du tableau s'annulent aussi, sans toucher au projet (ils ne sont pas enregistrés).
 function filtersSnapshot(act) {
   const ui = actUI[act];
-  return { act, filters: Object.fromEntries(Object.entries(ui.filters).map(([k, v]) => [k, [...v]])), enCours: ui.enCours };
+  return { act, filters: Object.fromEntries(Object.entries(ui.filters).map(([k, v]) => [k, [...v]])), enCours: ui.enCours, cap: ui.capFilter || null };
 }
 function sameFilters(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
 function changeFilters(act, mutator) {
@@ -1314,6 +1317,7 @@ function stepHistory(from, to, undoing) {
     to.push({ filters: filtersSnapshot(last.filters.act) });
     ui.filters = Object.fromEntries(Object.entries(last.filters.filters).map(([k, v]) => [k, new Set(v)]));
     ui.enCours = last.filters.enCours;
+    ui.capFilter = last.filters.cap || null;
     closeFilter();
     render();
     toast(undoing ? "Filtre annulé" : "Filtre rétabli");
@@ -2589,7 +2593,12 @@ function renderActTable(act) {
   const assigned = state.assign[act] || {};
   for (const x of res.list) { x.ressource = assignLabel(assigned[x.id]); x.dateAff = affDate(act, x); }
   const dk = def.dateKey;
-  const inPeriod = res.list.filter(x => x[dk] && (!from || x[dk] >= from) && (!to || x[dk] <= to));
+  // Filtre posé depuis la vue Affectation par capacité : dossiers de cette personne à ce jour d'affectation
+  // (même si leur date due est hors de la période).
+  const cf = ui.capFilter;
+  const inPeriod = cf
+    ? res.list.filter(x => x.ressource && personKey(x.ressource) === personKey(cf.name) && x.dateAff && localISO(x.dateAff) === cf.iso)
+    : res.list.filter(x => x[dk] && (!from || x[dk] >= from) && (!to || x[dk] <= to));
   const inRange = ui.enCours ? inPeriod.filter(x => !def.isDone(x)) : inPeriod;
   actInRange[act] = inRange;
   const rows = applyColumnFilters(act, inRange);
@@ -2597,7 +2606,7 @@ function renderActTable(act) {
   // La sélection ne garde que les lignes encore affichées.
   const shown = new Set(rows.map(x => x.id));
   for (const id of ui.sel) if (!shown.has(id)) ui.sel.delete(id);
-  const nFilters = Object.keys(ui.filters).length + (ui.enCours ? 1 : 0);
+  const nFilters = Object.keys(ui.filters).length + (ui.enCours ? 1 : 0) + (cf ? 1 : 0);
   for (const b of quick.children) b.classList.toggle("on", b.dataset.q === "encours" ? ui.enCours : !nFilters);
   const col = allCols.find(c => c.k === ui.sort) || allCols.find(c => c.k === dk);
   rows.sort((a, b) => {
@@ -2611,6 +2620,9 @@ function renderActTable(act) {
 
   const totalH = rows.reduce((a, x) => a + (x.heures || 0), 0);
   let h = res.warning ? '<div class="card muted">' + esc(res.warning) + "</div>" : "";
+  if (cf) h += '<div class="cap-filter-chip">Dossiers affectés à <b>' + esc(cf.name) + "</b> le <b>" +
+    esc(new Date(cf.iso + "T00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit" })) + "</b>" +
+    '<button class="mini" data-capfilter-off data-tip-name="Retirer ce filtre" data-tip-role="Affiche à nouveau tous les dossiers de la période (ou recliquez sur la barre dans le graphique)" data-tip-key="Ctrl + Z">✕</button></div>';
   const nSel = rows.filter(x => ui.sel.has(x.id)).length;
   h += '<div class="card prepa-card"><div class="tbl-wrap tall"><table class="tbl' + (nSel ? " has-sel" : "") + '"><thead><tr>' +
     '<th class="sel-cell"><input type="checkbox" class="all-chk"' + (rows.length && nSel === rows.length ? " checked" : "") + (rows.length ? "" : " disabled") +
@@ -2640,7 +2652,7 @@ function renderActTable(act) {
     h += "</tr>";
   }
   if (!rows.length) h += '<tr><td colspan="' + (cols.length + 1) + '" class="muted">' +
-    (inPeriod.length ? "Aucune ligne ne correspond aux filtres." : "Aucune ligne dont la " + def.dateLabel + " est dans cette plage.") + "</td></tr>";
+    (inPeriod.length ? "Aucune ligne ne correspond aux filtres." : cf ? "Aucun dossier affecté à cette personne ce jour-là." : "Aucune ligne dont la " + def.dateLabel + " est dans cette plage.") + "</td></tr>";
   h += "</tbody>";
   if (rows.length) {
     const nAff = rows.filter(x => x.ressource).length;
@@ -2976,7 +2988,7 @@ function capDaySvg(rows, max, width) {
         "H" + (x0 + bw - r) + "Q" + (x0 + bw) + "," + yt + " " + (x0 + bw) + "," + (yt + r) + "V" + yb + 'Z"/>';
       base += v;
     });
-    g += '<rect class="hit" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
+    g += '<rect class="hit' + (r.picked ? " picked" : "") + '" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
     const label = r.name.length > 20 ? r.name.slice(0, 19) + "…" : r.name;
     g += rot
       ? '<text class="who' + (r.over ? " over" : "") + '" text-anchor="end" transform="translate(' + (xc + 4) + "," + (M.t + ih + 12) + ') rotate(-35)">' + esc(label) + "</text>"
@@ -3017,6 +3029,8 @@ function renderCapPanel(act) {
     const rows = onlyOver ? day.rows.filter(r => r.over) : day.rows;
     if (onlyOver && !rows.length) continue;
     shownDays.push({ day, rows });
+    const cfp = actUI[act].capFilter;
+    if (cfp && cfp.iso === day.iso) rows.forEach(r => { r.picked = personKey(r.name) === personKey(cfp.name); });
     const nOver = rows.filter(r => r.over).length;
     h += '<section class="cap-chart" data-d="' + (shownDays.length - 1) + '">' +
       '<div class="cap-day">' + esc(cap1(day.d.toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "2-digit" }))) +
@@ -3087,6 +3101,16 @@ function dropOnCapacity(act, ids, day, name) {
 for (const act of Object.keys(ACT_DEFS)) {
   const def = ACT_DEFS[act], panel = $(def.page + "Cap");
   const capBody = panel.querySelector(".cap-body");
+  // Clic sur la barre d'une personne : filtre le tableau sur ses dossiers de ce jour ; nouveau clic : retire le filtre.
+  capBody.addEventListener("click", e => {
+    const t = capDropTarget(panel, e);
+    if (!t || !t.row) return;
+    const ui = actUI[act], cur = ui.capFilter;
+    const same = cur && cur.iso === t.day.iso && personKey(cur.name) === personKey(t.row.name);
+    changeFilters(act, () => { ui.capFilter = same ? null : { name: t.row.name, iso: t.day.iso }; });
+    hideTip();
+    renderPrepa();
+  });
   capBody.addEventListener("dragover", e => {
     if (!dragInfo || dragInfo.act !== act) return;
     const t = capDropTarget(panel, e);
@@ -3150,6 +3174,7 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
   body.addEventListener("click", e => {
     const dd = e.target.closest(".res-dd");
     if (dd) { e.stopPropagation(); openAssignMenu(act, dd); return; }
+    if (e.target.closest("[data-capfilter-off]")) { changeFilters(act, () => { ui.capFilter = null; }); renderPrepa(); return; }
     const fb = e.target.closest("[data-filter]");
     if (fb) { e.stopPropagation(); openFilter(act, fb.dataset.filter, fb); return; }
     const all = e.target.closest(".all-chk");
@@ -3249,7 +3274,7 @@ for (const [act, def] of Object.entries(ACT_DEFS)) {
     if (!b) return;
     changeFilters(act, () => {
       if (b.dataset.q === "encours") ui.enCours = !ui.enCours;
-      else { ui.enCours = false; ui.filters = {}; }
+      else { ui.enCours = false; ui.filters = {}; ui.capFilter = null; }
     });
     closeFilter();
     renderPrepa();
