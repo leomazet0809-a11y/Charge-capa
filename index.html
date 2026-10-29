@@ -295,7 +295,6 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-svg { display: block; }
 .cap-svg text { fill: var(--text-2); font-size: 11px; font-family: var(--font); }
 .cap-svg text.who { fill: var(--text); font-size: 9.5px; }
-.cap-svg text.who.over { fill: var(--cap-over); font-weight: 600; }
 .cap-svg .grid { stroke: var(--border); stroke-width: 1; }
 .cap-svg .axis { stroke: var(--text-2); stroke-width: 1; }
 .cap-svg .aff, .cap-svg .rest, .cap-svg .over { stroke: var(--surface); stroke-width: 1; }
@@ -3294,8 +3293,8 @@ function capDaySvg(rows, max, width) {
     g += '<rect class="hit' + (r.picked ? " picked" : "") + '" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
     const label = r.name.length > 20 ? r.name.slice(0, 19) + "…" : r.name;
     g += rot
-      ? '<text class="who' + (r.over ? " over" : "") + '" text-anchor="end" transform="translate(' + (xc + 4) + "," + (M.t + ih + 12) + ') rotate(-35)">' + esc(label) + "</text>"
-      : '<text class="who' + (r.over ? " over" : "") + '" text-anchor="middle" x="' + xc + '" y="' + (M.t + ih + 18) + '">' + esc(label) + "</text>";
+      ? '<text class="who" text-anchor="end" transform="translate(' + (xc + 4) + "," + (M.t + ih + 12) + ') rotate(-35)">' + esc(label) + "</text>"
+      : '<text class="who" text-anchor="middle" x="' + xc + '" y="' + (M.t + ih + 18) + '">' + esc(label) + "</text>";
   });
   g += '<line class="axis" x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>';
   return '<svg class="cap-svg" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '">' + g + "</svg>";
