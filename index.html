@@ -59,8 +59,8 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---------- Ruban ---------- */
 .ribbon {
-  height: 52px;
-  flex: 0 0 52px;
+  height: 44px;
+  flex: 0 0 44px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -70,7 +70,9 @@ button, input, select { font: inherit; color: inherit; }
   white-space: nowrap;
   overflow: hidden;
 }
-.ribbon .logo { width: 28px; height: 28px; flex: 0 0 28px; }
+.ribbon .logo { width: 26px; height: 26px; flex: 0 0 26px; }
+/* Ruban compact : boutons un peu plus petits, mais confortables à cliquer. */
+.ribbon .icon-btn { width: 32px; height: 32px; flex: 0 0 32px; }
 .ribbon .filename {
   font-weight: 700;
   overflow: hidden;
@@ -83,7 +85,9 @@ button, input, select { font: inherit; color: inherit; }
 .range { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 .range-label { color: var(--text-2); font-size: .9em; font-weight: 500; }
 .range-sep { color: var(--text-2); }
-.range input[type="date"] { padding: 4px 8px; height: 34px; }
+.week-btns { margin-left: 4px; }
+.week-btns button { padding: 3px 10px; font-weight: 600; }
+.range input[type="date"] { padding: 3px 8px; height: 30px; }
 .tools { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
 .tools .group {
   display: flex;
@@ -134,7 +138,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .tab {
   border: 0;
   background: none;
-  padding: 10px 14px;
+  padding: 7px 14px;
   color: var(--text-2);
   cursor: pointer;
   border-bottom: 2px solid transparent;
@@ -144,7 +148,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tab.right { margin-left: auto; }
 
-main { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 14px 16px 16px; }
+main { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 16px 16px; }
 .page { display: none; max-width: 1400px; margin: 0 auto; }
 .page.active { display: block; }
 .settings-layout { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -259,8 +263,13 @@ table.tbl { width: 100%; border-collapse: collapse; }
 /* Prépa OF occupe toute la hauteur disponible ; seul le tableau défile. */
 main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: column; }
 .act-page.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; width: 100%; }
-.prepa-head { margin-bottom: 10px; }
-.prepa-head h1 { margin: 0; }
+.prepa-head { margin-bottom: 6px; gap: 8px; }
+.prepa-head h1 { margin: 0; font-size: 1.3em; }
+/* Bandeau d'activité compact : boutons moins hauts. */
+.prepa-head .btn { padding: 4px 12px; }
+.prepa-head .segmented button { padding: 4px 12px; }
+.prepa-head .icon-btn { width: 30px; height: 30px; flex: 0 0 30px; }
+.prepa-head .sel-sum { padding: 3px 12px; }
 .quick-filters button { font-weight: 500; }
 .act-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 /* Tableau et vue Affectation par capacité côte à côte. */
@@ -295,7 +304,6 @@ main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: co
 .cap-svg { display: block; }
 .cap-svg text { fill: var(--text-2); font-size: 11px; font-family: var(--font); }
 .cap-svg text.who { fill: var(--text); font-size: 9.5px; }
-.cap-svg text.who.over { fill: var(--cap-over); font-weight: 600; }
 .cap-svg .grid { stroke: var(--border); stroke-width: 1; }
 .cap-svg .axis { stroke: var(--text-2); stroke-width: 1; }
 .cap-svg .aff, .cap-svg .rest, .cap-svg .over { stroke: var(--surface); stroke-width: 1; }
@@ -338,7 +346,11 @@ body.dragging-rows .cap-body { background: color-mix(in srgb, var(--accent) 5%, 
 .act-page .tbl tbody tr.sel td { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
 .act-page .tbl tbody tr { cursor: default; }
 /* Cases à cocher de sélection (comme dans l'Explorateur Windows) : visibles au survol, quand cochées ou dès qu'une ligne est cochée. */
-.act-page .tbl tfoot tr.sel-foot td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); font-weight: 600; }
+.sel-sum { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; padding: 5px 12px; border: 0; border-radius: 999px; cursor: pointer;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); font: inherit; font-size: 13px; white-space: nowrap; }
+.sel-sum[hidden] { display: none; }
+.sel-sum:hover { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+.sel-sum .x { margin-left: 6px; opacity: .7; }
 .act-page .tbl .sel-cell { width: 2.2em; min-width: 2.2em; padding-left: .5em !important; padding-right: 0 !important; text-align: center; }
 .act-page .tbl .sel-cell input { width: 1.05em; height: 1.05em; margin: 0; cursor: pointer; accent-color: var(--accent); opacity: 0; transition: opacity .12s; }
 .act-page .tbl tr:hover .sel-cell input, .act-page .tbl .sel-cell input:checked, .act-page .tbl .sel-cell input:focus-visible,
@@ -428,6 +440,8 @@ td.stale { color: var(--warn); font-weight: 600; }
 .aff-in { font-size: 1em; padding: 0 .3em; height: 1.75em; border-radius: 6px; color: var(--text-2); font-style: italic; }
 .aff-in:not(:focus) { border-color: transparent; background: transparent; }
 .aff-in.set { color: var(--accent); font-style: normal; font-weight: 600; }
+/* Case vide (dossier non planifié) : pas de « jj/mm/aaaa », le gabarit n'apparaît qu'à la saisie. */
+.aff-in:not(.set):not(:focus)::-webkit-datetime-edit { color: transparent; }
 .aff-in.late { color: var(--err); }
 .aff-wrap { display: inline-flex; align-items: center; gap: 4px; }
 .aff-warn { color: var(--err); font-weight: 700; cursor: default; }
@@ -580,7 +594,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
   padding: 16px 20px 20px;
 }
 /* La fenêtre des Paramètres commence sous le ruban, qui reste accessible. */
-#settingsModal { z-index: 790; top: 52px; }
+#settingsModal { z-index: 790; top: 44px; }
 #remindModal { z-index: 860; }
 .remind-box { width: min(440px, 92vw); text-align: center; padding: 22px 24px 18px; }
 .remind-box h2 { margin: 8px 0 6px; }
@@ -745,6 +759,10 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
     <span class="range-sep">au</span>
     <input type="date" id="prepaTo"
       data-tip-name="Date de fin" data-tip-role="Dernier jour de la période, pour toutes les activités">
+    <div class="segmented week-btns">
+      <button data-week="0" data-tip-name="Semaine en cours" data-tip-role="Période du lundi au vendredi de la semaine en cours (selon la date du jour)">S</button>
+      <button data-week="1" data-tip-name="Semaine prochaine" data-tip-role="Période du lundi au vendredi de la semaine prochaine (selon la date du jour)">S+1</button>
+    </div>
   </div>
   <div class="tools">
     <div class="group">
@@ -765,7 +783,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
         <svg class="i" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       </button>
       <button class="icon-btn" id="btnFull"
-        data-tip-name="Plein écran" data-tip-role="Affiche l'application en plein écran" data-tip-key="Ctrl + Maj + F">
+        data-tip-name="Plein écran" data-tip-role="Affiche l'application en plein écran ; Échap n'en sort pas (re-cliquer, Ctrl + Maj + F, ou maintenir Échap 2 s)" data-tip-key="Ctrl + Maj + F">
         <svg class="i" viewBox="0 0 24 24" id="icoFull"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
       </button>
       <button class="icon-btn" id="btnSettings"
@@ -2534,6 +2552,13 @@ const prepaUI = {
   get from() { const p = state.settings.period; return p && p.from || localISO(addDays(new Date(), -15)); },
   get to() { const p = state.settings.period; return p && p.to || localISO(addDays(new Date(), 30)); }
 };
+// Semaine ouvrée (lundi → vendredi) en cours (n = 0) ou suivante (n = 1), calculée à partir de la date du jour.
+function weekRange(n) {
+  const t = today0(), mon = new Date(t.getFullYear(), t.getMonth(), t.getDate() - (t.getDay() + 6) % 7 + 7 * n);
+  return { from: localISO(mon), to: localISO(new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 4)) };
+}
+for (const b of document.querySelectorAll(".week-btns button")) b.onclick = () => { const w = weekRange(Number(b.dataset.week)); setPeriod(w.from, w.to); };
+
 function setPeriod(from, to) {
   if (from === prepaUI.from && to === prepaUI.to) return;
   commit(st => { st.settings.period = { from, to }; });
@@ -2722,6 +2747,7 @@ function buildActivityPages() {
           '<button data-q="encours" data-tip-name="En cours" data-tip-role="' + esc(d.enCoursRole) + '">En cours</button>' +
           '<button data-q="tout" data-tip-name="Tout" data-tip-role="Retire tous les filtres (En cours, filtres de colonnes et filtre posé depuis un graphique)">Tout</button>' +
         "</div>" +
+        '<button class="sel-sum" id="' + d.page + 'SelSum" hidden data-tip-name="Sélection" data-tip-role="Nombre de ' + esc(d.unit) + ' cochés et somme de leurs Temps (h). Cliquez pour tout décocher" data-tip-key="Échap"></button>' +
         '<span class="spacer"></span>' +
         '<button class="btn cap-btn" data-cap="' + act + '" data-tip-name="Affectation" data-tip-role="Ouvre à droite le graphique par jour de chaque affectation : temps affecté, temps restant à affecter et surcharge">' + ICON_CAP + '<span>Affectation</span><b class="cap-alert" hidden></b></button>' +
         '<button class="icon-btn cols-btn" data-cols="' + act + '" data-tip-name="Colonnes" data-tip-role="Choisit les colonnes à afficher ou masquer dans le tableau, et leur ordre">' + ICON_COLS + "</button>" +
@@ -2805,7 +2831,7 @@ function actList(act) {
 }
 
 function renderPrepa() {
-  for (const act of Object.keys(ACT_DEFS)) renderActTable(act);
+  for (const act of Object.keys(ACT_DEFS)) { renderActTable(act); paintSelSum(act); }
   if (chartOpen) renderChart();
   renderGlobal();
 }
@@ -2827,6 +2853,10 @@ function renderActTable(act) {
   cb.dataset.tipRole = "Choisit les colonnes à afficher ou masquer dans le tableau (" + cols.length + " sur " + allCols.length + " affichées)";
   const body = $(def.page + "Body"), quick = $(def.page + "Quick");
   $("prepaFrom").value = prepaUI.from;
+  for (const b of document.querySelectorAll(".week-btns button")) {
+    const w = weekRange(Number(b.dataset.week));
+    b.classList.toggle("on", prepaUI.from === w.from && prepaUI.to === w.to);
+  }
   $("prepaTo").value = prepaUI.to;
   const res = actList(act);
   if (res.error) {
@@ -2914,7 +2944,7 @@ function renderActTable(act) {
     // Les colonnes voisines sans total sont fusionnées ; la première porte le libellé du total.
     const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")";
     ui.footCols = cols;
-    h += "<tfoot>" + footRowHtml(cols, label, totalH, nAff, rows.length, "") + selFootHtml(act) + "</tfoot>";
+    h += "<tfoot>" + footRowHtml(cols, label, totalH, nAff, rows.length, "") + "</tfoot>";
   }
   // Le tableau garde sa position de défilement quand il est reconstruit (affectation, glisser-déposer, filtre…).
   const oldWrap = body.querySelector(".tbl-wrap");
@@ -2999,14 +3029,16 @@ function footRowHtml(cols, label, hours, nAff, n, cls) {
   flush();
   return h + "</tr>";
 }
-// Ligne « Sélection » du pied de tableau : nombre et somme des Temps (h) des dossiers sélectionnés (dès 2 dossiers).
-function selFootHtml(act) {
-  const ui = actUI[act], cols = ui.footCols;
+// Bandeau de l'activité : nombre de dossiers cochés et somme de leurs Temps (h).
+function paintSelSum(act) {
+  const ui = actUI[act], el = $(ACT_DEFS[act].page + "SelSum");
   const rows = (actRows[act] || []).filter(x => ui.sel.has(x.id));
-  if (!cols || rows.length < 2) return "";
+  el.hidden = !rows.length;
+  if (!rows.length) return;
   const hours = rows.reduce((a, x) => a + (x.heures || 0), 0);
-  return footRowHtml(cols, "Sélection (" + fmtInt(rows.length) + " " + ACT_DEFS[act].unit + ")", hours, rows.filter(x => x.ressource).length, rows.length, "sel-foot");
+  el.innerHTML = "Sélection : <b>" + fmtInt(rows.length) + "</b> " + esc(ACT_DEFS[act].unit) + " · <b>" + fmtHours(hours * 3600) + ' h</b><span class="x">✕</span>';
 }
+for (const act of Object.keys(ACT_DEFS)) $(ACT_DEFS[act].page + "SelSum").onclick = () => clearSelection(act);
 
 $("prepaFrom").onchange = e => setPeriod(e.target.value, prepaUI.to);
 $("prepaTo").onchange = e => setPeriod(prepaUI.from, e.target.value);
@@ -3024,7 +3056,7 @@ function assignValue(text) {
 // Case Affectation : saisie libre avec complétion, et liste déroulante des ressources (bouton ▾ ou Alt + ↓).
 function resourceInput(act, id, current) {
   return '<div class="res-combo"><input type="text" class="res-in" autocomplete="off" spellcheck="false" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
-    ' value="' + esc(assignLabel(current)) + '" placeholder="—"' +
+    ' value="' + esc(assignLabel(current)) + '"' +
     '  data-tip-name="Affectation" data-tip-role="Cliquez dans la case : la liste des affectations (fichier de capacité) s’ouvre et se filtre au fil de la saisie ; un début de nom est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">' +
     '<button class="res-dd" tabindex="-1" data-id="' + esc(id) + '" data-tip-name="Liste des affectations" data-tip-role="Ouvre ou ferme la liste déroulante des affectations (fichier de capacité)" data-tip-key="Alt + ↓">' + ICON.down + "</button></div>";
 }
@@ -3160,12 +3192,7 @@ function paintSelection(act) {
   const tbl = body.querySelector("table.tbl"), all = body.querySelector(".all-chk");
   if (tbl) tbl.classList.toggle("has-sel", n > 0);
   if (all) { all.checked = total > 0 && n === total; all.indeterminate = n > 0 && n < total; }
-  const tfoot = body.querySelector("tfoot");
-  if (tfoot) {
-    const old = tfoot.querySelector(".sel-foot");
-    if (old) old.remove();
-    tfoot.insertAdjacentHTML("beforeend", selFootHtml(act));
-  }
+  paintSelSum(act);
 }
 function clearSelection(act) {
   const ui = actUI[act];
@@ -3290,8 +3317,8 @@ function capDaySvg(rows, max, width) {
     g += '<rect class="hit' + (r.picked ? " picked" : "") + '" data-i="' + i + '" x="' + (M.l + band * i) + '" y="' + M.t + '" width="' + band + '" height="' + (ih + M.b) + '"/>';
     const label = r.name.length > 20 ? r.name.slice(0, 19) + "…" : r.name;
     g += rot
-      ? '<text class="who' + (r.over ? " over" : "") + '" text-anchor="end" transform="translate(' + (xc + 4) + "," + (M.t + ih + 12) + ') rotate(-35)">' + esc(label) + "</text>"
-      : '<text class="who' + (r.over ? " over" : "") + '" text-anchor="middle" x="' + xc + '" y="' + (M.t + ih + 18) + '">' + esc(label) + "</text>";
+      ? '<text class="who" text-anchor="end" transform="translate(' + (xc + 4) + "," + (M.t + ih + 12) + ') rotate(-35)">' + esc(label) + "</text>"
+      : '<text class="who" text-anchor="middle" x="' + xc + '" y="' + (M.t + ih + 18) + '">' + esc(label) + "</text>";
   });
   g += '<line class="axis" x1="' + M.l + '" x2="' + (W - M.r) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>';
   return '<svg class="cap-svg" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '">' + g + "</svg>";
@@ -4549,8 +4576,12 @@ function toggleFullscreen() {
   if (document.fullscreenElement) document.exitFullscreen();
   else document.documentElement.requestFullscreen().catch(() => {});
 }
+// En plein écran, Échap reste à l'application (fermer un menu, annuler une sélection…) au lieu de quitter le plein écran :
+// verrouillage clavier de Chrome / Edge. Le navigateur garde une sortie : maintenir Échap enfoncé 2 s.
 document.addEventListener("fullscreenchange", () => {
   const full = !!document.fullscreenElement;
+  const kb = navigator.keyboard;
+  if (kb && kb.lock) { if (full) kb.lock(["Escape"]).catch(() => {}); else kb.unlock(); }
   $("icoFull").innerHTML = full
     ? '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>'
     : '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>';

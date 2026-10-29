@@ -22,11 +22,12 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 |---|---|---|
 | Logo + nom en gras | Nom du classeur projet ouvert | – |
 | Période (Du … au …) | Plage de dates commune à toutes les activités. La période choisie est **enregistrée dans le classeur projet** (et retrouvée à l'ouverture) ; changer la période est une modification (disquette orange, annulable par Ctrl + Z). Sans période enregistrée : J – 15 à J + 30 | – |
+| S / S+1 (à droite de la période) | Remplissent la période d'un clic : **S** = du lundi au vendredi de la **semaine en cours**, **S+1** = du lundi au vendredi de la **semaine prochaine**, calculées à partir de la date du jour (à chaque clic). Le bouton est en surbrillance quand la période correspond à cette semaine. Les jours fériés ne sont pas pris en compte | – |
 | Flèche retour | Annule la dernière modification (y compris filtres, colonnes affichées et taille du tableau) | Ctrl + Z |
 | Flèche avant | **Rétablit** la dernière action annulée (annuler une annulation, comme Excel). Toute nouvelle modification vide la liste des actions à rétablir | Ctrl + Y |
 | Actualiser (deux flèches, à gauche de la disquette) | Recharge les fichiers sources. **Noir** : les données chargées correspondent exactement aux fichiers sur le disque ; **orange** : au moins un fichier est à actualiser (non chargé, lecture à autoriser après une actualisation de la page, modifié depuis son chargement, ou erreur) — la bulle détaille lesquels. Le clic ne relit que les fichiers concernés (ou tous si tout est à jour) et redemande l'accès au navigateur si besoin. Les fichiers ne sont jamais rechargés automatiquement, sauf à l'ouverture de l'application | F9 |
 | Disquette | Enregistre le projet. **Noire** : aucune modification depuis le dernier enregistrement (ou l'ouverture) — y compris si vous êtes revenu à l'état enregistré par Ctrl + Z ; **orange** : des données ont été modifiées et pas encore enregistrées (ou le dernier enregistrement a échoué). Recharger les fichiers sources ne compte pas comme une modification | Ctrl + S |
-| Cadre | Plein écran (re-cliquer pour quitter) | Ctrl + Maj + F |
+| Cadre | Plein écran (re-cliquer pour quitter ; **Échap ne quitte pas** le plein écran, il garde son rôle dans l'appli — maintenir Échap 2 s force la sortie) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
 Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
@@ -198,7 +199,7 @@ Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Window
 - la case de l'**en-tête** coche ou décoche toutes les lignes affichées ;
 - un clic sur la ligne elle-même ne coche que cette ligne (Ctrl + clic : ajoute ou retire) ;
 - **Échap** décoche tout.
-- Dès que **2 dossiers ou plus** sont sélectionnés (cochés, ou Ctrl + clic), une ligne **« Sélection (n …) »** s'ajoute au pied du tableau, sous le Total : elle donne la **somme des Temps (h)** des dossiers sélectionnés et combien sont affectés.
+- Dès qu'un dossier est coché, une pastille **« Sélection : n OF · x h »** s'affiche dans le bandeau de l'activité, à droite de *En cours / Tout* : nombre de dossiers cochés et **somme de leurs Temps (h)**. Cliquez dessus (✕) ou appuyez sur **Échap** pour tout décocher.
 
 Ensuite, **saisissez l'affectation dans la case Affectation de l'une des lignes cochées** (au clavier ou par la liste ▾) : dès la validation, elle est **recopiée sur toutes les lignes cochées**, puis les cases sont décochées. L'opération compte comme une seule action, annulable par Ctrl + Z. Une saisie sur une ligne non cochée ne concerne que cette ligne.
 
