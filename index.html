@@ -428,6 +428,8 @@ td.stale { color: var(--warn); font-weight: 600; }
 .aff-in { font-size: 1em; padding: 0 .3em; height: 1.75em; border-radius: 6px; color: var(--text-2); font-style: italic; }
 .aff-in:not(:focus) { border-color: transparent; background: transparent; }
 .aff-in.set { color: var(--accent); font-style: normal; font-weight: 600; }
+/* Case vide (dossier non planifié) : pas de « jj/mm/aaaa », le gabarit n'apparaît qu'à la saisie. */
+.aff-in:not(.set):not(:focus)::-webkit-datetime-edit { color: transparent; }
 .aff-in.late { color: var(--err); }
 .aff-wrap { display: inline-flex; align-items: center; gap: 4px; }
 .aff-warn { color: var(--err); font-weight: 700; cursor: default; }
