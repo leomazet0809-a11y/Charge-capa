@@ -646,12 +646,10 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 
 /* ---------- Adaptation à l'écran ---------- */
 @media (max-width: 1100px) {
-  .range-label { display: none; }
   .range input[type="date"] { width: 132px; }
 }
 @media (max-width: 820px) {
   .ribbon { gap: 8px; padding: 0 10px; }
-  .range-sep { display: none; }
   .range input[type="date"] { width: 118px; padding: 4px 4px; }
   main { padding: 10px 8px 8px; }
   h1 { font-size: 1.2em; }
@@ -734,10 +732,10 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
   </svg>
   <div class="filename" id="fileName"></div>
   <div class="range">
-    <span class="range-label" data-tip-name="Période" data-tip-role="Plage de dates appliquée à toutes les activités (Prépa OF : colonne Début opé)">Période</span>
+    <span class="range-label" data-tip-name="Période" data-tip-role="Plage de dates appliquée à toutes les activités (Prépa OF : colonne Début opé), enregistrée dans le projet">Du</span>
     <input type="date" id="prepaFrom"
       data-tip-name="Date de début" data-tip-role="Premier jour de la période, pour toutes les activités">
-    <span class="range-sep">→</span>
+    <span class="range-sep">au</span>
     <input type="date" id="prepaTo"
       data-tip-name="Date de fin" data-tip-role="Dernier jour de la période, pour toutes les activités">
   </div>
@@ -2286,7 +2284,15 @@ function fmtHours(sec) { return (sec / 3600).toLocaleString("fr-FR", { minimumFr
 
 const EMPTY_LABEL = "(Vides)";
 // Période du ruban, commune à toutes les activités.
-const prepaUI = { from: localISO(addDays(new Date(), -15)), to: localISO(addDays(new Date(), 30)) };
+// Période du ruban : celle choisie par l'utilisateur (enregistrée dans le projet), sinon J – 15 à J + 30.
+const prepaUI = {
+  get from() { const p = state.settings.period; return p && p.from || localISO(addDays(new Date(), -15)); },
+  get to() { const p = state.settings.period; return p && p.to || localISO(addDays(new Date(), 30)); }
+};
+function setPeriod(from, to) {
+  if (from === prepaUI.from && to === prepaUI.to) return;
+  commit(st => { st.settings.period = { from, to }; });
+}
 
 // Rendus de cellule réutilisables.
 const redBadge = (text, name, role) => '<span class="badge err"' + (name ? ' data-tip-name="' + esc(name) + '" data-tip-role="' + esc(role) + '"' : "") + ">" + esc(text) + "</span>";
@@ -2756,8 +2762,8 @@ function selFootHtml(act) {
   return footRowHtml(cols, "Sélection (" + fmtInt(rows.length) + " " + ACT_DEFS[act].unit + ")", hours, rows.filter(x => x.ressource).length, rows.length, "sel-foot");
 }
 
-$("prepaFrom").onchange = e => { prepaUI.from = e.target.value; renderPrepa(); };
-$("prepaTo").onchange = e => { prepaUI.to = e.target.value; renderPrepa(); };
+$("prepaFrom").onchange = e => setPeriod(e.target.value, prepaUI.to);
+$("prepaTo").onchange = e => setPeriod(prepaUI.from, e.target.value);
 
 // Texte affiché d'une affectation : nom de la ressource de la liste, ou texte libre saisi.
 function assignLabel(v) { return v ? resourceName(v) || v : ""; }
@@ -3957,7 +3963,9 @@ function stateToWorkbook() {
     ["theme", s.theme],
     ["police", s.font],
     ["taille_police", s.fontSize],
-    ["sauvegarde_auto", s.autoSave ? "oui" : "non"]
+    ["sauvegarde_auto", s.autoSave ? "oui" : "non"],
+    ["periode_debut", s.period && s.period.from || ""],
+    ["periode_fin", s.period && s.period.to || ""]
   ].concat(ACTIVITIES.map(a => ["delai_affectation_" + a.id, leadDays(a.id)]));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "Paramètres");
 
@@ -4020,6 +4028,10 @@ function workbookToState(wb) {
     const n = Number(kv.taille_police);
     if (n >= 12 && n <= 16) st.settings.fontSize = n;
     st.settings.autoSave = kv.sauvegarde_auto === "oui";
+    // Période du ruban choisie par l'utilisateur (texte AAAA-MM-JJ ou date Excel).
+    const iso = v => v instanceof Date ? localISO(dayOf(v)) : /^\d{4}-\d{2}-\d{2}$/.test(String(v || "").trim()) ? String(v).trim() : "";
+    const pf = iso(kv.periode_debut), pt = iso(kv.periode_fin);
+    if (pf && pt) st.settings.period = { from: pf, to: pt };
     for (const a of ACTIVITIES) {
       const v = Number(kv["delai_affectation_" + a.id]);
       if (kv["delai_affectation_" + a.id] !== undefined && Number.isFinite(v) && v >= 0) st.settings.leadDays[a.id] = Math.round(v);

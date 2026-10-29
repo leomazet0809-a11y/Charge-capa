@@ -21,7 +21,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Élément | Rôle | Raccourci |
 |---|---|---|
 | Logo + nom en gras | Nom du classeur projet ouvert | – |
-| Période (Du → Au) | Plage de dates commune à toutes les activités ; à l'ouverture : J – 15 à J + 30 | – |
+| Période (Du … au …) | Plage de dates commune à toutes les activités. La période choisie est **enregistrée dans le classeur projet** (et retrouvée à l'ouverture) ; changer la période est une modification (disquette orange, annulable par Ctrl + Z). Sans période enregistrée : J – 15 à J + 30 | – |
 | Flèche retour | Annule la dernière modification (y compris filtres, colonnes affichées et taille du tableau) | Ctrl + Z |
 | Flèche avant | **Rétablit** la dernière action annulée (annuler une annulation, comme Excel). Toute nouvelle modification vide la liste des actions à rétablir | Ctrl + Y |
 | Actualiser (deux flèches, à gauche de la disquette) | Recharge les fichiers sources. **Noir** : les données chargées correspondent exactement aux fichiers sur le disque ; **orange** : au moins un fichier est à actualiser (non chargé, lecture à autoriser après une actualisation de la page, modifié depuis son chargement, ou erreur) — la bulle détaille lesquels. Le clic ne relit que les fichiers concernés (ou tous si tout est à jour) et redemande l'accès au navigateur si besoin. Les fichiers ne sont jamais rechargés automatiquement, sauf à l'ouverture de l'application | F9 |
@@ -40,7 +40,7 @@ Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargemen
 
 Laissez la souris **2 secondes** sur n'importe quel élément cliquable (bouton, liste, case, champ, onglet…) pour voir une bulle d'aide indiquant sa fonction (et son raccourci s'il en a un).
 
-**Adaptation à l'écran** : l'application s'ajuste à la taille de la fenêtre (grand écran, portable, tablette). Le tableau de chaque activité occupe toute la hauteur disponible et défile seul ; sur petit écran, le libellé « Période » est masqué, le menu des Paramètres passe au-dessus du contenu, et sur téléphone le logo et le bouton plein écran sont masqués.
+**Adaptation à l'écran** : l'application s'ajuste à la taille de la fenêtre (grand écran, portable, tablette). Le tableau de chaque activité occupe toute la hauteur disponible et défile seul ; sur petit écran, le menu des Paramètres passe au-dessus du contenu, et sur téléphone le logo et le bouton plein écran sont masqués.
 
 ## 3. Le classeur projet (.xlsx)
 
