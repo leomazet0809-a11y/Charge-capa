@@ -59,8 +59,8 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---------- Ruban ---------- */
 .ribbon {
-  height: 52px;
-  flex: 0 0 52px;
+  height: 44px;
+  flex: 0 0 44px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -70,7 +70,9 @@ button, input, select { font: inherit; color: inherit; }
   white-space: nowrap;
   overflow: hidden;
 }
-.ribbon .logo { width: 28px; height: 28px; flex: 0 0 28px; }
+.ribbon .logo { width: 26px; height: 26px; flex: 0 0 26px; }
+/* Ruban compact : boutons un peu plus petits, mais confortables à cliquer. */
+.ribbon .icon-btn { width: 32px; height: 32px; flex: 0 0 32px; }
 .ribbon .filename {
   font-weight: 700;
   overflow: hidden;
@@ -83,7 +85,7 @@ button, input, select { font: inherit; color: inherit; }
 .range { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 .range-label { color: var(--text-2); font-size: .9em; font-weight: 500; }
 .range-sep { color: var(--text-2); }
-.range input[type="date"] { padding: 4px 8px; height: 34px; }
+.range input[type="date"] { padding: 3px 8px; height: 30px; }
 .tools { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
 .tools .group {
   display: flex;
@@ -134,7 +136,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .tab {
   border: 0;
   background: none;
-  padding: 10px 14px;
+  padding: 7px 14px;
   color: var(--text-2);
   cursor: pointer;
   border-bottom: 2px solid transparent;
@@ -144,7 +146,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tab.right { margin-left: auto; }
 
-main { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 14px 16px 16px; }
+main { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 16px 16px; }
 .page { display: none; max-width: 1400px; margin: 0 auto; }
 .page.active { display: block; }
 .settings-layout { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 20px; align-items: start; }
@@ -259,8 +261,13 @@ table.tbl { width: 100%; border-collapse: collapse; }
 /* Prépa OF occupe toute la hauteur disponible ; seul le tableau défile. */
 main:has(.act-page.active) { overflow: hidden; display: flex; flex-direction: column; }
 .act-page.active { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; width: 100%; }
-.prepa-head { margin-bottom: 10px; }
-.prepa-head h1 { margin: 0; }
+.prepa-head { margin-bottom: 6px; gap: 8px; }
+.prepa-head h1 { margin: 0; font-size: 1.3em; }
+/* Bandeau d'activité compact : boutons moins hauts. */
+.prepa-head .btn { padding: 4px 12px; }
+.prepa-head .segmented button { padding: 4px 12px; }
+.prepa-head .icon-btn { width: 30px; height: 30px; flex: 0 0 30px; }
+.prepa-head .sel-sum { padding: 3px 12px; }
 .quick-filters button { font-weight: 500; }
 .act-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 /* Tableau et vue Affectation par capacité côte à côte. */
@@ -585,7 +592,7 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
   padding: 16px 20px 20px;
 }
 /* La fenêtre des Paramètres commence sous le ruban, qui reste accessible. */
-#settingsModal { z-index: 790; top: 52px; }
+#settingsModal { z-index: 790; top: 44px; }
 #remindModal { z-index: 860; }
 .remind-box { width: min(440px, 92vw); text-align: center; padding: 22px 24px 18px; }
 .remind-box h2 { margin: 8px 0 6px; }
@@ -3032,7 +3039,7 @@ function assignValue(text) {
 // Case Affectation : saisie libre avec complétion, et liste déroulante des ressources (bouton ▾ ou Alt + ↓).
 function resourceInput(act, id, current) {
   return '<div class="res-combo"><input type="text" class="res-in" autocomplete="off" spellcheck="false" data-id="' + esc(id) + '" data-fk="assign.' + esc(act) + "." + esc(id) + '"' +
-    ' value="' + esc(assignLabel(current)) + '" placeholder="—"' +
+    ' value="' + esc(assignLabel(current)) + '"' +
     '  data-tip-name="Affectation" data-tip-role="Cliquez dans la case : la liste des affectations (fichier de capacité) s’ouvre et se filtre au fil de la saisie ; un début de nom est complété automatiquement. Entrée ou flèches ↑ ↓ : valider et changer de ligne ; Échap : annuler la saisie" data-tip-key="↑ ↓ Entrée Échap">' +
     '<button class="res-dd" tabindex="-1" data-id="' + esc(id) + '" data-tip-name="Liste des affectations" data-tip-role="Ouvre ou ferme la liste déroulante des affectations (fichier de capacité)" data-tip-key="Alt + ↓">' + ICON.down + "</button></div>";
 }
