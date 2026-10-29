@@ -325,6 +325,7 @@ body.dragging-rows .cap-body { background: color-mix(in srgb, var(--accent) 5%, 
 .act-page .tbl tbody tr.sel td { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
 .act-page .tbl tbody tr { cursor: default; }
 /* Cases à cocher de sélection (comme dans l'Explorateur Windows) : visibles au survol, quand cochées ou dès qu'une ligne est cochée. */
+.act-page .tbl tfoot tr.sel-foot td { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--accent); font-weight: 600; }
 .act-page .tbl .sel-cell { width: 2.2em; min-width: 2.2em; padding-left: .5em !important; padding-right: 0 !important; text-align: center; }
 .act-page .tbl .sel-cell input { width: 1.05em; height: 1.05em; margin: 0; cursor: pointer; accent-color: var(--accent); opacity: 0; transition: opacity .12s; }
 .act-page .tbl tr:hover .sel-cell input, .act-page .tbl .sel-cell input:checked, .act-page .tbl .sel-cell input:focus-visible,
@@ -2645,25 +2646,38 @@ function renderActTable(act) {
     const nAff = rows.filter(x => x.ressource).length;
     // Le libellé du total occupe les colonnes de gauche ; Temps (h) et Affectation gardent leur total s'ils sont affichés.
     // Les colonnes voisines sans total sont fusionnées ; la première porte le libellé du total.
-    const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")" +
-      (nSel ? " · " + fmtInt(nSel) + " cochée" + (nSel > 1 ? "s" : "") : "");
-    let labelled = false, span = 0;
-    const flush = () => {
-      if (!span) return;
-      h += '<td colspan="' + span + '">' + (labelled ? "" : label) + "</td>";
-      labelled = true; span = 0;
-    };
-    h += '<tfoot><tr><td class="sel-cell"></td>';
-    for (const c of cols) {
-      if (c.heures) { flush(); h += '<td class="num"' + (labelled ? "" : ' data-tip-name="Total" data-tip-role="' + esc(label) + '"') + ">" + fmtHours(totalH * 3600) + "</td>"; }
-      else if (c.k === "ressource") { flush(); h += '<td class="res-cell col-res muted">' + fmtInt(nAff) + " / " + fmtInt(rows.length) + " affectés</td>"; }
-      else span++;
-    }
-    flush();
-    h += "</tr></tfoot>";
+    const label = "Total (" + fmtInt(rows.length) + " " + def.unit + (nFilters ? " filtrés sur " + fmtInt(inPeriod.length) : "") + ")";
+    ui.footCols = cols;
+    h += "<tfoot>" + footRowHtml(cols, label, totalH, nAff, rows.length, "") + selFootHtml(act) + "</tfoot>";
   }
   body.innerHTML = h + "</table></div></div>";
   renderCapPanel(act);
+}
+
+// Ligne de pied du tableau : le libellé occupe les colonnes de gauche ; Temps (h) et Affectation gardent leur total
+// s'ils sont affichés. Les colonnes voisines sans total sont fusionnées ; la première porte le libellé.
+function footRowHtml(cols, label, hours, nAff, n, cls) {
+  let h = "<tr" + (cls ? ' class="' + cls + '"' : "") + '><td class="sel-cell"></td>', labelled = false, span = 0;
+  const flush = () => {
+    if (!span) return;
+    h += '<td colspan="' + span + '">' + (labelled ? "" : esc(label)) + "</td>";
+    labelled = true; span = 0;
+  };
+  for (const c of cols) {
+    if (c.heures) { flush(); h += '<td class="num"' + (labelled ? "" : ' data-tip-name="' + esc(label) + '" data-tip-role="Somme des Temps (h)"') + ">" + fmtHours(hours * 3600) + "</td>"; }
+    else if (c.k === "ressource") { flush(); h += '<td class="res-cell col-res muted">' + fmtInt(nAff) + " / " + fmtInt(n) + " affectés</td>"; }
+    else span++;
+  }
+  flush();
+  return h + "</tr>";
+}
+// Ligne « Sélection » du pied de tableau : nombre et somme des Temps (h) des dossiers sélectionnés (dès 2 dossiers).
+function selFootHtml(act) {
+  const ui = actUI[act], cols = ui.footCols;
+  const rows = (actRows[act] || []).filter(x => ui.sel.has(x.id));
+  if (!cols || rows.length < 2) return "";
+  const hours = rows.reduce((a, x) => a + (x.heures || 0), 0);
+  return footRowHtml(cols, "Sélection (" + fmtInt(rows.length) + " " + ACT_DEFS[act].unit + ")", hours, rows.filter(x => x.ressource).length, rows.length, "sel-foot");
 }
 
 $("prepaFrom").onchange = e => { prepaUI.from = e.target.value; renderPrepa(); };
@@ -2835,8 +2849,12 @@ function paintSelection(act) {
   const tbl = body.querySelector("table.tbl"), all = body.querySelector(".all-chk");
   if (tbl) tbl.classList.toggle("has-sel", n > 0);
   if (all) { all.checked = total > 0 && n === total; all.indeterminate = n > 0 && n < total; }
-  const foot = body.querySelector("tfoot td[colspan]");
-  if (foot) foot.textContent = foot.textContent.replace(/ · \d[\d\s ]* cochées?$/, "") + (n ? " · " + fmtInt(n) + " cochée" + (n > 1 ? "s" : "") : "");
+  const tfoot = body.querySelector("tfoot");
+  if (tfoot) {
+    const old = tfoot.querySelector(".sel-foot");
+    if (old) old.remove();
+    tfoot.insertAdjacentHTML("beforeend", selFootHtml(act));
+  }
 }
 function clearSelection(act) {
   const ui = actUI[act];

@@ -177,7 +177,8 @@ Chaque ligne a une **case à cocher** à gauche, comme dans l'Explorateur Window
 - **Maj + clic sur la case** : coche toutes les lignes entre la dernière case cliquée et celle-ci ;
 - la case de l'**en-tête** coche ou décoche toutes les lignes affichées ;
 - un clic sur la ligne elle-même ne coche que cette ligne (Ctrl + clic : ajoute ou retire) ;
-- **Échap** décoche tout. Le pied du tableau indique le nombre de lignes cochées.
+- **Échap** décoche tout.
+- Dès que **2 dossiers ou plus** sont sélectionnés (cochés, ou Ctrl + clic), une ligne **« Sélection (n …) »** s'ajoute au pied du tableau, sous le Total : elle donne la **somme des Temps (h)** des dossiers sélectionnés et combien sont affectés.
 
 Ensuite, **saisissez l'affectation dans la case Affectation de l'une des lignes cochées** (au clavier ou par la liste ▾) : dès la validation, elle est **recopiée sur toutes les lignes cochées**, puis les cases sont décochées. L'opération compte comme une seule action, annulable par Ctrl + Z. Une saisie sur une ligne non cochée ne concerne que cette ligne.
 
