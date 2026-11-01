@@ -95,7 +95,7 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 - La date des fichiers est revérifiée **chaque minute** et à chaque retour sur l'application : un fichier enregistré entre-temps passe **À actualiser**.
 - Les données lues restent dans le navigateur : elles **ne sont pas copiées** dans le classeur projet (seuls le nom du fichier et les dates le sont).
 - Pour les CSV, le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou ANSI) sont détectés automatiquement.
-- **Composants Corps** (ligne « — Base de données ») : liste des codes article des composants Corps, utilisée par l'activité *Gravage*. Un fichier Excel ou CSV avec une colonne de codes : l'application lit la première colonne dont le nom contient « Composant » ou « Article » (sinon la première colonne). Les projets existants reçoivent automatiquement cette ligne, ainsi que la ligne *MRBE_LOG_CHARGE_TRAVAIL* de l'activité Gravage (choisissez-y le même fichier que pour Prépa OF : il n'est lu qu'une fois).
+- **Gravage** : les projets existants reçoivent automatiquement la ligne *MRBE_LOG_CHARGE_TRAVAIL* de l'activité Gravage (choisissez-y le même fichier que pour Prépa OF : il n'est lu qu'une fois). La liste des composants Corps n'est pas un fichier source : c'est la table de correspondance **Composants Corps** de *Temps gammes* (voir 4.3) ; l'ancienne ligne « Composants Corps » des fichiers sources est retirée à l'ouverture.
 
 **Capacité de travail** (encadré sous les sources d'activités) : une **source unique** pour toutes les activités.
 - Fichier Excel ou CSV contenant au moins les colonnes **date**, **groupe**, **Niveau** et **Heure productivité** (une ligne par personne et par jour).
@@ -142,7 +142,9 @@ Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
 La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence (DN10 à DN200, dont DN125 à 60 s comme DN100), relié à la **table de correspondance Article → DN** (voir ci-dessous) ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée) ; la gamme *Gravage* avec ses 3 forfaits et le tableau *Gravage par DN* (voir § 7), relié à la même table Article → DN.
 
-**Tables de correspondance** (carte en bas du récapitulatif) : tables **communes à toutes les gammes**, copiées dans le projet (ex. *Article → DN*). Le récapitulatif indique pour chacune le nombre de lignes et les gammes reliées ; cliquez sur une table pour l'ouvrir. Une gamme s'y relie par une tâche *Calcul* et garde **son propre tableau de temps** (DN → Tps) : Prépa OF et Gravage utilisent la même table Article → DN avec des temps différents. **+ Nouvelle table** crée une table vide ; ✎ renomme, 🗑 supprime une table qui n'est reliée à aucune gamme. Les noms de la clé et de la valeur (ex. *Article*, *DN*) se modifient en haut de la table.
+**Tables de correspondance** (carte en bas du récapitulatif) : tables **communes à toutes les gammes**, copiées dans le projet (ex. *Article → DN*). Le récapitulatif indique pour chacune le nombre de lignes et ce qui l'utilise (gammes reliées, activité) ; cliquez sur une table pour l'ouvrir. Une gamme s'y relie par une tâche *Calcul* et garde **son propre tableau de temps** (DN → Tps) : Prépa OF et Gravage utilisent la même table Article → DN avec des temps différents. **+ Nouvelle table** crée une table vide ; ✎ renomme, 🗑 supprime une table qui n'est utilisée par rien. Les noms de la clé et de la valeur (ex. *Article*, *DN*) se modifient en haut de la table.
+
+**Composants Corps** : table fournie avec l'application, utilisée par l'activité *Gravage* (elle ne peut pas être supprimée). Seule la colonne **Article** compte : un *Composant OF* présent dans la table est un composant Corps. La colonne *Désignation* est facultative : à l'import, choisissez la colonne des codes article et, pour la valeur, une colonne de désignation ou « — Aucune — ». Import, ajout (**+ Ajouter**), recherche et suppression comme pour Article → DN.
 
 ### 4.4 Ressources à affecter
 
@@ -233,7 +235,7 @@ Pendant le glisser, la barre visée est encadrée et une bulle indique « Affect
 
 ## 7. Gravage
 
-Liste des **OF dont un composant Corps est à graver** : **une ligne par OF**, uniquement pour les lignes de l'onglet `OF` dont le *Composant OF* figure dans la liste **Composants Corps** (Paramètres › Fichiers sources). Un OF sans composant Corps n'apparaît pas ; un OF a un seul composant Corps (s'il y en avait plusieurs, le premier serait retenu). Source : onglet `OF` du fichier de l'activité *Gravage* (le même export que Prépa OF).
+Liste des **OF dont un composant Corps est à graver** : **une ligne par OF**, uniquement pour les lignes de l'onglet `OF` dont le *Composant OF* figure dans la table **Composants Corps** (Paramètres › Temps gammes › Tables de correspondance). Un OF sans composant Corps n'apparaît pas ; un OF a un seul composant Corps (s'il y en avait plusieurs, le premier serait retenu). Source : onglet `OF` du fichier de l'activité *Gravage* (le même export que Prépa OF).
 
 Période, tri, filtres Excel, boutons rapides, total, affectations, graphique et taille du tableau fonctionnent comme pour Prépa OF :
 - la période porte sur le **Début opé** ;
