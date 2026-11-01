@@ -293,6 +293,7 @@ Période, tri, filtres Excel, boutons rapides, total, affectations, graphique et
 
 - Une page `index.html` en HTML/CSS/JavaScript, sans framework.
 - Les onglets et pages d'activité sont **générés à partir de la définition de chaque activité** (`ACT_DEFS` dans `index.html`) : ajouter une activité consiste à la décrire une fois (fichier, colonnes, calculs), et son onglet, son tableau, ses filtres, sa vue capacité et son graphique sont créés automatiquement.
+  Un modèle de demande pour ajouter une activité est fourni dans [`docs/PROMPT_NOUVELLE_ACTIVITE.md`](docs/PROMPT_NOUVELLE_ACTIVITE.md).
 - `lib/xlsx.full.min.js` : lecture/écriture des fichiers Excel (SheetJS, licence Apache 2.0), embarquée pour fonctionner hors connexion.
 - `fonts/inter.woff2` : police Inter (licence SIL OFL), embarquée.
 - Les fichiers choisis sont mémorisés par le navigateur (aucune donnée n'est envoyée sur internet).
