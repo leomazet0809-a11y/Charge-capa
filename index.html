@@ -1178,15 +1178,34 @@ const OLD_CORPS_SOURCE_ID = "s-corps";
 // Tables utilisées par une activité (en plus des gammes reliées par une tâche Calcul).
 const CORR_ACT_USES = { [CT_CORPS]: "Gravage (lignes Corps)" };
 
+// Gamme « Certificats » : un dossier = un couple Commande (CO) - No livraison (LV), lignes des articles « 9… » seulement.
+// Chaque ligne compte le Forfait et le temps Ligne de son code certificat (tableau de temps par code).
+const CERTIF_TIMES = [["9CERTIF-FDA", 120, 120], ["9CERTIF-RUGO", 120, 100], ["9CERTIF-USP", 110, 270], ["9CERTIF-DEG", 240, 0],
+  ["9CERTIF3-1", 30, 390], ["9CERTIF3-1_TOTAL", 30, 390], ["9CERTIF2-1", 210, 0], ["9CERTIF2-2", 120, 120],
+  ["9CERTIF-TSE/BSE", 120, 360], ["9CERTIF-CE1935", 120, 760], ["9DOC-CE1935", 120, 940]];
+function defaultGammeCertif() {
+  return {
+    id: "g-certificats",
+    name: "Certificats",
+    sheet: "Commandes ventes",
+    folderCol: "Commande",
+    folderCol2: "No livraison",
+    qtyCol: "Qté commandée US",
+    tasks: [],
+    codeTable: { col: "Article", rows: CERTIF_TIMES.map(([v, forfait, ligne]) => ({ v, forfait, ligne })) }
+  };
+}
+
 const DEFAULT_SOURCES = [
   { id: "s-gravage", label: "MRBE_LOG_CHARGE_TRAVAIL", activity: "gravage", gamme: "g-gravage", fileName: "", fileDate: null, loadedAt: null, cap: [] },
   { id: "s-prepa-of", label: "Charge de travail", activity: "prepa-of", gamme: "g-prepa-of", fileName: "", fileDate: null, loadedAt: null, cap: [] },
-  { id: "s-prepa-exped", label: "Commandes ventes", activity: "prepa-exped", gamme: "g-prepa-exped", fileName: "", fileDate: null, loadedAt: null, cap: [] }
+  { id: "s-prepa-exped", label: "Commandes ventes", activity: "prepa-exped", gamme: "g-prepa-exped", fileName: "", fileDate: null, loadedAt: null, cap: [] },
+  { id: "s-certificats", label: "MRBE_LOG_CHARGE_TRAVAIL", activity: "certificats", gamme: "g-certificats", fileName: "", fileDate: null, loadedAt: null, cap: [] }
 ];
 
 // Ajoute la gamme et la source d'une activité absente d'un projet plus ancien.
 function ensureActivityDefaults(st) {
-  const gammes = { "g-prepa-of": defaultGammePrepa, "g-prepa-exped": defaultGammeExped, "g-gravage": defaultGammeGravage };
+  const gammes = { "g-prepa-of": defaultGammePrepa, "g-prepa-exped": defaultGammeExped, "g-gravage": defaultGammeGravage, "g-certificats": defaultGammeCertif };
   if (!Array.isArray(st.corrTables)) st.corrTables = [];
   if (!st.corrTables.some(t => t.id === CT_DN)) st.corrTables.unshift(defaultCorrTable());
   if (!st.corrTables.some(t => t.id === CT_CORPS)) st.corrTables.push(corpsCorrTable());
@@ -1243,7 +1262,7 @@ function migrateCorrTables(st) {
 const DEFAULT_STATE = {
   settings: { theme: "auto", font: "Inter", fontSize: 14, autoSave: false },
   sources: clone(DEFAULT_SOURCES),
-  gammes: [defaultGammeGravage(), defaultGammePrepa(), defaultGammeExped()],
+  gammes: [defaultGammeGravage(), defaultGammePrepa(), defaultGammeExped(), defaultGammeCertif()],
   corrTables: [defaultCorrTable(), corpsCorrTable()],
   // Source unique de capacité de travail (Heure productivité par jour, groupe et niveau).
   capacity: { fileName: "", fileDate: null, loadedAt: null },
@@ -2058,6 +2077,8 @@ function renderGammes() {
     '<label class="field" data-tip-name="Onglet des lignes" data-tip-role="Onglet du fichier source contenant une ligne par composant"><span>Onglet des lignes</span>' + pickField({ "data-f": "g.sheet", "data-fk": "g.sheet" }, g.sheet, lineSheets) + "</label>" +
     '<label class="field" data-tip-name="Colonne dossier" data-tip-role="Regroupe les lignes par dossier : une valeur = un dossier (ici un OF)"><span>Colonne dossier</span>' +
       pickField({ "data-f": "g.folderCol", "data-fk": "g.folderCol" }, g.folderCol, lineCols) + "</label>" +
+    '<label class="field" data-tip-name="Seconde colonne dossier" data-tip-role="Facultatif : un dossier = un couple de valeurs (ex. Commande + No livraison)"><span>Seconde colonne dossier (facultatif)</span>' +
+      pickField({ "data-f": "g.folderCol2", "data-fk": "g.folderCol2" }, g.folderCol2 || "", lineCols, "— Aucune —") + "</label>" +
     '<label class="field" data-tip-name="Colonne quantité" data-tip-role="Quantité de pièces de chaque ligne (affectations Quantité et Calcul)"><span>Colonne quantité</span>' +
       pickField({ "data-f": "g.qtyCol", "data-fk": "g.qtyCol" }, g.qtyCol, lineCols) + "</label>" +
     '<label class="field" data-tip-name="Découper par date" data-tip-role="Facultatif : un dossier est découpé en autant de dossiers que de dates différentes dans cette colonne (ex. Date expédition)"><span>Découper par date (facultatif)</span>' +
@@ -2088,13 +2109,39 @@ function renderGammes() {
   });
   if (!g.tasks.length) h += '<tr><td colspan="5" class="muted">Aucune tâche.</td></tr>';
   h += "</tbody></table></div>";
-  h += '<div class="toolbar" style="margin:12px 0 0"><button class="btn" data-act="t-add" data-tip-name="Ajouter une tâche" data-tip-role="Ajoute une ligne en bas du tableau">+ Ajouter une tâche</button><span class="spacer"></span>' +
+  h += '<div class="toolbar" style="margin:12px 0 0"><button class="btn" data-act="t-add" data-tip-name="Ajouter une tâche" data-tip-role="Ajoute une ligne en bas du tableau">+ Ajouter une tâche</button>' +
+    (g.codeTable ? "" : '<button class="btn" data-act="ct-code-add" data-tip-name="Tableau de temps par code" data-tip-role="Ajoute un tableau Code → Forfait / Ligne : chaque ligne du dossier compte les temps de son code (ex. certificats)">+ Tableau de temps par code</button>') +
+    '<span class="spacer"></span>' +
     '<span class="badge off">Forfait : ' + fmtInt(sums.Forfait) + " s / dossier</span>" +
     '<span class="badge off">Ligne : ' + fmtInt(sums.Ligne) + " s / ligne</span>" +
     '<span class="badge off">Quantité : ' + fmtInt(sums["Quantité"]) + " s / pièce</span></div>";
   $("gammeBody").innerHTML = h;
 
-  $("calcCards").innerHTML = g.tasks.map((t, i) => t.a === "Calcul" && t.calc ? renderCalcCard(g, t, i, src) : "").join("");
+  $("calcCards").innerHTML = (g.codeTable ? renderCodeCard(g, lineCols) : "") +
+    g.tasks.map((t, i) => t.a === "Calcul" && t.calc ? renderCalcCard(g, t, i, src) : "").join("");
+}
+
+// Tableau de temps par code (ex. certificats) : chaque ligne du dossier compte le Forfait + la Ligne de son code.
+function renderCodeCard(g, lineCols) {
+  const ct = g.codeTable, col = ct.col || "Code";
+  let h = '<div class="card calc-card" id="code-card"><div class="toolbar" style="margin:0 0 6px"><h2 style="margin:0">Temps par code</h2><span class="spacer"></span>' +
+    '<button class="mini danger" data-act="code-off" data-tip-name="Retirer le tableau" data-tip-role="Retire le tableau de temps par code de cette gamme (annulable par Ctrl + Z)">' + ICON.trash + "</button></div>" +
+    '<p class="muted small" style="margin:0 0 14px">Chaque ligne du dossier compte le <b>Forfait</b> et le temps <b>Ligne</b> de son ' + esc(col) +
+    " (même si le code se répète dans le dossier). Un code absent du tableau compte 0 s et le temps est signalé par ⚠.</p>" +
+    '<div class="grid2"><label class="field" data-tip-name="Colonne du code" data-tip-role="Colonne des lignes contenant le code (ex. Article)"><span>Colonne du code</span>' +
+      pickField({ "data-f": "code.col", "data-fk": "code.col" }, ct.col, lineCols, lineCols ? "— choisir —" : "ex. Article") + "</label></div>" +
+    '<div class="toolbar"><button class="btn" data-act="code-import" data-tip-name="Importer les codes" data-tip-role="Ajoute les codes trouvés dans la colonne du fichier source (lignes retenues par l’activité, doublons supprimés) avec des temps de 0 s">Importer les codes du fichier</button>' +
+    '<button class="btn" data-act="code-add" data-tip-name="Ajouter un code" data-tip-role="Ajoute une ligne vide au tableau">+ Ajouter un code</button></div>' +
+    '<div class="tbl-wrap" style="max-width:640px"><table class="tbl"><thead><tr><th>' + esc(col) + '</th><th class="num">Forfait (s)</th><th class="num">Ligne (s)</th><th class="act"></th></tr></thead><tbody>';
+  ct.rows.forEach((r, j) => {
+    h += "<tr>" +
+      '<td><input type="text"' + attrs({ "data-f": "code.v", "data-vi": j, "data-fk": "code.v." + j, value: r.v, placeholder: "Code", "data-tip-name": col, "data-tip-role": "Code de la ligne (ex. 9CERTIF-FDA)" }) + "></td>" +
+      '<td class="num"><input type="number" min="0" step="any"' + attrs({ "data-f": "code.forfait", "data-vi": j, "data-fk": "code.forfait." + j, value: r.forfait, "data-tip-name": "Forfait (s)", "data-tip-role": "Temps compté pour chaque ligne de ce code" }) + "></td>" +
+      '<td class="num"><input type="number" min="0" step="any"' + attrs({ "data-f": "code.ligne", "data-vi": j, "data-fk": "code.ligne." + j, value: r.ligne, "data-tip-name": "Ligne (s)", "data-tip-role": "Temps ajouté pour chaque ligne de ce code" }) + "></td>" +
+      '<td class="act"><button class="mini danger" data-act="code-del" data-vi="' + j + '" data-tip-name="Supprimer le code" data-tip-role="Retire ce code du tableau">' + ICON.trash + "</button></td></tr>";
+  });
+  if (!ct.rows.length) h += '<tr><td colspan="4" class="muted">Aucun code.</td></tr>';
+  return h + "</tbody></table></div></div>";
 }
 
 // Récapitulatif : une carte par activité, avec les gammes qui lui sont associées dans Fichiers sources.
@@ -2414,6 +2461,29 @@ function importCalcValues(i) {
   if (col < 0) return toast("Colonne « " + c.column + " » introuvable.", true);
   addCalcValues(g, i, new Set(sh.rows.map(r => r[col] == null ? "" : String(r[col]).trim())));
 }
+// Codes trouvés dans la colonne du code (lignes retenues par l'activité de la gamme), ajoutés avec des temps de 0 s.
+function importCodeValues() {
+  const g = currentGamme(), ct = g.codeTable, src = sourceOfGamme(g.id);
+  const d = src && srcData[src.id], sh = d && d.sheets && d.sheets[g.sheet];
+  if (!sh) return toast("Chargez le fichier source de la gamme (onglet « " + g.sheet + " »).", true);
+  const ic = sh.headers.indexOf(ct.col);
+  if (ic < 0) return toast("Colonne « " + ct.col + " » introuvable.", true);
+  const def = src.activity && ACT_DEFS[src.activity], lines = def && def.lines ? def.lines() : null;
+  const keep = lines && !lines.error ? lines.keep(sh.headers) : null;
+  const have = new Set(ct.rows.map(r => r.v)), added = [];
+  for (const r of sh.rows) {
+    if (keep && !keep(r)) continue;
+    const v = normText(r[ic]);
+    if (v && !have.has(v)) { have.add(v); added.push(v); }
+  }
+  if (!added.length) return toast("Aucun nouveau code : le tableau est à jour.");
+  commit(st => {
+    const rows = st.gammes.find(x => x.id === g.id).codeTable.rows;
+    for (const v of added) rows.push({ v, forfait: 0, ligne: 0 });
+    rows.sort((a, b) => a.v.localeCompare(b.v, "fr", { numeric: true }));
+  });
+  toast(added.length + " code(s) ajouté(s) avec des temps de 0 s à compléter.");
+}
 function addCalcValues(g, i, found) {
   const c = g.tasks[i].calc;
   const have = new Set(c.values.map(v => v.v));
@@ -2459,6 +2529,11 @@ $("page-gammes").addEventListener("change", e => {
     switch (f) {
       case "g.sheet": g.sheet = el.value; break;
       case "g.folderCol": g.folderCol = el.value; break;
+      case "g.folderCol2": g.folderCol2 = el.value; break;
+      case "code.col": g.codeTable.col = el.value.trim(); break;
+      case "code.v": g.codeTable.rows[j].v = el.value.trim(); break;
+      case "code.forfait": g.codeTable.rows[j].forfait = numVal(el.value); break;
+      case "code.ligne": g.codeTable.rows[j].ligne = numVal(el.value); break;
       case "g.qtyCol": g.qtyCol = el.value; break;
       case "g.splitCol": g.splitCol = el.value; break;
       case "g.exclCol": g.exclCol = el.value; break;
@@ -2544,6 +2619,14 @@ $("page-gammes").addEventListener("click", e => {
     }
     case "goto-calc": { const c = $("calc-" + i); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); break; }
     case "c-import": importCalcValues(i); break;
+    case "ct-code-add": commit(st => { G(st).codeTable = { col: "Article", rows: [] }; }); break;
+    case "code-off":
+      if (!confirm("Retirer le tableau de temps par code de cette gamme ?")) return;
+      commit(st => { delete G(st).codeTable; });
+      break;
+    case "code-add": commit(st => G(st).codeTable.rows.push({ v: "", forfait: 0, ligne: 0 })); break;
+    case "code-del": commit(st => G(st).codeTable.rows.splice(j, 1)); break;
+    case "code-import": importCodeValues(); break;
     case "v-add": commit(st => G(st).tasks[i].calc.values.push({ v: "", sec: 0 })); break;
     case "v-del": commit(st => G(st).tasks[i].calc.values.splice(j, 1)); break;
   }
@@ -2668,6 +2751,13 @@ function buildGammeTimer(g, lineSrcId, keep) {
 
   // Option : un dossier par date (ex. commande + date d'expédition) et lignes exclues du temps (ex. articles « 9… »).
   const iSplit = g.splitCol ? sh.headers.indexOf(g.splitCol) : -1;
+  // Dossier = couple de valeurs (ex. Commande + No livraison).
+  const iFolder2 = g.folderCol2 ? sh.headers.indexOf(g.folderCol2) : -1;
+  if (g.folderCol2 && iFolder2 < 0) return { error: "Seconde colonne dossier « " + g.folderCol2 + " » introuvable." };
+  // Tableau de temps par code : chaque ligne compte Forfait + Ligne de son code.
+  const codeTimes = g.codeTable ? new Map(g.codeTable.rows.filter(r => normText(r.v)).map(r => [normText(r.v), (Number(r.forfait) || 0) + (Number(r.ligne) || 0)])) : null;
+  const iCode = g.codeTable ? sh.headers.indexOf(g.codeTable.col) : -1;
+  if (g.codeTable && iCode < 0) return { error: "Colonne du code « " + g.codeTable.col + " » introuvable." };
   const iExcl = g.exclCol && g.exclPrefix ? sh.headers.indexOf(g.exclCol) : -1;
   const exclPrefix = stripAccents(g.exclPrefix || "");
   const byFolder = new Map();
@@ -2676,6 +2766,7 @@ function buildGammeTimer(g, lineSrcId, keep) {
     let k = normText(r[iFolder]);
     if (!k) continue;
     if (keepRow && !keepRow(r)) continue;
+    if (iFolder2 >= 0) k += "|" + normText(r[iFolder2]);
     if (iSplit >= 0) { const d = dayOf(r[iSplit]); k += "|" + (d ? localISO(d) : ""); }
     if (iExcl >= 0 && stripAccents(r[iExcl]).startsWith(exclPrefix)) continue;
     if (!byFolder.has(k)) byFolder.set(k, []);
@@ -2684,10 +2775,11 @@ function buildGammeTimer(g, lineSrcId, keep) {
 
   function timeOf(folder) {
     const rows = byFolder.get(folder) || [];
-    let qty = 0, calcSec = 0, unknown = 0, noMatch = 0;
+    let qty = 0, calcSec = 0, unknown = 0, noMatch = 0, codeSec = 0, noCode = 0;
     for (const r of rows) {
       const q = Number(r[iQty]) || 0;
       qty += q;
+      if (codeTimes) { const c = normText(r[iCode]); if (codeTimes.has(c)) codeSec += codeTimes.get(c); else noCode++; }
       for (const c of calcs) {
         const v = c.valueOf(r);
         if (v === NO_MATCH) noMatch++;
@@ -2699,9 +2791,10 @@ function buildGammeTimer(g, lineSrcId, keep) {
       forfait: rows.length ? sums.Forfait : 0,
       ligne: sums.Ligne * rows.length,
       quantite: sums["Quantité"] * qty,
-      calcul: calcSec
+      calcul: calcSec,
+      code: codeSec
     };
-    return { lines: rows.length, qty, unknown, noMatch, parts, total: parts.forfait + parts.ligne + parts.quantite + parts.calcul };
+    return { lines: rows.length, qty, unknown, noMatch, noCode, parts, total: parts.forfait + parts.ligne + parts.quantite + parts.calcul + parts.code };
   }
   return { timeOf, rowsOf: f => byFolder.get(f) || [], sheet: sh };
 }
@@ -2960,6 +3053,56 @@ const ACT_DEFS = {
   }
 };
 
+ACT_DEFS["certificats"] = {
+  page: "certif", name: "Certificats", unit: "couple(s) CO-LV", dateKey: "dateExp", dateLabel: "Date expédition",
+  tabRole: "Affiche les certificats à préparer : une ligne par couple Commande - No livraison contenant des articles « 9… »",
+  enCoursRole: "Affiche seulement les couples CO-LV dont les lignes d’articles « 9… » ne sont pas toutes soldées",
+  isDone: x => x.soldee === "Oui",
+  sheets: { "Commandes ventes": ["Commande", "Client", "Validée", "Date expédition", "No livraison", "Soldée", "Article"] },
+  // Seules les lignes des articles commençant par « 9 » (certificats) comptent : dans le tableau et dans le temps.
+  lines() {
+    return { deps: [], keep: headers => { const i = headers.indexOf("Article"); return r => stripAccents(r[i]).startsWith("9"); } };
+  },
+  columns: [
+    { k: "commande", t: "Commande", cell: x => "<b>" + esc(x.commande) + "</b>" },
+    { k: "client", t: "Client" },
+    { k: "validee", t: "Validée", cell: x => /(^|\/ )non( \/|$)/i.test(x.validee) ? redBadge(x.validee, "Non validée", "Au moins une ligne n’est pas validée") : esc(x.validee) },
+    { k: "dateExp", t: "Date expédition", date: true, cell: x => lateDate(x.dateExp, "Date d’expédition") },
+    { k: "livraison", t: "No livraison" },
+    { k: "soldee", t: "Soldée" }
+  ],
+  build(sh, keep) {
+    const cv = sh["Commandes ventes"].sheet, I = sh["Commandes ventes"].idx, isCertif = keep(cv.headers);
+    const groups = new Map();
+    for (const r of cv.rows) {
+      const cde = normText(r[I.Commande]);
+      if (!cde || !isCertif(r)) continue;
+      const lv = normText(r[I["No livraison"]]), k = cde + "|" + lv;
+      let gr = groups.get(k);
+      if (!gr) groups.set(k, gr = { cde, lv, rows: [] });
+      gr.rows.push(r);
+    }
+    const out = [];
+    for (const [k, gr] of groups) {
+      const R = gr.rows;
+      // Date d'expédition : la plus proche des lignes du couple.
+      let d = null;
+      for (const r of R) { const x = dayOf(r[I["Date expédition"]]); if (x && (!d || x < d)) d = x; }
+      out.push({
+        id: k, timeKey: k,
+        commande: gr.cde,
+        client: joinDistinct(R, I.Client),
+        validee: joinDistinct(R, I["Validée"]),
+        dateExp: d,
+        livraison: gr.lv,
+        // Soldée = toutes les lignes « 9… » du couple sont « Soldé ».
+        soldee: R.every(r => stripAccents(r[I["Soldée"]]).startsWith("solde")) ? "Oui" : "Non"
+      });
+    }
+    return out;
+  }
+};
+
 // Colonnes communes ajoutées à droite de chaque activité.
 ACTIVITIES = Object.entries(ACT_DEFS).map(([id, d]) => ({ id, name: d.name }));
 
@@ -3164,6 +3307,8 @@ function renderActTable(act) {
     const dt = x.detail;
     const tip = dt ? "Forfait " + fmtInt(dt.parts.forfait) + " s + Ligne " + fmtInt(dt.parts.ligne) + " s (" + dt.lines + " lignes) + Quantité " +
       fmtInt(dt.parts.quantite) + " s + Calcul " + fmtInt(dt.parts.calcul) + " s (" + fmtInt(dt.qty) + " pièces)" +
+      (dt.parts.code ? " + Temps par code " + fmtInt(dt.parts.code) + " s" : "") +
+      (dt.noCode ? " — ⚠ " + dt.noCode + " ligne(s) dont le code est absent du tableau de temps par code (comptée 0 s)" : "") +
       (dt.noMatch ? " — ⚠ " + dt.noMatch + " ligne(s) dont l’article est absent de la table de correspondance (comptée 0 s)" : "") +
       (dt.unknown ? " — ⚠ " + dt.unknown + " ligne(s) avec une valeur absente du tableau de calcul (comptée 0 s)" : "") : "";
     h += '<tr data-row="' + esc(x.id) + '"' + (ui.sel.has(x.id) ? ' class="sel"' : "") + ">" +
@@ -3171,7 +3316,7 @@ function renderActTable(act) {
       ' data-tip-name="Cocher la ligne" data-tip-role="Coche cette ligne (Maj + clic : coche toute la plage depuis la dernière case cliquée). L’affectation saisie ensuite sur une ligne cochée est recopiée sur toutes les lignes cochées" data-tip-key="Maj + clic"></td>';
     for (const c of cols) {
       if (c.heures) h += '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
-        (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && (dt.unknown || dt.noMatch) ? " ⚠" : "") + "</b></td>";
+        (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && (dt.unknown || dt.noMatch || dt.noCode) ? " ⚠" : "") + "</b></td>";
       else if (c.k === "ressource") h += '<td class="res-cell col-res">' + resourceInput(act, x.id, assigned[x.id]) + "</td>";
       else if (c.k === "dateAff") h += '<td class="aff-cell">' + affDateInput(act, x) + "</td>";
       else h += "<td" + (c.num ? ' class="num"' : c.wrap ? ' class="wrap"' : c.date ? ' class="nowrap"' : "") + ">" + cellHtml(c, x) + "</td>";
@@ -4504,12 +4649,14 @@ function stateToWorkbook() {
   for (const [act, m] of Object.entries(state.planned)) for (const [doss, iso] of Object.entries(m)) plan.push([act, doss, new Date(iso + "T00:00")]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(plan), "Dates affectation");
 
-  const gam = [["Id gamme", "Gamme", "Onglet des lignes", "Colonne dossier", "Colonne quantité", "Découper par date", "Colonne d'exclusion", "Préfixe exclu"]];
+  const gam = [["Id gamme", "Gamme", "Onglet des lignes", "Colonne dossier", "Colonne quantité", "Découper par date", "Colonne d'exclusion", "Préfixe exclu", "Seconde colonne dossier", "Colonne du code"]];
+  const codes = [["Id gamme", "Code", "Forfait (s)", "Ligne (s)"]];
   const tasks = [["Id gamme", "N°", "Affectation", "Tâche", "Tps (sec)"]];
   const calcs = [["Id gamme", "N° tâche", "Libellé", "Source", "Onglet", "Colonne", "Liaison (lignes)", "Liaison (source)", "Table de correspondance"]];
   const vals = [["Id gamme", "N° tâche", "Valeur", "Tps (sec)"]];
   for (const g of state.gammes) {
-    gam.push([g.id, g.name, g.sheet, g.folderCol, g.qtyCol, g.splitCol || "", g.exclCol || "", g.exclPrefix || ""]);
+    gam.push([g.id, g.name, g.sheet, g.folderCol, g.qtyCol, g.splitCol || "", g.exclCol || "", g.exclPrefix || "", g.folderCol2 || "", g.codeTable ? g.codeTable.col || "" : ""]);
+    if (g.codeTable) for (const r of g.codeTable.rows) codes.push([g.id, r.v, r.forfait, r.ligne]);
     g.tasks.forEach((t, i) => {
       tasks.push([g.id, i + 1, t.a, t.name, t.a === "Calcul" ? "" : t.sec]);
       if (t.calc) {
@@ -4523,6 +4670,7 @@ function stateToWorkbook() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tasks), "Gammes - Tâches");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(calcs), "Gammes - Calculs");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(vals), "Gammes - Valeurs");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(codes), "Gammes - Temps par code");
   // Tables de correspondance communes : description, puis lignes.
   const cts = [["Id table", "Nom", "Clé", "Valeur"]], ctRows = [["Id table", "Clé", "Valeur"]];
   for (const tb of state.corrTables) {
@@ -4620,7 +4768,9 @@ function workbookToState(wb) {
     st.gammes = gam.filter(r => str(r[0])).map(r => {
       const id = str(r[0]);
       const g = { id, name: str(r[1]), sheet: str(r[2]), folderCol: str(r[3]), qtyCol: str(r[4]),
-        splitCol: str(r[5]), exclCol: str(r[6]), exclPrefix: str(r[7]), tasks: [] };
+        splitCol: str(r[5]), exclCol: str(r[6]), exclPrefix: str(r[7]), folderCol2: str(r[8]), tasks: [] };
+      if (str(r[9])) g.codeTable = { col: str(r[9]), rows: (rowsOf("Gammes - Temps par code") || []).filter(c => str(c[0]) === id)
+        .map(c => ({ v: str(c[1]), forfait: num(c[2]), ligne: num(c[3]) })) };
       for (const t of tasks.filter(t => str(t[0]) === id).sort((a, b) => num(a[1]) - num(b[1]))) {
         const task = { a: AFFECTATIONS.includes(str(t[2])) ? str(t[2]) : "Forfait", name: str(t[3]), sec: num(t[4]) };
         if (task.a === "Calcul") {
