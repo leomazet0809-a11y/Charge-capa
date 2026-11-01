@@ -797,12 +797,12 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 </div>
 
 <nav class="tabs" id="tabs">
-  <button class="tab" data-page="global" data-tip-name="Charge globale" data-tip-role="Graphique de la charge (Temps h) et de la capacité cumulées de toutes les activités">Charge globale</button>
+  <button class="tab active" data-page="global" data-tip-name="Charge globale" data-tip-role="Graphique de la charge (Temps h) et de la capacité cumulées de toutes les activités">Charge globale</button>
 </nav>
 
 <main>
 
-  <section class="page" id="page-global">
+  <section class="page active" id="page-global">
     <div class="toolbar prepa-head">
       <h1>Charge globale</h1>
       <span class="muted small" id="globalSub"></span>
@@ -2813,7 +2813,7 @@ const ACT_DEFS = {
   },
 
   "prepa-of": {
-    page: "prepa", name: "Prépa OF", unit: "OF", dateKey: "debut", dateLabel: "Début opé", home: true,
+    page: "prepa", name: "Prépa OF", unit: "OF", dateKey: "debut", dateLabel: "Début opé",
     tabRole: "Affiche la liste des OF à préparer et leur temps de préparation",
     enCoursRole: "Affiche seulement les OF dont le Statut opé n'est pas « Soldée »",
     isDone: x => stripAccents(x.statutOpe) === "soldee",
@@ -2970,9 +2970,8 @@ function buildActivityPages() {
   const ICON_COLS = '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>';
   const ICON_X = '<svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   const tabs = $("tabs"), main = document.querySelector("main");
-  const home = Object.keys(ACT_DEFS).find(a => ACT_DEFS[a].home) || Object.keys(ACT_DEFS)[0];
   Object.entries(ACT_DEFS).forEach(([act, d]) => {
-    const first = act === home; // activité affichée à l'ouverture (Prépa OF)
+    const first = false; // l'application s'ouvre sur Charge globale
     tabs.insertAdjacentHTML("beforeend", '<button class="tab' + (first ? " active" : "") + '" data-page="' + d.page + '" data-tip-name="' + esc(d.name) + '" data-tip-role="' + esc(d.tabRole) + '">' + esc(d.name) + "</button>");
     main.insertAdjacentHTML("beforeend",
       '<section class="page act-page' + (first ? " active" : "") + '" id="page-' + d.page + '">' +

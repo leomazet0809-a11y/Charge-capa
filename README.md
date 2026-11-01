@@ -30,7 +30,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter ; **Échap ne quitte pas** le plein écran, il garde son rôle dans l'appli — maintenir Échap 2 s force la sortie) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
-Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Gravage**, **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
+Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités, onglet affiché à l'ouverture), puis les activités **Gravage**, **Prépa OF** et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
 Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargement, une fenêtre indique le fichier, l'étape en cours (lecture, analyse des onglets, calcul des temps) et le temps écoulé.
 
@@ -155,7 +155,7 @@ Il n'y a plus de liste à paramétrer : les affectations proposées dans la colo
 
 ## 5. Charge globale
 
-Premier onglet, à gauche des activités : **un seul graphique** qui additionne la charge et la capacité de toutes les activités sur la période du ruban.
+Premier onglet, à gauche des activités, **affiché à l'ouverture de l'application** : **un seul graphique** qui additionne la charge et la capacité de toutes les activités sur la période du ruban.
 - **Barres empilées** : charge **soldée** en bleu (en bas) et charge **en cours** en noir grisé (au-dessus), toutes activités additionnées ; la hauteur totale est la charge totale du jour ;
 - **Courbe** : capacité des groupes / niveaux choisis pour les activités (un groupe choisi pour deux activités n'est compté qu'une fois) ;
 - pas de totaux de la période au-dessus du graphique : les valeurs de chaque jour (charge soldée, en cours, par activité, capacité) s'affichent au survol ;
