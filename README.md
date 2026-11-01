@@ -30,7 +30,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter ; **Échap ne quitte pas** le plein écran, il garde son rôle dans l'appli — maintenir Échap 2 s force la sortie) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
-Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités, onglet affiché à l'ouverture), puis les activités **Gravage**, **Prépa OF** et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
+Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités, onglet affiché à l'ouverture), puis les activités **Gravage**, **Prépa OF**, **Prépa Expéd** et **Certificats**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
 Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargement, une fenêtre indique le fichier, l'étape en cours (lecture, analyse des onglets, calcul des temps) et le temps écoulé.
 
@@ -114,6 +114,7 @@ Cette page s'ouvre sur un **récapitulatif des gammes par activité** : pour cha
 **Réglages de la gamme**
 - *Onglet des lignes* : onglet du fichier source qui contient une ligne par composant (pour Prépa OF : `OF`).
 - *Colonne dossier* : colonne qui identifie un dossier (pour Prépa OF : `OF`).
+- *Seconde colonne dossier* (facultatif) : un dossier = un **couple de valeurs** (pour Certificats : `Commande` + `No livraison`).
 - *Colonne quantité* : quantité de pièces de chaque ligne (pour Prépa OF : `Qté besoin`).
 - *Découper par date* (facultatif) : un dossier est découpé en autant de dossiers que de dates différentes dans cette colonne (pour Prépa Expéd : `Date expédition`, un dossier = une commande pour une date).
 - *Exclure les lignes dont la colonne… commence par…* (facultatif) : ces lignes ne comptent pas dans le temps (pour Prépa Expéd : colonne `Article`, préfixe `9`). Un dossier sans aucune ligne comptée a un temps de 0.
@@ -128,6 +129,8 @@ Cette page s'ouvre sur un **récapitulatif des gammes par activité** : pour cha
 | Calcul | Selon un **tableau de valeurs** (voir ci-dessous) ; la colonne Tps affiche « cf tableau » |
 
 Les totaux Forfait / Ligne / Quantité s'affichent sous le tableau.
+
+**Temps par code** (facultatif, bouton **+ Tableau de temps par code**) : un tableau *Code → Forfait (s) / Ligne (s)*. Chaque ligne du dossier compte le Forfait **et** le temps Ligne de son code (colonne choisie, ex. `Article`), même si le code se répète. Un code absent du tableau compte 0 s et le temps du dossier est signalé par **⚠**. **Importer les codes du fichier** ajoute les codes trouvés dans le fichier source (lignes retenues par l'activité) avec des temps à 0 ; **+ Ajouter un code**, 🗑 et la corbeille du titre (retire le tableau) sont annulables par Ctrl + Z. Utilisé par la gamme *Certificats* (voir § 10).
 
 **Tableau de calcul** (un par tâche « Calcul ») :
 1. Donnez un *libellé* (ex. `DN`).
@@ -317,6 +320,42 @@ Période, tri, filtres Excel, boutons rapides, total, affectations, graphique et
 | Soldée | **Oui** si tous les articles de la commande-date sont « Soldé », sinon **Non** |
 | Temps (h) | Temps de préparation calculé avec la gamme *Prépa Expéd* sur toutes les lignes (soldées comprises), **sauf les articles commençant par 9** ; quantité = *Qté commandée US* |
 | Affectation | Liste déroulante des affectations et saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
+
+
+## 10. Certificats
+
+Liste des **certificats à préparer** : **une ligne par couple Commande (CO) - No livraison (LV)**, uniquement pour les lignes de l'onglet `Commandes ventes` dont l'**Article commence par 9** (certificats). Un couple sans article « 9… » n'apparaît pas. Source : fichier de l'activité *Certificats* (ligne *MRBE_LOG_CHARGE_TRAVAIL* de Paramètres › Fichiers sources, le même export que les autres activités).
+
+Période, tri, filtres Excel, boutons rapides, total, affectations, graphique et taille du tableau fonctionnent comme pour Prépa OF :
+- la période porte sur la **Date expédition** ;
+- **En cours** masque les couples dont toutes les lignes « 9… » sont soldées (Soldée = Oui) ; **Tout** retire tous les filtres.
+
+| Colonne | Origine |
+|---|---|
+| Commande, Client, No livraison | Colonnes du même nom ; si les lignes du couple ont des valeurs différentes, toutes sont affichées, séparées par « / » |
+| Validée | Colonne du même nom ; en **pastille rouge** si une valeur est « Non » |
+| Date expédition | La plus proche des lignes « 9… » du couple ; en **pastille rouge** si elle est antérieure à aujourd'hui |
+| Soldée | **Oui** si toutes les lignes « 9… » du couple sont « Soldé », sinon **Non** |
+| Temps (h) | Somme, pour chaque ligne « 9… », du **Forfait + Ligne** de son article (tableau *Temps par code* de la gamme *Certificats*) |
+| Affectation | Liste déroulante des affectations et saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
+
+Temps par code de la gamme *Certificats* (modifiable dans *Paramètres › Temps gammes › Certificats*) :
+
+| Certificat | Forfait (s) | Ligne (s) |
+|---|---|---|
+| 9CERTIF-FDA | 120 | 120 |
+| 9CERTIF-RUGO | 120 | 100 |
+| 9CERTIF-USP | 110 | 270 |
+| 9CERTIF-DEG | 240 | 0 |
+| 9CERTIF3-1 | 30 | 390 |
+| 9CERTIF3-1_TOTAL | 30 | 390 |
+| 9CERTIF2-1 | 210 | 0 |
+| 9CERTIF2-2 | 120 | 120 |
+| 9CERTIF-TSE/BSE | 120 | 360 |
+| 9CERTIF-CE1935 | 120 | 760 |
+| 9DOC-CE1935 | 120 | 940 |
+
+Exemple : un couple CO-LV avec deux lignes 9CERTIF-FDA → 2 × (120 + 120) = 480 s = 0,13 h. Un article « 9… » absent du tableau compte 0 s et le temps est signalé par **⚠** : ajoutez-le dans la gamme (ou **Importer les codes du fichier**).
 
 ---
 
