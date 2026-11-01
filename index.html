@@ -506,6 +506,8 @@ td.stale { color: var(--warn); font-weight: 600; }
 .badge.err { background: color-mix(in srgb, var(--err) 16%, transparent); color: var(--err); }
 .badge.off { background: var(--surface-2); color: var(--text-2); }
 .small { font-size: .88em; }
+/* Temps de moins d'une heure : rappel en minutes à gauche des heures. */
+.t-min { color: var(--text-2); font-size: .82em; font-weight: 400; margin-right: 8px; }
 .linkish { color: var(--accent); cursor: pointer; text-decoration: underline dotted; }
 .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .toolbar .spacer { flex: 1; }
@@ -3317,7 +3319,9 @@ function renderActTable(act) {
       '<td class="sel-cell"><input type="checkbox" class="row-chk"' + (ui.sel.has(x.id) ? " checked" : "") +
       ' data-tip-name="Cocher la ligne" data-tip-role="Coche cette ligne (Maj + clic : coche toute la plage depuis la dernière case cliquée). L’affectation saisie ensuite sur une ligne cochée est recopiée sur toutes les lignes cochées" data-tip-key="Maj + clic"></td>';
     for (const c of cols) {
-      if (c.heures) h += '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + "><b>" +
+      if (c.heures) h += '<td class="num"' + (dt ? ' data-tip-name="Détail du temps" data-tip-role="' + esc(tip) + '"' : "") + ">" +
+        // Moins d'une heure : rappel en minutes (arrondi à la minute), en gris et plus petit, à gauche des heures.
+        (x.heures != null && x.heures > 0 && x.heures < 1 ? '<span class="t-min">' + Math.round(x.heures * 60) + " min</span>" : "") + "<b>" +
         (x.heures == null ? "–" : fmtHours(x.heures * 3600)) + (dt && (dt.unknown || dt.noMatch || dt.noCode) ? " ⚠" : "") + "</b></td>";
       else if (c.k === "ressource") h += '<td class="res-cell col-res">' + resourceInput(act, x.id, assigned[x.id]) + "</td>";
       else if (c.k === "dateAff") h += '<td class="aff-cell">' + affDateInput(act, x) + "</td>";

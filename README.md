@@ -186,6 +186,10 @@ Un composant **absent de la correspondance** compte **0 s** et la cellule *Temps
 - **Ajuster** choisit la plus grande taille qui fait tenir toutes les colonnes dans la largeur de l'écran.
 La taille vaut pour tous les tableaux d'activité et est mémorisée **sur ce poste** (pas dans le classeur projet).
 
+### Temps (h)
+
+Dans toutes les activités, quand le **Temps (h)** d'une ligne est **inférieur à 1 heure** (et non nul), son équivalent **en minutes** (arrondi à la minute, ex. *18 min* pour 0,30 h) est rappelé pour information, en gris et un peu plus petit, juste à gauche du temps en heures.
+
 ### Date affectation
 
 Chaque activité a une colonne **Date affectation** (juste à droite de la colonne *Affectation*) : c'est le **jour où le dossier est planifié**, en général avant sa date due (Début opé pour Prépa OF, Date expédition pour Prépa Expéd).
