@@ -797,12 +797,12 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
 </div>
 
 <nav class="tabs" id="tabs">
-  <button class="tab" data-page="global" data-tip-name="Charge globale" data-tip-role="Graphique de la charge (Temps h) et de la capacité cumulées de toutes les activités">Charge globale</button>
+  <button class="tab active" data-page="global" data-tip-name="Charge globale" data-tip-role="Graphique de la charge (Temps h) et de la capacité cumulées de toutes les activités">Charge globale</button>
 </nav>
 
 <main>
 
-  <section class="page" id="page-global">
+  <section class="page active" id="page-global">
     <div class="toolbar prepa-head">
       <h1>Charge globale</h1>
       <span class="muted small" id="globalSub"></span>
@@ -1169,12 +1169,17 @@ function defaultGammeGravage() {
     ]
   };
 }
-// Liste des composants Corps : source « Base de données » des Fichiers sources, utilisée par Gravage.
-const CORPS_SOURCE_ID = "s-corps";
+// Liste des composants Corps : table de correspondance commune (Temps gammes), utilisée par Gravage pour ne garder
+// que les lignes des composants Corps. Seule la clé (Article) compte ; la valeur (ex. désignation) est facultative.
+const CT_CORPS = "ct-corps";
+function corpsCorrTable() { return { id: CT_CORPS, name: "Composants Corps", key: "Article", label: "Désignation", data: "", count: 0 }; }
+// Ancienne ligne « Composants Corps » des Fichiers sources : retirée à l'ouverture (remplacée par la table).
+const OLD_CORPS_SOURCE_ID = "s-corps";
+// Tables utilisées par une activité (en plus des gammes reliées par une tâche Calcul).
+const CORR_ACT_USES = { [CT_CORPS]: "Gravage (lignes Corps)" };
 
 const DEFAULT_SOURCES = [
   { id: "s-gravage", label: "MRBE_LOG_CHARGE_TRAVAIL", activity: "gravage", gamme: "g-gravage", fileName: "", fileDate: null, loadedAt: null, cap: [] },
-  { id: CORPS_SOURCE_ID, label: "Composants Corps", activity: "", gamme: "", fileName: "", fileDate: null, loadedAt: null, cap: [] },
   { id: "s-prepa-of", label: "Charge de travail", activity: "prepa-of", gamme: "g-prepa-of", fileName: "", fileDate: null, loadedAt: null, cap: [] },
   { id: "s-prepa-exped", label: "Commandes ventes", activity: "prepa-exped", gamme: "g-prepa-exped", fileName: "", fileDate: null, loadedAt: null, cap: [] }
 ];
@@ -1184,9 +1189,10 @@ function ensureActivityDefaults(st) {
   const gammes = { "g-prepa-of": defaultGammePrepa, "g-prepa-exped": defaultGammeExped, "g-gravage": defaultGammeGravage };
   if (!Array.isArray(st.corrTables)) st.corrTables = [];
   if (!st.corrTables.some(t => t.id === CT_DN)) st.corrTables.unshift(defaultCorrTable());
+  if (!st.corrTables.some(t => t.id === CT_CORPS)) st.corrTables.push(corpsCorrTable());
+  st.sources = st.sources.filter(s => s.id !== OLD_CORPS_SOURCE_ID);
   for (const src of DEFAULT_SOURCES) {
-    if (src.activity ? st.sources.some(s => s.activity === src.activity) : st.sources.some(s => s.id === src.id)) continue;
-    if (!src.gamme) { st.sources.push(clone(src)); continue; }
+    if (st.sources.some(s => s.activity === src.activity)) continue;
     if (!st.gammes.some(g => g.id === src.gamme)) st.gammes.push(gammes[src.gamme]());
     st.sources.push(clone(src));
   }
@@ -1238,7 +1244,7 @@ const DEFAULT_STATE = {
   settings: { theme: "auto", font: "Inter", fontSize: 14, autoSave: false },
   sources: clone(DEFAULT_SOURCES),
   gammes: [defaultGammeGravage(), defaultGammePrepa(), defaultGammeExped()],
-  corrTables: [defaultCorrTable()],
+  corrTables: [defaultCorrTable(), corpsCorrTable()],
   // Source unique de capacité de travail (Heure productivité par jour, groupe et niveau).
   capacity: { fileName: "", fileDate: null, loadedAt: null },
   // Ressources (préparateurs, postes…) et affectation des dossiers : assign[activité][dossier] = id ressource.
@@ -2015,6 +2021,8 @@ function corrIds(st) {
 }
 // Gammes dont une tâche Calcul utilise la table.
 function gammesOfCorr(id) { return state.gammes.filter(g => g.tasks.some(t => t.calc && t.calc.corr && t.calc.corr.table === id)); }
+// Tout ce qui utilise la table : gammes reliées et activités (ex. Gravage pour Composants Corps).
+function corrUses(id) { return gammesOfCorr(id).map(g => g.name).concat(CORR_ACT_USES[id] ? [CORR_ACT_USES[id]] : []); }
 // Au démarrage : relit les tables de l'état mis en cache et efface les versions qui ne servent plus.
 async function loadCorrStore() {
   const ids = corrIds(state);
@@ -2132,12 +2140,12 @@ function renderGammesList() {
   // Tables de correspondance communes, reliées aux gammes par leurs tâches Calcul.
   h += '<div class="card"><div class="toolbar" style="margin:0 0 10px"><h2 style="margin:0">Tables de correspondance</h2><span class="spacer"></span>' +
     '<button class="btn" data-act="ct-new" data-tip-name="Nouvelle table" data-tip-role="Crée une table de correspondance vide (ex. Article → DN), puis l’ouvre">+ Nouvelle table</button></div>' +
-    '<p class="muted small" style="margin:-4px 0 10px">Copiées dans le projet et communes à toutes les gammes : une tâche Calcul s’y relie (ex. Prépa OF et Gravage → Article → DN), chaque gamme gardant son propre tableau de temps.</p>';
+    '<p class="muted small" style="margin:-4px 0 10px">Copiées dans le projet et communes à toutes les gammes : une tâche Calcul s’y relie (ex. Prépa OF et Gravage → Article → DN), chaque gamme gardant son propre tableau de temps. La table Composants Corps donne la liste des composants gravés (activité Gravage).</p>';
   if (!state.corrTables.length) h += '<p class="muted" style="margin:0">Aucune table.</p></div>';
   else {
-    h += '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Table</th><th>Correspondance</th><th class="num">Lignes</th><th>Gammes reliées</th></tr></thead><tbody>';
+    h += '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Table</th><th>Correspondance</th><th class="num">Lignes</th><th>Utilisée par</th></tr></thead><tbody>';
     for (const tb of state.corrTables) {
-      const used = gammesOfCorr(tb.id).map(g => g.name);
+      const used = corrUses(tb.id);
       h += '<tr class="clickable" data-act="ct-open" data-cid="' + esc(tb.id) + '" data-tip-name="' + esc(tb.name) + '" data-tip-role="Cliquez pour ouvrir, importer ou modifier cette table">' +
         "<td><b>" + esc(tb.name) + "</b></td>" +
         "<td>" + esc((tb.key || "Clé") + " → " + (tb.label || "Valeur")) + "</td>" +
@@ -2161,14 +2169,16 @@ function renderCorrEdit() {
   const tb = state.corrTables.find(x => x.id === currentCorrId);
   if (!tb) return;
   const corr = corrRowsOf(tb), key = tb.key || "Clé", label = tb.label || "Valeur";
-  const used = gammesOfCorr(tb.id);
+  const used = gammesOfCorr(tb.id), actUse = CORR_ACT_USES[tb.id];
   $("corrTitle").textContent = tb.name;
-  $("btnDelCorr").disabled = used.length > 0;
-  $("btnDelCorr").dataset.tipRole = used.length ? "Table reliée à " + used.map(g => g.name).join(", ") + " : retirez d’abord le lien dans ces gammes" : "Supprime cette table du projet";
+  $("btnDelCorr").disabled = used.length > 0 || !!actUse;
+  $("btnDelCorr").dataset.tipRole = actUse ? "Table utilisée par l’activité " + actUse + " : elle ne peut pas être supprimée"
+    : used.length ? "Table reliée à " + used.map(g => g.name).join(", ") + " : retirez d’abord le lien dans ces gammes" : "Supprime cette table du projet";
   $("corrBody").innerHTML =
+    (actUse ? '<p class="muted small" style="margin:0 0 6px">Utilisée par l’activité <b>' + esc(actUse) + "</b> : seules les lignes dont le composant figure dans la colonne " + esc(tb.key || "Clé") + " sont comptées ; la colonne " + esc(tb.label || "Valeur") + " est facultative.</p>" : "") +
     '<p class="muted small" style="margin:0 0 12px">' + (used.length
       ? "Reliée aux gammes : " + used.map(g => '<span class="linkish" data-act="g-open" data-gid="' + esc(g.id) + '" data-tip-name="' + esc(g.name) + '" data-tip-role="Ouvre cette gamme">' + esc(g.name) + "</span>").join(", ") + "."
-      : "Reliée à aucune gamme : choisissez-la dans le tableau de calcul d’une tâche Calcul.") + "</p>" +
+      : actUse ? "Reliée à aucune gamme." : "Reliée à aucune gamme : choisissez-la dans le tableau de calcul d’une tâche Calcul.") + "</p>" +
     '<div class="grid2">' +
       '<label class="field" data-tip-name="Nom de la clé" data-tip-role="Nom de la première colonne (ex. Article) : valeur cherchée depuis les lignes des gammes"><span>Nom de la clé</span><input type="text"' + attrs({ "data-f": "ct.key", "data-fk": "ct.key", value: tb.key, placeholder: "ex. Article" }) + "></label>" +
       '<label class="field" data-tip-name="Nom de la valeur" data-tip-role="Nom de la seconde colonne (ex. DN) : valeur associée à la clé"><span>Nom de la valeur</span><input type="text"' + attrs({ "data-f": "ct.label", "data-fk": "ct.label", value: tb.label, placeholder: "ex. DN" }) + "></label>" +
@@ -2335,7 +2345,7 @@ async function importCorrFile(tid, anchor) {
   const fill = name => {
     const heads = sheets[name].headers, ik = guess(heads, key, -1), iv = guess(heads, label, ik);
     pop.querySelector('[data-cf="k"]').innerHTML = opts(heads, ik);
-    pop.querySelector('[data-cf="v"]').innerHTML = opts(heads, iv);
+    pop.querySelector('[data-cf="v"]').innerHTML = '<option value="-1"' + (iv < 0 ? " selected" : "") + ">— Aucune —</option>" + opts(heads, iv);
     pop.querySelector(".cinfo").textContent = fmtInt(sheets[name].rows.length) + " ligne(s) dans cet onglet.";
   };
   pop.innerHTML = '<div class="fhead">Importer la correspondance ' + esc(key) + " → " + esc(label) + "</div>" +
@@ -2564,7 +2574,7 @@ $("btnRenameCorr").onclick = () => {
 };
 $("btnDelCorr").onclick = () => {
   const tb = state.corrTables.find(x => x.id === currentCorrId);
-  if (!tb || gammesOfCorr(tb.id).length || !confirm("Supprimer la table « " + tb.name + " » ?")) return;
+  if (!tb || corrUses(tb.id).length || !confirm("Supprimer la table « " + tb.name + " » ?")) return;
   commit(st => { st.corrTables = st.corrTables.filter(x => x.id !== tb.id); });
   gammeView = "list";
   render();
@@ -2746,23 +2756,12 @@ function joinDistinct(rows, i) {
   return seen.join(" / ");
 }
 
-// Liste des composants Corps (source « Composants Corps » des Fichiers sources) : ensemble des codes article.
-// Colonne lue : la première dont le nom contient « composant » ou « article », sinon la première colonne.
+// Liste des composants Corps : clés de la table de correspondance « Composants Corps » (Temps gammes).
 function corpsList() {
-  const src = state.sources.find(s => s.id === CORPS_SOURCE_ID);
-  if (!src) return { error: "Source « Composants Corps » absente : rouvrez le projet pour la recréer (Paramètres › Fichiers sources)." };
-  if (!src.fileName) return { error: "Choisissez le fichier de la liste « " + (src.label || "Composants Corps") + " » dans Paramètres › Fichiers sources." };
-  const d = srcData[src.id];
-  if (!d || d.status !== "loaded" && d.status !== "changed") return { error: "La liste « " + (src.label || "Composants Corps") + " » (" + src.fileName + ") n'est pas chargée (Paramètres › Fichiers sources)." };
-  const sheet = Object.values(d.sheets).find(x => x.headers.some(h => h));
-  if (!sheet) return { error: "La liste « " + (src.label || "Composants Corps") + " » ne contient aucune colonne." };
-  let col = sheet.headers.findIndex(h => /composant|article/.test(stripAccents(h)));
-  if (col < 0) col = sheet.headers.findIndex(h => h);
-  const set = new Set();
-  // L'en-tête lui-même peut être un code (liste sans titre de colonne).
-  if (!/composant|article|corps/.test(stripAccents(sheet.headers[col]))) set.add(normText(sheet.headers[col]));
-  for (const r of sheet.rows) { const v = normText(r[col]); if (v) set.add(v); }
-  return { set, data: d };
+  const tb = state.corrTables.find(t => t.id === CT_CORPS);
+  const corr = corrRowsOf(tb);
+  if (!corr || !corr.rows.length) return { error: "La liste des composants Corps est vide : importez-la dans Paramètres › Temps gammes › Tables de correspondance › " + (tb ? tb.name : "Composants Corps") + "." };
+  return { set: corr.idx, data: corr };
 }
 
 const ACT_DEFS = {
@@ -2814,7 +2813,7 @@ const ACT_DEFS = {
   },
 
   "prepa-of": {
-    page: "prepa", name: "Prépa OF", unit: "OF", dateKey: "debut", dateLabel: "Début opé", home: true,
+    page: "prepa", name: "Prépa OF", unit: "OF", dateKey: "debut", dateLabel: "Début opé",
     tabRole: "Affiche la liste des OF à préparer et leur temps de préparation",
     enCoursRole: "Affiche seulement les OF dont le Statut opé n'est pas « Soldée »",
     isDone: x => stripAccents(x.statutOpe) === "soldee",
@@ -2971,9 +2970,8 @@ function buildActivityPages() {
   const ICON_COLS = '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>';
   const ICON_X = '<svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   const tabs = $("tabs"), main = document.querySelector("main");
-  const home = Object.keys(ACT_DEFS).find(a => ACT_DEFS[a].home) || Object.keys(ACT_DEFS)[0];
   Object.entries(ACT_DEFS).forEach(([act, d]) => {
-    const first = act === home; // activité affichée à l'ouverture (Prépa OF)
+    const first = false; // l'application s'ouvre sur Charge globale
     tabs.insertAdjacentHTML("beforeend", '<button class="tab' + (first ? " active" : "") + '" data-page="' + d.page + '" data-tip-name="' + esc(d.name) + '" data-tip-role="' + esc(d.tabRole) + '">' + esc(d.name) + "</button>");
     main.insertAdjacentHTML("beforeend",
       '<section class="page act-page' + (first ? " active" : "") + '" id="page-' + d.page + '">' +
