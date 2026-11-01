@@ -30,7 +30,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter ; **Échap ne quitte pas** le plein écran, il garde son rôle dans l'appli — maintenir Échap 2 s force la sortie) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
-Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
+Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités), puis les activités **Gravage**, **Prépa OF** (onglet affiché à l'ouverture) et **Prépa Expéd**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
 Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargement, une fenêtre indique le fichier, l'étape en cours (lecture, analyse des onglets, calcul des temps) et le temps écoulé.
 
@@ -95,6 +95,7 @@ Chaque ligne relie une **activité** (ex. *Prépa OF*) à un **fichier source** 
 - La date des fichiers est revérifiée **chaque minute** et à chaque retour sur l'application : un fichier enregistré entre-temps passe **À actualiser**.
 - Les données lues restent dans le navigateur : elles **ne sont pas copiées** dans le classeur projet (seuls le nom du fichier et les dates le sont).
 - Pour les CSV, le séparateur (`;` ou `,`) et l'encodage (UTF-8 ou ANSI) sont détectés automatiquement.
+- **Composants Corps** (ligne « — Base de données ») : liste des codes article des composants Corps, utilisée par l'activité *Gravage*. Un fichier Excel ou CSV avec une colonne de codes : l'application lit la première colonne dont le nom contient « Composant » ou « Article » (sinon la première colonne). Les projets existants reçoivent automatiquement cette ligne, ainsi que la ligne *MRBE_LOG_CHARGE_TRAVAIL* de l'activité Gravage (choisissez-y le même fichier que pour Prépa OF : il n'est lu qu'une fois).
 
 **Capacité de travail** (encadré sous les sources d'activités) : une **source unique** pour toutes les activités.
 - Fichier Excel ou CSV contenant au moins les colonnes **date**, **groupe**, **Niveau** et **Heure productivité** (une ligne par personne et par jour).
@@ -132,14 +133,16 @@ Les totaux Forfait / Ligne / Quantité s'affichent sous le tableau.
 1. Donnez un *libellé* (ex. `DN`).
 2. Choisissez l'**origine de la valeur** :
    - **Colonne d'un fichier source** : choisissez le *fichier source*, l'*onglet* et la *colonne des valeurs*. Si ce fichier n'est pas celui de l'activité, indiquez les deux colonnes de *liaison*.
-   - **Table de correspondance (dans le projet)** : indiquez la *colonne des lignes* à chercher (ex. `Composant OF`) et le *nom de la clé* (ex. `Article`), puis remplissez la table de correspondance (voir « Base des DN » ci-dessous).
+   - **Table de correspondance** : indiquez la *colonne des lignes* à chercher (ex. `Composant OF`) et choisissez une **table de correspondance commune** (ex. *Article → DN*, voir ci-dessous). Le bouton **Ouvrir la table** y mène directement.
 3. **Importer les valeurs** ajoute les valeurs trouvées (dans la colonne ou dans la table de correspondance, doublons supprimés) avec un temps de 0 s ; les temps déjà saisis ne sont jamais écrasés.
 4. Saisissez le **Tps (sec)** de chaque valeur. La ligne **(vide)** s'applique aux lignes sans valeur.
 
 Temps de la tâche pour une ligne = Tps (sec) de sa valeur × quantité de la ligne.
 Exemple : 3 lignes de 5 pièces en DN10 (1 s) → 1 × 5 × 3 = 15 s.
 
-La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence (DN10 à DN200, dont DN125 à 60 s comme DN100), relié à la **table de correspondance Article → DN** (voir ci-dessous) ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée).
+La gamme *Prépa OF* est pré-remplie avec les 13 tâches et le tableau des DN de référence (DN10 à DN200, dont DN125 à 60 s comme DN100), relié à la **table de correspondance Article → DN** (voir ci-dessous) ; la gamme *Prépa Expéd* avec ses 17 tâches (la tâche Forfait *RFF* est toujours comptée) ; la gamme *Gravage* avec ses 3 forfaits et le tableau *Gravage par DN* (voir § 7), relié à la même table Article → DN.
+
+**Tables de correspondance** (carte en bas du récapitulatif) : tables **communes à toutes les gammes**, copiées dans le projet (ex. *Article → DN*). Le récapitulatif indique pour chacune le nombre de lignes et les gammes reliées ; cliquez sur une table pour l'ouvrir. Une gamme s'y relie par une tâche *Calcul* et garde **son propre tableau de temps** (DN → Tps) : Prépa OF et Gravage utilisent la même table Article → DN avec des temps différents. **+ Nouvelle table** crée une table vide ; ✎ renomme, 🗑 supprime une table qui n'est reliée à aucune gamme. Les noms de la clé et de la valeur (ex. *Article*, *DN*) se modifient en haut de la table.
 
 ### 4.4 Ressources à affecter
 
@@ -161,12 +164,12 @@ Premier onglet, à gauche des activités : **un seul graphique** qui additionne 
 *Composant OF* → **DN** (table de correspondance Article → DN) → **Tps (sec)** (tableau DN → Tps) × *Qté besoin*.
 
 Pour remplir la table de correspondance (une seule fois, puis à chaque mise à jour de la base) :
-1. *Paramètres › Temps gammes* → **Prépa OF** → carte *Tableau de calcul – Compter et déposer les pièces dans la préparation*.
-2. Partie **Correspondance Article → DN** : **Importer depuis un fichier…** et choisissez le fichier des DN par article (Excel ou CSV).
+1. *Paramètres › Temps gammes* → carte **Tables de correspondance** → **Article → DN** (ou **Ouvrir la table** depuis le tableau de calcul de Prépa OF ou de Gravage).
+2. **Importer depuis un fichier…** et choisissez le fichier des DN par article (Excel ou CSV).
 3. Vérifiez l'onglet et les colonnes **Article** et **DN** (choisies automatiquement si elles portent ces noms), puis **Importer** (Entrée).
-4. La table est **copiée dans le projet** (onglet *Gammes - Correspondances* du classeur) et remplace la précédente ; enregistrez (Ctrl + S). Le fichier d'origine n'est plus nécessaire.
+4. La table est **copiée dans le projet** (onglets *Correspondances* et *Correspondances - Lignes* du classeur) et remplace la précédente pour **toutes les gammes reliées** (Prépa OF et Gravage) ; enregistrez (Ctrl + S). Le fichier d'origine n'est plus nécessaire.
 
-La table affiche le nombre d'articles et les 200 premières lignes ; la zone **Rechercher…** retrouve un article ou un DN. Chaque DN se modifie directement dans la table, **+ Ajouter** ajoute (ou corrige) un article, 🗑 le supprime ; tout est annulable par Ctrl + Z. Un **⚠** à côté d'un DN signale qu'il n'a pas de temps dans le tableau DN → Tps (utilisez **Importer les DN de la correspondance**).
+La table affiche le nombre d'articles et les 200 premières lignes ; la zone **Rechercher…** retrouve un article ou un DN. Chaque DN se modifie directement dans la table, **+ Ajouter** ajoute (ou corrige) un article, 🗑 le supprime ; tout est annulable par Ctrl + Z. Un **⚠** à côté d'un DN signale qu'il n'a pas de temps dans le tableau DN → Tps d'au moins une gamme reliée (la bulle les nomme ; dans la gamme, utilisez **Importer les DN de la correspondance**). Les projets enregistrés avant les tables communes sont convertis à l'ouverture : la table Article → DN de Prépa OF devient la table commune.
 
 Un composant **absent de la correspondance** compte **0 s** et la cellule *Temps (h)* du dossier affiche **⚠** (la bulle donne le nombre de lignes concernées) ; une ligne sans composant prend le temps « (vide) ». Les projets créés avec l'ancienne ligne *Base DN* des fichiers sources passent automatiquement à la table de correspondance (vide) : importez-la une fois.
 
@@ -228,7 +231,33 @@ Pendant le glisser, la barre visée est encadrée et une bulle indique « Affect
 
 > Les noms des affectations doivent être les mêmes que ceux de la colonne *nom_complet* du fichier de capacité (majuscules et accents ignorés) ; les noms des personnes sont écrits en petit sous chaque barre. Sans groupe / niveau choisi pour l'activité, la vue affiche toutes les personnes du fichier de capacité.
 
-## 7. Prépa OF
+## 7. Gravage
+
+Liste des **OF dont un composant Corps est à graver** : **une ligne par OF**, uniquement pour les lignes de l'onglet `OF` dont le *Composant OF* figure dans la liste **Composants Corps** (Paramètres › Fichiers sources). Un OF sans composant Corps n'apparaît pas ; un OF a un seul composant Corps (s'il y en avait plusieurs, le premier serait retenu). Source : onglet `OF` du fichier de l'activité *Gravage* (le même export que Prépa OF).
+
+Période, tri, filtres Excel, boutons rapides, total, affectations, graphique et taille du tableau fonctionnent comme pour Prépa OF :
+- la période porte sur le **Début opé** ;
+- **En cours** masque les OF dont la ligne du composant Corps a le *Statut opé* « Soldé » ; **Tout** retire tous les filtres.
+
+| Colonne | Origine |
+|---|---|
+| OF, Article PF, Composant OF, Qté besoin | Colonnes du même nom, lues sur la ligne du composant Corps |
+| Début opé | Colonne du même nom ; en **pastille rouge** si elle est antérieure à aujourd'hui |
+| DN | DN du composant Corps dans la **table de correspondance Article → DN** (Paramètres › Temps gammes) ; **?** en rouge si le composant en est absent |
+| Manquants | **Oui** en rouge si la ligne du composant Corps est marquée manquante, sinon Non |
+| Temps (h) | Temps de gravage calculé avec la gamme *Gravage* sur la ligne du composant Corps |
+| Affectation | Liste déroulante des affectations et saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
+
+**Calcul du Temps (h)** pour un OF = 3 forfaits de 120 s (*Apporter la préparation*, *Déposer la préparation*, *Montage outillage graveuse*) + **Gravage par DN** : Tps (sec) du DN du composant × *Qté besoin*. Le tableau *Gravage par DN* donne un temps par pièce, issu du nombre de corps gravés en une heure (3 600 / quantité par heure) :
+
+| DN | (vide) | 10 | 15 | 20 | 25 | 32 | 40 | 50 | 65 | 80 | 100 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Corps par heure | 80 | 90 | 90 | 80 | 80 | 60 | 60 | 60 | 30 | 30 | 30 |
+| Tps (sec) par pièce | 45 | 40 | 40 | 45 | 45 | 60 | 60 | 60 | 120 | 120 | 120 |
+
+Exemple : 10 corps DN10 → 3 × 120 + 10 × 40 = 760 s = 0,21 h. Un DN absent du tableau (ex. DN125) compte 0 s : ajoutez-le dans *Paramètres › Temps gammes › Gravage*. Un composant absent de la table Article → DN compte 0 s et le temps est signalé par **⚠**.
+
+## 8. Prépa OF
 
 **Graphique charge / capacité** : le bouton de graphique placé à gauche du grand titre *Prépa OF* (dans la page) ouvre un panneau (Échap ou ✕ pour le fermer) :
 - **Barres** : charge du jour = somme des *Temps (h)* des OF dont le Début opé tombe ce jour-là, en deux parts : **soldée** en bleu (Statut opé « Soldée » ; pour Prépa Expéd, Soldée = Oui) et **en cours** en noir grisé ; le survol d'une barre détaille « dont soldée / dont en cours » ;
@@ -265,7 +294,7 @@ Laissez la souris 2 s sur un temps pour voir le détail. Un **⚠** signale des 
 
 > Tant que la correspondance Article → DN n'est pas importée (Paramètres › Temps gammes › Prépa OF), les composants comptent 0 s et chaque OF est signalé par ⚠.
 
-## 8. Prépa Expéd
+## 9. Prépa Expéd
 
 Liste des commandes à préparer pour l'expédition : **une ligne par commande et par date d'expédition** (une commande livrée à deux dates donne deux lignes). Source : onglet `Commandes ventes` du fichier de l'activité *Prépa Expéd* (Paramètres › Fichiers sources).
 
@@ -293,6 +322,7 @@ Période, tri, filtres Excel, boutons rapides, total, affectations, graphique et
 
 - Une page `index.html` en HTML/CSS/JavaScript, sans framework.
 - Les onglets et pages d'activité sont **générés à partir de la définition de chaque activité** (`ACT_DEFS` dans `index.html`) : ajouter une activité consiste à la décrire une fois (fichier, colonnes, calculs), et son onglet, son tableau, ses filtres, sa vue capacité et son graphique sont créés automatiquement.
+  Un modèle de demande pour ajouter une activité est fourni dans [`docs/PROMPT_NOUVELLE_ACTIVITE.md`](docs/PROMPT_NOUVELLE_ACTIVITE.md).
 - `lib/xlsx.full.min.js` : lecture/écriture des fichiers Excel (SheetJS, licence Apache 2.0), embarquée pour fonctionner hors connexion.
 - `fonts/inter.woff2` : police Inter (licence SIL OFL), embarquée.
 - Les fichiers choisis sont mémorisés par le navigateur (aucune donnée n'est envoyée sur internet).
