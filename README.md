@@ -130,7 +130,7 @@ Cette page s'ouvre sur un **récapitulatif des gammes par activité** : pour cha
 
 Les totaux Forfait / Ligne / Quantité s'affichent sous le tableau.
 
-**Temps par code** (facultatif, bouton **+ Tableau de temps par code**) : un tableau *Code → Forfait (s) / Ligne (s)*. Chaque ligne du dossier compte le Forfait **et** le temps Ligne de son code (colonne choisie, ex. `Article`), même si le code se répète. Un code absent du tableau compte 0 s et le temps du dossier est signalé par **⚠**. **Importer les codes du fichier** ajoute les codes trouvés dans le fichier source (lignes retenues par l'activité) avec des temps à 0 ; **+ Ajouter un code**, 🗑 et la corbeille du titre (retire le tableau) sont annulables par Ctrl + Z. Utilisé par la gamme *Certificats* (voir § 10).
+**Temps par code** (facultatif, bouton **+ Tableau de temps par code**) : un tableau *Code → Forfait (s) / Qté (s par pièce)*. Chaque ligne du dossier compte le **Forfait** de son code (colonne choisie, ex. `Article`), même si le code se répète, **plus sa quantité** (colonne quantité de la gamme) **× le temps Qté**. Un code absent du tableau compte 0 s et le temps du dossier est signalé par **⚠**. **Importer les codes du fichier** ajoute les codes trouvés dans le fichier source (lignes retenues par l'activité) avec des temps à 0 ; **+ Ajouter un code**, 🗑 et la corbeille du titre (retire le tableau) sont annulables par Ctrl + Z. Utilisé par la gamme *Certificats* (voir § 10).
 
 **Tableau de calcul** (un par tâche « Calcul ») :
 1. Donnez un *libellé* (ex. `DN`).
@@ -336,12 +336,12 @@ Période, tri, filtres Excel, boutons rapides, total, affectations, graphique et
 | Validée | Colonne du même nom ; en **pastille rouge** si une valeur est « Non » |
 | Date expédition | La plus proche des lignes « 9… » du couple ; en **pastille rouge** si elle est antérieure à aujourd'hui |
 | Soldée | **Oui** si toutes les lignes « 9… » du couple sont « Soldé », sinon **Non** |
-| Temps (h) | Somme, pour chaque ligne « 9… », du **Forfait + Ligne** de son article (tableau *Temps par code* de la gamme *Certificats*) |
+| Temps (h) | Somme, pour chaque ligne « 9… », du **Forfait** de son article **+ Qté commandée US × temps Qté** (tableau *Temps par code* de la gamme *Certificats*) |
 | Affectation | Liste déroulante des affectations et saisie au clavier avec complétion, comme pour Prépa OF ; enregistrée dans le classeur projet |
 
 Temps par code de la gamme *Certificats* (modifiable dans *Paramètres › Temps gammes › Certificats*) :
 
-| Certificat | Forfait (s) | Ligne (s) |
+| Certificat | Forfait (s) | Qté (s par pièce) |
 |---|---|---|
 | 9CERTIF-FDA | 120 | 120 |
 | 9CERTIF-RUGO | 120 | 100 |
@@ -355,7 +355,7 @@ Temps par code de la gamme *Certificats* (modifiable dans *Paramètres › Temps
 | 9CERTIF-CE1935 | 120 | 760 |
 | 9DOC-CE1935 | 120 | 940 |
 
-Exemple : un couple CO-LV avec deux lignes 9CERTIF-FDA → 2 × (120 + 120) = 480 s = 0,13 h. Un article « 9… » absent du tableau compte 0 s et le temps est signalé par **⚠** : ajoutez-le dans la gamme (ou **Importer les codes du fichier**).
+Exemple : un couple CO-LV avec une ligne 9CERTIF-FDA de 3 pièces et une ligne 9CERTIF-USP de 1 pièce → (120 + 3 × 120) + (110 + 1 × 270) = 860 s = 0,24 h. Un article « 9… » absent du tableau compte 0 s et le temps est signalé par **⚠** : ajoutez-le dans la gamme (ou **Importer les codes du fichier**).
 
 ---
 

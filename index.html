@@ -1179,7 +1179,7 @@ const OLD_CORPS_SOURCE_ID = "s-corps";
 const CORR_ACT_USES = { [CT_CORPS]: "Gravage (lignes Corps)" };
 
 // Gamme « Certificats » : un dossier = un couple Commande (CO) - No livraison (LV), lignes des articles « 9… » seulement.
-// Chaque ligne compte le Forfait et le temps Ligne de son code certificat (tableau de temps par code).
+// Chaque ligne compte le Forfait de son code certificat + Qté commandée US × temps par pièce (tableau de temps par code).
 const CERTIF_TIMES = [["9CERTIF-FDA", 120, 120], ["9CERTIF-RUGO", 120, 100], ["9CERTIF-USP", 110, 270], ["9CERTIF-DEG", 240, 0],
   ["9CERTIF3-1", 30, 390], ["9CERTIF3-1_TOTAL", 30, 390], ["9CERTIF2-1", 210, 0], ["9CERTIF2-2", 120, 120],
   ["9CERTIF-TSE/BSE", 120, 360], ["9CERTIF-CE1935", 120, 760], ["9DOC-CE1935", 120, 940]];
@@ -1192,7 +1192,7 @@ function defaultGammeCertif() {
     folderCol2: "No livraison",
     qtyCol: "Qté commandée US",
     tasks: [],
-    codeTable: { col: "Article", rows: CERTIF_TIMES.map(([v, forfait, ligne]) => ({ v, forfait, ligne })) }
+    codeTable: { col: "Article", rows: CERTIF_TIMES.map(([v, forfait, qte]) => ({ v, forfait, qte })) }
   };
 }
 
@@ -1238,6 +1238,8 @@ function ensureActivityDefaults(st) {
   }
   if (!st.gammes.some(g => g.tasks.some(t => t.calc && t.calc.sourceId === OLD_DN_SOURCE_ID))) st.sources = st.sources.filter(x => x.id !== OLD_DN_SOURCE_ID);
   migrateCorrTables(st);
+  // Version précédente du tableau de temps par code : temps « Ligne » devenu temps par pièce « Qté » (mêmes valeurs).
+  for (const g of st.gammes) if (g.codeTable) for (const r of g.codeTable.rows) if (r.qte === undefined) { r.qte = Number(r.ligne) || 0; delete r.ligne; }
   return st;
 }
 
@@ -2110,7 +2112,7 @@ function renderGammes() {
   if (!g.tasks.length) h += '<tr><td colspan="5" class="muted">Aucune tâche.</td></tr>';
   h += "</tbody></table></div>";
   h += '<div class="toolbar" style="margin:12px 0 0"><button class="btn" data-act="t-add" data-tip-name="Ajouter une tâche" data-tip-role="Ajoute une ligne en bas du tableau">+ Ajouter une tâche</button>' +
-    (g.codeTable ? "" : '<button class="btn" data-act="ct-code-add" data-tip-name="Tableau de temps par code" data-tip-role="Ajoute un tableau Code → Forfait / Ligne : chaque ligne du dossier compte les temps de son code (ex. certificats)">+ Tableau de temps par code</button>') +
+    (g.codeTable ? "" : '<button class="btn" data-act="ct-code-add" data-tip-name="Tableau de temps par code" data-tip-role="Ajoute un tableau Code → Forfait / Qté : chaque ligne du dossier compte les temps de son code (ex. certificats)">+ Tableau de temps par code</button>') +
     '<span class="spacer"></span>' +
     '<span class="badge off">Forfait : ' + fmtInt(sums.Forfait) + " s / dossier</span>" +
     '<span class="badge off">Ligne : ' + fmtInt(sums.Ligne) + " s / ligne</span>" +
@@ -2121,23 +2123,23 @@ function renderGammes() {
     g.tasks.map((t, i) => t.a === "Calcul" && t.calc ? renderCalcCard(g, t, i, src) : "").join("");
 }
 
-// Tableau de temps par code (ex. certificats) : chaque ligne du dossier compte le Forfait + la Ligne de son code.
+// Tableau de temps par code (ex. certificats) : chaque ligne du dossier compte le Forfait de son code + quantité × temps par pièce.
 function renderCodeCard(g, lineCols) {
   const ct = g.codeTable, col = ct.col || "Code";
   let h = '<div class="card calc-card" id="code-card"><div class="toolbar" style="margin:0 0 6px"><h2 style="margin:0">Temps par code</h2><span class="spacer"></span>' +
     '<button class="mini danger" data-act="code-off" data-tip-name="Retirer le tableau" data-tip-role="Retire le tableau de temps par code de cette gamme (annulable par Ctrl + Z)">' + ICON.trash + "</button></div>" +
-    '<p class="muted small" style="margin:0 0 14px">Chaque ligne du dossier compte le <b>Forfait</b> et le temps <b>Ligne</b> de son ' + esc(col) +
-    " (même si le code se répète dans le dossier). Un code absent du tableau compte 0 s et le temps est signalé par ⚠.</p>" +
+    '<p class="muted small" style="margin:0 0 14px">Chaque ligne du dossier compte le <b>Forfait</b> de son ' + esc(col) + " (même si le code se répète dans le dossier) + sa quantité (" +
+    esc(g.qtyCol || "colonne quantité") + ") × le temps <b>Qté</b> (secondes par pièce). Un code absent du tableau compte 0 s et le temps est signalé par ⚠.</p>" +
     '<div class="grid2"><label class="field" data-tip-name="Colonne du code" data-tip-role="Colonne des lignes contenant le code (ex. Article)"><span>Colonne du code</span>' +
       pickField({ "data-f": "code.col", "data-fk": "code.col" }, ct.col, lineCols, lineCols ? "— choisir —" : "ex. Article") + "</label></div>" +
     '<div class="toolbar"><button class="btn" data-act="code-import" data-tip-name="Importer les codes" data-tip-role="Ajoute les codes trouvés dans la colonne du fichier source (lignes retenues par l’activité, doublons supprimés) avec des temps de 0 s">Importer les codes du fichier</button>' +
     '<button class="btn" data-act="code-add" data-tip-name="Ajouter un code" data-tip-role="Ajoute une ligne vide au tableau">+ Ajouter un code</button></div>' +
-    '<div class="tbl-wrap" style="max-width:640px"><table class="tbl"><thead><tr><th>' + esc(col) + '</th><th class="num">Forfait (s)</th><th class="num">Ligne (s)</th><th class="act"></th></tr></thead><tbody>';
+    '<div class="tbl-wrap" style="max-width:640px"><table class="tbl"><thead><tr><th>' + esc(col) + '</th><th class="num">Forfait (s)</th><th class="num">Qté (s / pièce)</th><th class="act"></th></tr></thead><tbody>';
   ct.rows.forEach((r, j) => {
     h += "<tr>" +
       '<td><input type="text"' + attrs({ "data-f": "code.v", "data-vi": j, "data-fk": "code.v." + j, value: r.v, placeholder: "Code", "data-tip-name": col, "data-tip-role": "Code de la ligne (ex. 9CERTIF-FDA)" }) + "></td>" +
       '<td class="num"><input type="number" min="0" step="any"' + attrs({ "data-f": "code.forfait", "data-vi": j, "data-fk": "code.forfait." + j, value: r.forfait, "data-tip-name": "Forfait (s)", "data-tip-role": "Temps compté pour chaque ligne de ce code" }) + "></td>" +
-      '<td class="num"><input type="number" min="0" step="any"' + attrs({ "data-f": "code.ligne", "data-vi": j, "data-fk": "code.ligne." + j, value: r.ligne, "data-tip-name": "Ligne (s)", "data-tip-role": "Temps ajouté pour chaque ligne de ce code" }) + "></td>" +
+      '<td class="num"><input type="number" min="0" step="any"' + attrs({ "data-f": "code.qte", "data-vi": j, "data-fk": "code.qte." + j, value: r.qte, "data-tip-name": "Qté (s / pièce)", "data-tip-role": "Temps par pièce, multiplié par la quantité de chaque ligne de ce code" }) + "></td>" +
       '<td class="act"><button class="mini danger" data-act="code-del" data-vi="' + j + '" data-tip-name="Supprimer le code" data-tip-role="Retire ce code du tableau">' + ICON.trash + "</button></td></tr>";
   });
   if (!ct.rows.length) h += '<tr><td colspan="4" class="muted">Aucun code.</td></tr>';
@@ -2479,7 +2481,7 @@ function importCodeValues() {
   if (!added.length) return toast("Aucun nouveau code : le tableau est à jour.");
   commit(st => {
     const rows = st.gammes.find(x => x.id === g.id).codeTable.rows;
-    for (const v of added) rows.push({ v, forfait: 0, ligne: 0 });
+    for (const v of added) rows.push({ v, forfait: 0, qte: 0 });
     rows.sort((a, b) => a.v.localeCompare(b.v, "fr", { numeric: true }));
   });
   toast(added.length + " code(s) ajouté(s) avec des temps de 0 s à compléter.");
@@ -2533,7 +2535,7 @@ $("page-gammes").addEventListener("change", e => {
       case "code.col": g.codeTable.col = el.value.trim(); break;
       case "code.v": g.codeTable.rows[j].v = el.value.trim(); break;
       case "code.forfait": g.codeTable.rows[j].forfait = numVal(el.value); break;
-      case "code.ligne": g.codeTable.rows[j].ligne = numVal(el.value); break;
+      case "code.qte": g.codeTable.rows[j].qte = numVal(el.value); break;
       case "g.qtyCol": g.qtyCol = el.value; break;
       case "g.splitCol": g.splitCol = el.value; break;
       case "g.exclCol": g.exclCol = el.value; break;
@@ -2624,7 +2626,7 @@ $("page-gammes").addEventListener("click", e => {
       if (!confirm("Retirer le tableau de temps par code de cette gamme ?")) return;
       commit(st => { delete G(st).codeTable; });
       break;
-    case "code-add": commit(st => G(st).codeTable.rows.push({ v: "", forfait: 0, ligne: 0 })); break;
+    case "code-add": commit(st => G(st).codeTable.rows.push({ v: "", forfait: 0, qte: 0 })); break;
     case "code-del": commit(st => G(st).codeTable.rows.splice(j, 1)); break;
     case "code-import": importCodeValues(); break;
     case "v-add": commit(st => G(st).tasks[i].calc.values.push({ v: "", sec: 0 })); break;
@@ -2754,8 +2756,8 @@ function buildGammeTimer(g, lineSrcId, keep) {
   // Dossier = couple de valeurs (ex. Commande + No livraison).
   const iFolder2 = g.folderCol2 ? sh.headers.indexOf(g.folderCol2) : -1;
   if (g.folderCol2 && iFolder2 < 0) return { error: "Seconde colonne dossier « " + g.folderCol2 + " » introuvable." };
-  // Tableau de temps par code : chaque ligne compte Forfait + Ligne de son code.
-  const codeTimes = g.codeTable ? new Map(g.codeTable.rows.filter(r => normText(r.v)).map(r => [normText(r.v), (Number(r.forfait) || 0) + (Number(r.ligne) || 0)])) : null;
+  // Tableau de temps par code : chaque ligne compte le Forfait de son code + quantité × temps par pièce (Qté).
+  const codeTimes = g.codeTable ? new Map(g.codeTable.rows.filter(r => normText(r.v)).map(r => [normText(r.v), { forfait: Number(r.forfait) || 0, qte: Number(r.qte) || 0 }])) : null;
   const iCode = g.codeTable ? sh.headers.indexOf(g.codeTable.col) : -1;
   if (g.codeTable && iCode < 0) return { error: "Colonne du code « " + g.codeTable.col + " » introuvable." };
   const iExcl = g.exclCol && g.exclPrefix ? sh.headers.indexOf(g.exclCol) : -1;
@@ -2779,7 +2781,7 @@ function buildGammeTimer(g, lineSrcId, keep) {
     for (const r of rows) {
       const q = Number(r[iQty]) || 0;
       qty += q;
-      if (codeTimes) { const c = normText(r[iCode]); if (codeTimes.has(c)) codeSec += codeTimes.get(c); else noCode++; }
+      if (codeTimes) { const c = normText(r[iCode]); const t = codeTimes.get(c); if (t) codeSec += t.forfait + t.qte * q; else noCode++; }
       for (const c of calcs) {
         const v = c.valueOf(r);
         if (v === NO_MATCH) noMatch++;
@@ -4650,13 +4652,13 @@ function stateToWorkbook() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(plan), "Dates affectation");
 
   const gam = [["Id gamme", "Gamme", "Onglet des lignes", "Colonne dossier", "Colonne quantité", "Découper par date", "Colonne d'exclusion", "Préfixe exclu", "Seconde colonne dossier", "Colonne du code"]];
-  const codes = [["Id gamme", "Code", "Forfait (s)", "Ligne (s)"]];
+  const codes = [["Id gamme", "Code", "Forfait (s)", "Qté (s / pièce)"]];
   const tasks = [["Id gamme", "N°", "Affectation", "Tâche", "Tps (sec)"]];
   const calcs = [["Id gamme", "N° tâche", "Libellé", "Source", "Onglet", "Colonne", "Liaison (lignes)", "Liaison (source)", "Table de correspondance"]];
   const vals = [["Id gamme", "N° tâche", "Valeur", "Tps (sec)"]];
   for (const g of state.gammes) {
     gam.push([g.id, g.name, g.sheet, g.folderCol, g.qtyCol, g.splitCol || "", g.exclCol || "", g.exclPrefix || "", g.folderCol2 || "", g.codeTable ? g.codeTable.col || "" : ""]);
-    if (g.codeTable) for (const r of g.codeTable.rows) codes.push([g.id, r.v, r.forfait, r.ligne]);
+    if (g.codeTable) for (const r of g.codeTable.rows) codes.push([g.id, r.v, r.forfait, r.qte]);
     g.tasks.forEach((t, i) => {
       tasks.push([g.id, i + 1, t.a, t.name, t.a === "Calcul" ? "" : t.sec]);
       if (t.calc) {
@@ -4770,7 +4772,7 @@ function workbookToState(wb) {
       const g = { id, name: str(r[1]), sheet: str(r[2]), folderCol: str(r[3]), qtyCol: str(r[4]),
         splitCol: str(r[5]), exclCol: str(r[6]), exclPrefix: str(r[7]), folderCol2: str(r[8]), tasks: [] };
       if (str(r[9])) g.codeTable = { col: str(r[9]), rows: (rowsOf("Gammes - Temps par code") || []).filter(c => str(c[0]) === id)
-        .map(c => ({ v: str(c[1]), forfait: num(c[2]), ligne: num(c[3]) })) };
+        .map(c => ({ v: str(c[1]), forfait: num(c[2]), qte: num(c[3]) })) };
       for (const t of tasks.filter(t => str(t[0]) === id).sort((a, b) => num(a[1]) - num(b[1]))) {
         const task = { a: AFFECTATIONS.includes(str(t[2])) ? str(t[2]) : "Forfait", name: str(t[3]), sec: num(t[4]) };
         if (task.a === "Calcul") {
