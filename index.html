@@ -988,6 +988,24 @@ label.check, .row > label.check { display: inline-flex; align-items: center; gap
     </div>
     <div id="calcCards"></div>
     </div>
+    <div id="corrEdit">
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn" id="btnBackCorr"
+          data-tip-name="Toutes les gammes" data-tip-role="Revient au récapitulatif des gammes et des tables de correspondance">← Toutes les gammes</button>
+        <h2 id="corrTitle" style="margin:0"></h2>
+        <button class="mini" id="btnRenameCorr"
+          data-tip-name="Renommer la table" data-tip-role="Change le nom de la table de correspondance">
+          <svg class="i" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        </button>
+        <button class="mini danger" id="btnDelCorr"
+          data-tip-name="Supprimer la table" data-tip-role="Supprime cette table du projet">
+          <svg class="i" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+      <div id="corrBody"></div>
+    </div>
+    </div>
   </div>
       </div>
     </div>
@@ -1121,20 +1139,54 @@ const DN_TIMES = [["", 1], ["10", 1], ["15", 1], ["20", 1], ["25", 1], ["32", 1]
   ["65", 60], ["80", 60], ["100", 60], ["125", 60], ["150", 70], ["200", 70]];
 function dnCalc() {
   return { label: "DN", sourceId: "", sheet: "", column: "", linkLocal: "Composant OF", linkRemote: "",
-    corr: { id: "", count: 0, key: "Article" }, values: DN_TIMES.map(([v, sec]) => ({ v, sec })) };
+    corr: { table: CT_DN }, values: DN_TIMES.map(([v, sec]) => ({ v, sec })) };
 }
 function dnTask() { return { a: "Calcul", name: DN_TASK_NAME, sec: 0, calc: dnCalc() }; }
 
+// Tables de correspondance communes (Paramètres › Temps gammes) : une table peut servir à plusieurs gammes.
+// data = identifiant de la version des lignes (gardées hors de l'état, voir corrData).
+const CT_DN = "ct-article-dn";
+function defaultCorrTable() { return { id: CT_DN, name: "Article → DN", key: "Article", label: "DN", data: "", count: 0 }; }
+
+// Gamme « Gravage » : un dossier = un OF ; seules les lignes des composants Corps comptent (liste Composants Corps).
+// Gravage par DN : nombre de corps gravés en 1 heure selon le DN, converti en secondes par pièce (3 600 / qté par heure).
+const GRAVAGE_PER_HOUR = [["", 80], ["10", 90], ["15", 90], ["20", 80], ["25", 80], ["32", 60], ["40", 60], ["50", 60],
+  ["65", 30], ["80", 30], ["100", 30]];
+function defaultGammeGravage() {
+  const t = (a, name, sec) => ({ a, name, sec });
+  return {
+    id: "g-gravage",
+    name: "Gravage",
+    sheet: "OF",
+    folderCol: "OF",
+    qtyCol: "Qté besoin",
+    tasks: [
+      t("Forfait", "Apporter la préparation", 120),
+      t("Forfait", "Déposer la préparation", 120),
+      t("Forfait", "Montage outillage graveuse", 120),
+      { a: "Calcul", name: "Gravage par DN", sec: 0, calc: { label: "DN", sourceId: "", sheet: "", column: "", linkLocal: "Composant OF", linkRemote: "",
+        corr: { table: CT_DN }, values: GRAVAGE_PER_HOUR.map(([v, n]) => ({ v, sec: Math.round(3600 / n * 100) / 100 })) } }
+    ]
+  };
+}
+// Liste des composants Corps : source « Base de données » des Fichiers sources, utilisée par Gravage.
+const CORPS_SOURCE_ID = "s-corps";
+
 const DEFAULT_SOURCES = [
+  { id: "s-gravage", label: "MRBE_LOG_CHARGE_TRAVAIL", activity: "gravage", gamme: "g-gravage", fileName: "", fileDate: null, loadedAt: null, cap: [] },
+  { id: CORPS_SOURCE_ID, label: "Composants Corps", activity: "", gamme: "", fileName: "", fileDate: null, loadedAt: null, cap: [] },
   { id: "s-prepa-of", label: "Charge de travail", activity: "prepa-of", gamme: "g-prepa-of", fileName: "", fileDate: null, loadedAt: null, cap: [] },
   { id: "s-prepa-exped", label: "Commandes ventes", activity: "prepa-exped", gamme: "g-prepa-exped", fileName: "", fileDate: null, loadedAt: null, cap: [] }
 ];
 
 // Ajoute la gamme et la source d'une activité absente d'un projet plus ancien.
 function ensureActivityDefaults(st) {
-  const gammes = { "g-prepa-of": defaultGammePrepa, "g-prepa-exped": defaultGammeExped };
+  const gammes = { "g-prepa-of": defaultGammePrepa, "g-prepa-exped": defaultGammeExped, "g-gravage": defaultGammeGravage };
+  if (!Array.isArray(st.corrTables)) st.corrTables = [];
+  if (!st.corrTables.some(t => t.id === CT_DN)) st.corrTables.unshift(defaultCorrTable());
   for (const src of DEFAULT_SOURCES) {
-    if (st.sources.some(s => s.activity === src.activity)) continue;
+    if (src.activity ? st.sources.some(s => s.activity === src.activity) : st.sources.some(s => s.id === src.id)) continue;
+    if (!src.gamme) { st.sources.push(clone(src)); continue; }
     if (!st.gammes.some(g => g.id === src.gamme)) st.gammes.push(gammes[src.gamme]());
     st.sources.push(clone(src));
   }
@@ -1152,7 +1204,7 @@ function ensureActivityDefaults(st) {
     const c = t.calc;
     if (!c.corr && (c.sourceId === OLD_DN_SOURCE_ID || !c.sourceId && !c.column)) {
       Object.assign(c, { label: c.label || "DN", sourceId: "", sheet: "", column: "", linkLocal: c.linkLocal || "Composant OF", linkRemote: "",
-        corr: { id: "", count: 0, key: "Article" } });
+        corr: { table: CT_DN } });
       if (!c.values.some(v => v.v === "125")) {
         const i = c.values.findIndex(v => v.v === "150");
         c.values.splice(i < 0 ? c.values.length : i, 0, { v: "125", sec: 60 });
@@ -1160,13 +1212,33 @@ function ensureActivityDefaults(st) {
     }
   }
   if (!st.gammes.some(g => g.tasks.some(t => t.calc && t.calc.sourceId === OLD_DN_SOURCE_ID))) st.sources = st.sources.filter(x => x.id !== OLD_DN_SOURCE_ID);
+  migrateCorrTables(st);
   return st;
+}
+
+// Projets antérieurs : chaque tâche Calcul avait sa propre table de correspondance (corr.id = version des lignes).
+// Elles deviennent des tables communes : la première table Article → DN remplit la table commune « Article → DN »,
+// une table identique est partagée, toute autre table devient une table commune à part.
+function migrateCorrTables(st) {
+  for (const g of st.gammes) for (const t of g.tasks) {
+    const c = t.calc;
+    if (!c || !c.corr || c.corr.table) continue;
+    const old = c.corr, key = old.key || "Clé", label = c.label || "Valeur";
+    let tb = old.id ? st.corrTables.find(x => x.data === old.id) : null;
+    if (!tb && stripAccents(key) === "article" && stripAccents(label) === "dn") {
+      const dn = st.corrTables.find(x => x.id === CT_DN);
+      if (!old.id || !dn.data) { tb = dn; if (old.id) Object.assign(dn, { data: old.id, count: old.count || 0 }); }
+    }
+    if (!tb) st.corrTables.push(tb = { id: uid("ct"), name: key + " → " + label, key, label, data: old.id || "", count: old.count || 0 });
+    c.corr = { table: tb.id };
+  }
 }
 
 const DEFAULT_STATE = {
   settings: { theme: "auto", font: "Inter", fontSize: 14, autoSave: false },
   sources: clone(DEFAULT_SOURCES),
-  gammes: [defaultGammePrepa(), defaultGammeExped()],
+  gammes: [defaultGammeGravage(), defaultGammePrepa(), defaultGammeExped()],
+  corrTables: [defaultCorrTable()],
   // Source unique de capacité de travail (Heure productivité par jour, groupe et niveau).
   capacity: { fileName: "", fileDate: null, loadedAt: null },
   // Ressources (préparateurs, postes…) et affectation des dossiers : assign[activité][dossier] = id ressource.
@@ -1213,6 +1285,7 @@ function normalizeState(s) {
     settings: { ...d.settings, ...(s.settings || {}) },
     sources: Array.isArray(s.sources) ? s.sources : d.sources,
     gammes: Array.isArray(s.gammes) && s.gammes.length ? s.gammes : d.gammes,
+    corrTables: Array.isArray(s.corrTables) ? s.corrTables : [],
     capacity: { ...d.capacity, ...(s.capacity || {}) },
     resources: Array.isArray(s.resources) ? s.resources : [],
     assign: s.assign && typeof s.assign === "object" ? s.assign : {},
@@ -1902,7 +1975,8 @@ $("btnReloadAll").onclick = () => loadAllSources(true);
 
 /* ================= Temps gammes ================= */
 let currentGammeId = null;
-let gammeView = "list"; // list = récapitulatif, edit = modification d'une gamme
+let gammeView = "list"; // list = récapitulatif, edit = modification d'une gamme, corr = table de correspondance
+let currentCorrId = null;
 
 function currentGamme() {
   let g = state.gammes.find(x => x.id === currentGammeId);
@@ -1930,12 +2004,17 @@ function corrPut(rows) {
   idbSet("corr:" + id, rows).catch(() => {});
   return id;
 }
-function corrOf(c) { return c && c.corr && c.corr.id ? corrData.get(c.corr.id) || null : null; }
+// Table commune reliée à une tâche Calcul, et ses lignes.
+function corrTableOf(c, st) { return c && c.corr && c.corr.table ? (st || state).corrTables.find(t => t.id === c.corr.table) || null : null; }
+function corrRowsOf(tb) { return tb && tb.data ? corrData.get(tb.data) || null : null; }
+function corrOf(c) { return corrRowsOf(corrTableOf(c)); }
 function corrIds(st) {
   const ids = new Set();
-  for (const g of st.gammes) for (const t of g.tasks) if (t.calc && t.calc.corr && t.calc.corr.id) ids.add(t.calc.corr.id);
+  for (const t of st.corrTables || []) if (t.data) ids.add(t.data);
   return ids;
 }
+// Gammes dont une tâche Calcul utilise la table.
+function gammesOfCorr(id) { return state.gammes.filter(g => g.tasks.some(t => t.calc && t.calc.corr && t.calc.corr.table === id)); }
 // Au démarrage : relit les tables de l'état mis en cache et efface les versions qui ne servent plus.
 async function loadCorrStore() {
   const ids = corrIds(state);
@@ -1948,12 +2027,15 @@ async function loadCorrStore() {
 }
 
 function renderGammes() {
-  // Une annulation peut faire disparaître la gamme ouverte : retour au récapitulatif.
+  // Une annulation peut faire disparaître la gamme (ou la table) ouverte : retour au récapitulatif.
   if (gammeView === "edit" && !state.gammes.some(x => x.id === currentGammeId)) gammeView = "list";
+  if (gammeView === "corr" && !state.corrTables.some(x => x.id === currentCorrId)) gammeView = "list";
   const g = currentGamme();
   $("gammesList").style.display = gammeView === "list" ? "" : "none";
   $("gammeEdit").style.display = gammeView === "edit" ? "" : "none";
+  $("corrEdit").style.display = gammeView === "corr" ? "" : "none";
   if (gammeView === "list") { renderGammesList(); return; }
+  if (gammeView === "corr") { renderCorrEdit(); return; }
   $("gammeTitle").textContent = g ? g.name : "";
   $("btnDelGamme").disabled = state.gammes.length <= 1;
   if (!g) { $("gammeBody").innerHTML = ""; $("calcCards").innerHTML = ""; return; }
@@ -2047,7 +2129,57 @@ function renderGammesList() {
     }
     h += "</tbody></table></div></div>";
   }
+  // Tables de correspondance communes, reliées aux gammes par leurs tâches Calcul.
+  h += '<div class="card"><div class="toolbar" style="margin:0 0 10px"><h2 style="margin:0">Tables de correspondance</h2><span class="spacer"></span>' +
+    '<button class="btn" data-act="ct-new" data-tip-name="Nouvelle table" data-tip-role="Crée une table de correspondance vide (ex. Article → DN), puis l’ouvre">+ Nouvelle table</button></div>' +
+    '<p class="muted small" style="margin:-4px 0 10px">Copiées dans le projet et communes à toutes les gammes : une tâche Calcul s’y relie (ex. Prépa OF et Gravage → Article → DN), chaque gamme gardant son propre tableau de temps.</p>';
+  if (!state.corrTables.length) h += '<p class="muted" style="margin:0">Aucune table.</p></div>';
+  else {
+    h += '<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Table</th><th>Correspondance</th><th class="num">Lignes</th><th>Gammes reliées</th></tr></thead><tbody>';
+    for (const tb of state.corrTables) {
+      const used = gammesOfCorr(tb.id).map(g => g.name);
+      h += '<tr class="clickable" data-act="ct-open" data-cid="' + esc(tb.id) + '" data-tip-name="' + esc(tb.name) + '" data-tip-role="Cliquez pour ouvrir, importer ou modifier cette table">' +
+        "<td><b>" + esc(tb.name) + "</b></td>" +
+        "<td>" + esc((tb.key || "Clé") + " → " + (tb.label || "Valeur")) + "</td>" +
+        '<td class="num">' + (tb.count ? fmtInt(tb.count) : '<span class="badge warn">0</span>') + "</td>" +
+        "<td>" + (used.length ? used.map(n => '<span class="badge off">' + esc(n) + "</span>").join(" ") : '<span class="muted">–</span>') + "</td></tr>";
+    }
+    h += "</tbody></table></div></div>";
+  }
   $("gammesList").innerHTML = h;
+}
+
+function openCorr(id) {
+  currentCorrId = id;
+  gammeView = "corr";
+  render();
+  document.querySelector("#page-settings .settings-layout").scrollTop = 0;
+}
+
+// Écran d'une table de correspondance : noms des colonnes, import, recherche et lignes.
+function renderCorrEdit() {
+  const tb = state.corrTables.find(x => x.id === currentCorrId);
+  if (!tb) return;
+  const corr = corrRowsOf(tb), key = tb.key || "Clé", label = tb.label || "Valeur";
+  const used = gammesOfCorr(tb.id);
+  $("corrTitle").textContent = tb.name;
+  $("btnDelCorr").disabled = used.length > 0;
+  $("btnDelCorr").dataset.tipRole = used.length ? "Table reliée à " + used.map(g => g.name).join(", ") + " : retirez d’abord le lien dans ces gammes" : "Supprime cette table du projet";
+  $("corrBody").innerHTML =
+    '<p class="muted small" style="margin:0 0 12px">' + (used.length
+      ? "Reliée aux gammes : " + used.map(g => '<span class="linkish" data-act="g-open" data-gid="' + esc(g.id) + '" data-tip-name="' + esc(g.name) + '" data-tip-role="Ouvre cette gamme">' + esc(g.name) + "</span>").join(", ") + "."
+      : "Reliée à aucune gamme : choisissez-la dans le tableau de calcul d’une tâche Calcul.") + "</p>" +
+    '<div class="grid2">' +
+      '<label class="field" data-tip-name="Nom de la clé" data-tip-role="Nom de la première colonne (ex. Article) : valeur cherchée depuis les lignes des gammes"><span>Nom de la clé</span><input type="text"' + attrs({ "data-f": "ct.key", "data-fk": "ct.key", value: tb.key, placeholder: "ex. Article" }) + "></label>" +
+      '<label class="field" data-tip-name="Nom de la valeur" data-tip-role="Nom de la seconde colonne (ex. DN) : valeur associée à la clé"><span>Nom de la valeur</span><input type="text"' + attrs({ "data-f": "ct.label", "data-fk": "ct.label", value: tb.label, placeholder: "ex. DN" }) + "></label>" +
+    "</div>" +
+    '<div class="toolbar">' +
+      '<span class="badge ' + (corr && corr.rows.length ? "ok" : "warn") + '">' + (corr ? fmtInt(corr.rows.length) : 0) + " " + esc(key.toLowerCase()) + "(s)</span>" +
+      '<button class="btn" data-act="corr-import" data-tip-name="Importer depuis un fichier" data-tip-role="Choisit un fichier Excel ou CSV (ex. base des DN) puis ses colonnes ' + esc(key) + " et " + esc(label) + ' : la table est copiée dans le projet et remplace la précédente (annulable par Ctrl + Z)">Importer depuis un fichier…</button>' +
+      '<button class="btn" data-act="corr-add" data-tip-name="Ajouter une correspondance" data-tip-role="Ajoute (ou corrige) une ligne ' + esc(key) + " → " + esc(label) + '">+ Ajouter</button>' +
+      '<input type="text" class="corr-q" data-fk="corrq" value="' + esc(corrQuery[tb.id] || "") + '" placeholder="Rechercher…" data-tip-name="Rechercher" data-tip-role="Filtre la table sur le début ou une partie de la clé ou de la valeur">' +
+    "</div>" +
+    '<div id="corr-tbl">' + corrTableHtml(tb) + "</div>";
 }
 
 function openGamme(id) {
@@ -2066,19 +2198,20 @@ function renderCalcCard(g, t, i, lineSrc) {
   const external = !isCorr && c.sourceId && (!lineSrc || c.sourceId !== lineSrc.id);
   const lineCols = lineSrc ? columnsOf(lineSrc.id, g.sheet) : null;
   const k = (f, extra) => ({ "data-f": f, "data-ti": i, "data-fk": f + "." + i, ...(extra || {}) });
-  const label = c.label || "Valeur", key = isCorr ? c.corr.key || "Clé" : "";
-  const corr = corrOf(c);
+  const label = c.label || "Valeur";
+  const tb = isCorr ? corrTableOf(c) : null, key = tb ? tb.key || "Clé" : "Clé";
+  const corr = corrRowsOf(tb);
 
   const srcOpts = '<option value="">Source des lignes de la gamme</option>' + state.sources.filter(s => !lineSrc || s.id !== lineSrc.id).map(s =>
     '<option value="' + esc(s.id) + '"' + (s.id === c.sourceId ? " selected" : "") + ">" + esc(s.label || s.fileName || "Source sans nom") + "</option>").join("");
   const modeSel = '<label class="field" data-tip-name="Origine de la valeur" data-tip-role="Où l’appli trouve la valeur de chaque ligne : dans une colonne d’un fichier source, ou via une table de correspondance copiée dans le projet (ex. Article → DN)"><span>Origine de la valeur</span><select' + attrs(k("c.mode")) + ">" +
     '<option value="col"' + (isCorr ? "" : " selected") + ">Colonne d’un fichier source</option>" +
-    '<option value="corr"' + (isCorr ? " selected" : "") + ">Table de correspondance (dans le projet)</option></select></label>";
+    '<option value="corr"' + (isCorr ? " selected" : "") + ">Table de correspondance</option></select></label>";
 
   let h = '<div class="card calc-card" id="calc-' + i + '">' +
     "<h2>Tableau de calcul – " + esc(t.name || "Tâche " + (i + 1)) + "</h2>" +
     '<p class="muted small" style="margin:-6px 0 14px">' + (isCorr
-      ? "Pour chaque ligne : " + esc(c.linkLocal || "colonne de liaison") + " → " + esc(label) + " (table de correspondance) → Tps (sec) × quantité de la ligne (" + esc(g.qtyCol || "colonne quantité") +
+      ? "Pour chaque ligne : " + esc(c.linkLocal || "colonne de liaison") + " → " + esc(tb ? tb.label || label : label) + " (table « " + esc(tb ? tb.name : "à choisir") + " ») → Tps (sec) × quantité de la ligne (" + esc(g.qtyCol || "colonne quantité") +
         "). Une ligne sans " + esc(c.linkLocal || "clé") + " prend le temps « (vide) » ; une clé absente de la correspondance compte 0 s et est signalée par ⚠."
       : "Temps de la tâche = Tps (sec) de la valeur trouvée pour la ligne × quantité de la ligne (" + esc(g.qtyCol || "colonne quantité") + "). Une ligne sans valeur prend le temps de la ligne « (vide) ».") + "</p>" +
     '<div class="grid2">' +
@@ -2087,16 +2220,15 @@ function renderCalcCard(g, t, i, lineSrc) {
   if (isCorr) {
     h += '<label class="field" data-tip-name="Liaison : colonne des lignes" data-tip-role="Colonne des lignes de la gamme dont la valeur est cherchée dans la table de correspondance (ex. Composant OF)"><span>Liaison : colonne des lignes</span>' +
         pickField(k("c.linkLocal"), c.linkLocal, lineCols, lineCols ? "— choisir —" : "ex. Composant OF") + "</label>" +
-      '<label class="field" data-tip-name="Nom de la clé" data-tip-role="Nom affiché pour la première colonne de la correspondance (ex. Article)"><span>Nom de la clé</span><input type="text"' + attrs({ ...k("c.corrKey"), value: key, placeholder: "ex. Article" }) + "></label>" +
+      '<label class="field" data-tip-name="Table de correspondance" data-tip-role="Table commune (Temps gammes › Tables de correspondance) où chercher la valeur de chaque ligne"><span>Table de correspondance</span><select' + attrs(k("c.corrTable")) + ">" +
+        (tb ? "" : '<option value="" selected>— choisir —</option>') +
+        state.corrTables.map(x => '<option value="' + esc(x.id) + '"' + (tb && x.id === tb.id ? " selected" : "") + ">" + esc(x.name) + "</option>").join("") + "</select></label>" +
       "</div>";
-    h += "<h3>Correspondance " + esc(key) + " → " + esc(label) + "</h3>" +
-      '<div class="toolbar">' +
-        '<span class="badge ' + (corr && corr.rows.length ? "ok" : "warn") + '">' + (corr ? fmtInt(corr.rows.length) : 0) + " " + esc(key.toLowerCase()) + "(s)</span>" +
-        '<button class="btn" data-act="corr-import" data-ti="' + i + '" data-tip-name="Importer depuis un fichier" data-tip-role="Choisit un fichier Excel ou CSV (ex. base des DN) puis ses colonnes ' + esc(key) + " et " + esc(label) + ' : la table est copiée dans le projet et remplace la précédente (annulable par Ctrl + Z)">Importer depuis un fichier…</button>' +
-        '<button class="btn" data-act="corr-add" data-ti="' + i + '" data-tip-name="Ajouter une correspondance" data-tip-role="Ajoute (ou corrige) une ligne ' + esc(key) + " → " + esc(label) + '">+ Ajouter</button>' +
-        '<input type="text" class="corr-q" data-ti="' + i + '" data-fk="corrq.' + i + '" value="' + esc(corrQuery[g.id + "#" + i] || "") + '" placeholder="Rechercher…" data-tip-name="Rechercher" data-tip-role="Filtre la table sur le début ou une partie de la clé ou de la valeur">' +
+    h += '<div class="toolbar">' +
+        (tb ? '<span class="badge ' + (corr && corr.rows.length ? "ok" : "warn") + '">' + (corr ? fmtInt(corr.rows.length) : 0) + " " + esc(key.toLowerCase()) + "(s)</span>" +
+          '<button class="btn" data-act="ct-open" data-cid="' + esc(tb.id) + '" data-tip-name="Ouvrir la table" data-tip-role="Ouvre la table « ' + esc(tb.name) + ' » pour l’importer, la consulter ou la modifier (commune à toutes les gammes reliées)">Ouvrir la table « ' + esc(tb.name) + " »</button>"
+          : '<span class="badge warn">Aucune table choisie</span>') +
       "</div>" +
-      '<div id="corr-tbl-' + i + '">' + corrTableHtml(g, c, i) + "</div>" +
       "<h3>" + esc(label) + " → Tps (sec)</h3>";
   } else {
     h += '<label class="field" data-tip-name="Fichier source" data-tip-role="Fichier où lire la colonne des valeurs"><span>Fichier source</span><select' + attrs(k("c.sourceId")) + ">" + srcOpts + "</select></label>" +
@@ -2133,12 +2265,13 @@ function renderCalcCard(g, t, i, lineSrc) {
 
 // Table de correspondance affichée : 200 lignes au plus, filtrées par la recherche (la table complète reste dans le projet).
 const CORR_SHOWN = 200;
-const corrQuery = {}; // "idGamme#n° tâche" -> texte recherché
-function corrTableHtml(g, c, i) {
-  const corr = corrOf(c), key = c.corr.key || "Clé", label = c.label || "Valeur";
+const corrQuery = {}; // id de la table -> texte recherché
+function corrTableHtml(tb) {
+  const corr = corrRowsOf(tb), key = tb.key || "Clé", label = tb.label || "Valeur";
   if (!corr || !corr.rows.length) return '<p class="muted small">Aucune correspondance : cliquez sur « Importer depuis un fichier… » pour copier la table (ex. ' + esc(key) + " → " + esc(label) + ") dans le projet.</p>";
-  const q = stripAccents(corrQuery[g.id + "#" + i] || "");
-  const known = new Set(c.values.map(v => normText(v.v)));
+  const q = stripAccents(corrQuery[tb.id] || "");
+  // Valeurs sans temps : absentes du tableau de temps d'au moins une gamme reliée.
+  const users = state.gammes.flatMap(g => g.tasks.filter(t => t.calc && t.calc.corr && t.calc.corr.table === tb.id).map(t => ({ g, known: new Set(t.calc.values.map(v => normText(v.v))) })));
   const shown = [];
   let found = 0;
   corr.rows.forEach((r, ri) => {
@@ -2150,25 +2283,28 @@ function corrTableHtml(g, c, i) {
   for (const ri of shown) {
     const [k, v] = corr.rows[ri];
     h += "<tr><td>" + esc(k) + "</td>" +
-      '<td><input type="text"' + attrs({ "data-f": "r.v", "data-ti": i, "data-ri": ri, "data-fk": "r.v." + i + "." + ri, value: v, style: "width:90px",
+      '<td><input type="text"' + attrs({ "data-f": "r.v", "data-ri": ri, "data-fk": "r.v." + ri, value: v, style: "width:90px",
         "data-tip-name": label, "data-tip-role": label + " de « " + k + " » (modifiable)" }) + ">" +
-      (known.has(normText(v)) ? "" : '<span class="corr-warn" data-tip-name="Valeur sans temps" data-tip-role="' + esc(label + " « " + v + " » absent du tableau " + label + " → Tps (sec) : la ligne compte 0 s") + '">⚠</span>') + "</td>" +
-      '<td class="act"><button class="mini danger" data-act="corr-del" data-ti="' + i + '" data-ri="' + ri + '" data-tip-name="Supprimer la correspondance" data-tip-role="Retire cette ligne de la table (annulable par Ctrl + Z)">' + ICON.trash + "</button></td></tr>";
+      (() => {
+        const miss = users.filter(u => !u.known.has(normText(v))).map(u => u.g.name);
+        return miss.length ? '<span class="corr-warn" data-tip-name="Valeur sans temps" data-tip-role="' + esc(label + " « " + v + " » absent du tableau de temps de : " + miss.join(", ") + " (la ligne y compte 0 s)") + '">⚠</span>' : "";
+      })() + "</td>" +
+      '<td class="act"><button class="mini danger" data-act="corr-del" data-ri="' + ri + '" data-tip-name="Supprimer la correspondance" data-tip-role="Retire cette ligne de la table (annulable par Ctrl + Z)">' + ICON.trash + "</button></td></tr>";
   }
   if (!shown.length) h += '<tr><td colspan="3" class="muted">Aucun résultat.</td></tr>';
   h += "</tbody></table></div>";
   return h + '<p class="muted small" style="margin:6px 0 0">' + (found > shown.length ? fmtInt(shown.length) + " premières lignes affichées sur " + fmtInt(found) + (q ? " trouvées" : "") + " : utilisez la recherche pour en voir d’autres." : fmtInt(found) + " ligne(s)" + (q ? " trouvée(s)" : "") + ".") + "</p>";
 }
 
-// Remplace la table de correspondance d'une tâche par une nouvelle version (annulable par Ctrl + Z).
-function setCorrRows(gid, i, rows) {
+// Remplace les lignes d'une table de correspondance par une nouvelle version (annulable par Ctrl + Z).
+function setCorrRows(tid, rows) {
   const id = corrPut(rows);
-  commit(st => { const c = st.gammes.find(x => x.id === gid).tasks[i].calc; c.corr = { ...c.corr, id, count: rows.length }; });
+  commit(st => { Object.assign(st.corrTables.find(x => x.id === tid), { data: id, count: rows.length }); });
 }
 
 // Import : fichier choisi par l'utilisateur, puis onglet et colonnes (clé, valeur) dans un petit menu.
-async function importCorrFile(i, anchor) {
-  const g = currentGamme(), c = g.tasks[i].calc;
+async function importCorrFile(tid, anchor) {
+  const tb = state.corrTables.find(x => x.id === tid);
   let file;
   try {
     if (FS_OK) { const [h] = await showOpenFilePicker({ types: SOURCE_TYPES, multiple: false }); file = await h.getFile(); }
@@ -2182,7 +2318,7 @@ async function importCorrFile(i, anchor) {
   overlay();
   const names = Object.keys(sheets).filter(n => sheets[n].headers.some(h => h));
   if (!names.length) return toast("Aucun onglet avec des colonnes dans ce fichier.", true);
-  const key = c.corr.key || "Clé", label = c.label || "Valeur";
+  const key = tb.key || "Clé", label = tb.label || "Valeur";
   const guess = (heads, want, other) => {
     const w = stripAccents(want), f = heads.findIndex(h => stripAccents(h) === w);
     if (f >= 0) return f;
@@ -2191,7 +2327,7 @@ async function importCorrFile(i, anchor) {
   };
   const sheetName = names.find(n => { const hs = sheets[n].headers.map(stripAccents); return hs.includes(stripAccents(key)) && hs.includes(stripAccents(label)); }) || names[0];
   closeFilter();
-  fpopKey = "corr:" + i;
+  fpopKey = "corr:" + tid;
   hideTip();
   const pop = $("fpop");
   pop.classList.add("corr");
@@ -2229,11 +2365,9 @@ async function importCorrFile(i, anchor) {
       }
       closeFilter();
       if (!rows.length) return toast("Aucune ligne à importer dans cette colonne.", true);
-      setCorrRows(g.id, i, rows);
-      const known = new Set(c.values.map(v => normText(v.v)));
-      const missing = new Set(rows.map(r => r[1]).filter(v => !known.has(v)));
+      setCorrRows(tid, rows);
       toast(fmtInt(rows.length) + " correspondance(s) importée(s)" + (dup ? " (" + fmtInt(dup) + " doublon(s) ignoré(s))" : "") +
-        (missing.size ? " — " + missing.size + " " + label + " sans temps : utilisez « Importer les " + label + " de la correspondance »." : ""));
+        " — les ⚠ signalent les " + label + " sans temps dans une gamme reliée.");
       return;
     }
     closeFilter();
@@ -2291,15 +2425,24 @@ function numVal(v) {
 $("page-gammes").addEventListener("change", e => {
   const el = e.target, f = el.dataset.f;
   if (!f) return;
-  const gid = currentGamme().id;
-  const i = Number(el.dataset.ti), j = Number(el.dataset.vi);
   if (f === "r.v") {
-    const corr = corrOf(currentGamme().tasks[i].calc), ri = Number(el.dataset.ri), v = el.value.trim();
+    const corr = corrRowsOf(state.corrTables.find(x => x.id === currentCorrId)), ri = Number(el.dataset.ri), v = el.value.trim();
     if (!corr || !corr.rows[ri] || corr.rows[ri][1] === v) return;
     const rows = corr.rows.slice();
     rows[ri] = [rows[ri][0], v];
-    return setCorrRows(gid, i, rows);
+    return setCorrRows(currentCorrId, rows);
   }
+  if (f === "ct.key" || f === "ct.label") {
+    const v = el.value.trim();
+    return commit(st => {
+      const tb = st.corrTables.find(x => x.id === currentCorrId), was = (tb.key || "Clé") + " → " + (tb.label || "Valeur");
+      tb[f.slice(3)] = v;
+      // Nom par défaut (« Clé → Valeur ») tenu à jour.
+      if (tb.name === was) tb.name = (tb.key || "Clé") + " → " + (tb.label || "Valeur");
+    });
+  }
+  const gid = currentGamme().id;
+  const i = Number(el.dataset.ti), j = Number(el.dataset.vi);
   commit(st => {
     const g = st.gammes.find(x => x.id === gid);
     const t = g.tasks[i];
@@ -2318,10 +2461,10 @@ $("page-gammes").addEventListener("change", e => {
       case "t.name": t.name = el.value.trim(); break;
       case "t.sec": t.sec = numVal(el.value); break;
       case "c.mode":
-        if (el.value === "corr") { t.calc.corr = t.calc.corr || { id: "", count: 0, key: "Article" }; t.calc.sourceId = ""; t.calc.sheet = ""; t.calc.column = ""; t.calc.linkRemote = ""; }
+        if (el.value === "corr") { t.calc.corr = t.calc.corr || { table: st.corrTables.length ? st.corrTables[0].id : "" }; t.calc.sourceId = ""; t.calc.sheet = ""; t.calc.column = ""; t.calc.linkRemote = ""; }
         else delete t.calc.corr;
         break;
-      case "c.corrKey": t.calc.corr.key = el.value.trim(); break;
+      case "c.corrTable": t.calc.corr = { table: el.value }; break;
       case "c.label": case "c.sourceId": case "c.sheet": case "c.column": case "c.linkLocal": case "c.linkRemote":
         t.calc[f.slice(2)] = el.value.trim();
         if (f === "c.sourceId") { t.calc.sheet = ""; t.calc.column = ""; t.calc.linkRemote = ""; }
@@ -2336,9 +2479,10 @@ $("page-gammes").addEventListener("change", e => {
 $("page-gammes").addEventListener("input", e => {
   const el = e.target.closest(".corr-q");
   if (!el) return;
-  const g = currentGamme(), i = Number(el.dataset.ti);
-  corrQuery[g.id + "#" + i] = el.value;
-  $("corr-tbl-" + i).innerHTML = corrTableHtml(g, g.tasks[i].calc, i);
+  const tb = state.corrTables.find(x => x.id === currentCorrId);
+  if (!tb) return;
+  corrQuery[tb.id] = el.value;
+  $("corr-tbl").innerHTML = corrTableHtml(tb);
 });
 
 $("page-gammes").addEventListener("click", e => {
@@ -2346,6 +2490,34 @@ $("page-gammes").addEventListener("click", e => {
   if (!b || b.disabled) return;
   if (b.dataset.act === "g-open") return openGamme(b.dataset.gid);
   if (b.dataset.act === "g-new") return newGamme();
+  if (b.dataset.act === "ct-open") return openCorr(b.dataset.cid);
+  if (b.dataset.act === "ct-new") return newCorrTable();
+  if (gammeView === "corr") {
+    const tid = currentCorrId, tb = state.corrTables.find(x => x.id === tid);
+    if (!tb) return;
+    switch (b.dataset.act) {
+      case "corr-import": importCorrFile(tid, b); break;
+      case "corr-del": {
+        const corr = corrRowsOf(tb);
+        if (corr) setCorrRows(tid, corr.rows.filter((r, ri) => ri !== Number(b.dataset.ri)));
+        break;
+      }
+      case "corr-add": {
+        const key = tb.key || "Clé", label = tb.label || "Valeur";
+        const k = normText(prompt(key + " :", ""));
+        if (!k) return;
+        const corr = corrRowsOf(tb), rows = corr ? corr.rows.slice() : [];
+        const at = rows.findIndex(r => r[0] === k);
+        const v = prompt(label + " de « " + k + " » :", at >= 0 ? rows[at][1] : "");
+        if (v == null) return;
+        if (at >= 0) rows[at] = [k, normText(v)]; else rows.push([k, normText(v)]);
+        corrQuery[tid] = k;
+        setCorrRows(tid, rows);
+        break;
+      }
+    }
+    return;
+  }
   const gid = currentGamme().id;
   const i = Number(b.dataset.ti), j = Number(b.dataset.vi);
   const G = st => st.gammes.find(x => x.id === gid);
@@ -2362,26 +2534,6 @@ $("page-gammes").addEventListener("click", e => {
     }
     case "goto-calc": { const c = $("calc-" + i); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); break; }
     case "c-import": importCalcValues(i); break;
-    case "corr-import": importCorrFile(i, b); break;
-    case "corr-del": {
-      const corr = corrOf(G(state).tasks[i].calc);
-      if (corr) setCorrRows(gid, i, corr.rows.filter((r, ri) => ri !== Number(b.dataset.ri)));
-      break;
-    }
-    case "corr-add": {
-      const c = G(state).tasks[i].calc, key = c.corr.key || "Clé", label = c.label || "Valeur";
-      const k = normText(prompt(key + " :", ""));
-      if (!k) return;
-      const corr = corrOf(c), rows = corr ? corr.rows.slice() : [];
-      const at = rows.findIndex(r => r[0] === k);
-      const v = prompt(label + " de « " + k + " » :", at >= 0 ? rows[at][1] : "");
-      if (v == null) return;
-      if (at >= 0) rows[at] = [k, normText(v)]; else rows.push([k, normText(v)]);
-      setCorrRows(gid, i, rows);
-      corrQuery[gid + "#" + i] = k;
-      render();
-      break;
-    }
     case "v-add": commit(st => G(st).tasks[i].calc.values.push({ v: "", sec: 0 })); break;
     case "v-del": commit(st => G(st).tasks[i].calc.values.splice(j, 1)); break;
   }
@@ -2395,6 +2547,28 @@ function newGamme() {
   openGamme(id);
 }
 $("btnBackGammes").onclick = () => { gammeView = "list"; render(); };
+$("btnBackCorr").onclick = () => { gammeView = "list"; render(); };
+
+function newCorrTable() {
+  const name = prompt("Nom de la nouvelle table de correspondance (ex. Article → DN) :", "");
+  if (!name || !name.trim()) return;
+  const id = uid("ct");
+  commit(st => st.corrTables.push({ id, name: name.trim(), key: "Clé", label: "Valeur", data: "", count: 0 }));
+  openCorr(id);
+}
+$("btnRenameCorr").onclick = () => {
+  const tb = state.corrTables.find(x => x.id === currentCorrId);
+  const name = tb && prompt("Nouveau nom de la table :", tb.name);
+  if (!name || !name.trim() || name.trim() === tb.name) return;
+  commit(st => { st.corrTables.find(x => x.id === tb.id).name = name.trim(); });
+};
+$("btnDelCorr").onclick = () => {
+  const tb = state.corrTables.find(x => x.id === currentCorrId);
+  if (!tb || gammesOfCorr(tb.id).length || !confirm("Supprimer la table « " + tb.name + " » ?")) return;
+  commit(st => { st.corrTables = st.corrTables.filter(x => x.id !== tb.id); });
+  gammeView = "list";
+  render();
+};
 $("btnRenameGamme").onclick = () => {
   const g = currentGamme();
   const name = prompt("Nouveau nom de la gamme :", g.name);
@@ -2425,7 +2599,8 @@ const NO_MATCH = Symbol("absent");
 
 // Prépare un calculateur de temps (en secondes) par dossier pour une gamme.
 // Retourne null si l'onglet ou les colonnes de la gamme sont introuvables.
-function buildGammeTimer(g, lineSrcId) {
+// keep (facultatif) : ne garde que les lignes acceptées par l'activité (ex. composants Corps pour Gravage).
+function buildGammeTimer(g, lineSrcId, keep) {
   const d = srcData[lineSrcId];
   const sh = d && d.sheets && d.sheets[g.sheet];
   if (!sh) return { error: "Onglet « " + g.sheet + " » introuvable dans le fichier source." };
@@ -2486,9 +2661,11 @@ function buildGammeTimer(g, lineSrcId) {
   const iExcl = g.exclCol && g.exclPrefix ? sh.headers.indexOf(g.exclCol) : -1;
   const exclPrefix = stripAccents(g.exclPrefix || "");
   const byFolder = new Map();
+  const keepRow = keep ? keep(sh.headers) : null;
   for (const r of sh.rows) {
     let k = normText(r[iFolder]);
     if (!k) continue;
+    if (keepRow && !keepRow(r)) continue;
     if (iSplit >= 0) { const d = dayOf(r[iSplit]); k += "|" + (d ? localISO(d) : ""); }
     if (iExcl >= 0 && stripAccents(r[iExcl]).startsWith(exclPrefix)) continue;
     if (!byFolder.has(k)) byFolder.set(k, []);
@@ -2569,9 +2746,75 @@ function joinDistinct(rows, i) {
   return seen.join(" / ");
 }
 
+// Liste des composants Corps (source « Composants Corps » des Fichiers sources) : ensemble des codes article.
+// Colonne lue : la première dont le nom contient « composant » ou « article », sinon la première colonne.
+function corpsList() {
+  const src = state.sources.find(s => s.id === CORPS_SOURCE_ID);
+  if (!src) return { error: "Source « Composants Corps » absente : rouvrez le projet pour la recréer (Paramètres › Fichiers sources)." };
+  if (!src.fileName) return { error: "Choisissez le fichier de la liste « " + (src.label || "Composants Corps") + " » dans Paramètres › Fichiers sources." };
+  const d = srcData[src.id];
+  if (!d || d.status !== "loaded" && d.status !== "changed") return { error: "La liste « " + (src.label || "Composants Corps") + " » (" + src.fileName + ") n'est pas chargée (Paramètres › Fichiers sources)." };
+  const sheet = Object.values(d.sheets).find(x => x.headers.some(h => h));
+  if (!sheet) return { error: "La liste « " + (src.label || "Composants Corps") + " » ne contient aucune colonne." };
+  let col = sheet.headers.findIndex(h => /composant|article/.test(stripAccents(h)));
+  if (col < 0) col = sheet.headers.findIndex(h => h);
+  const set = new Set();
+  // L'en-tête lui-même peut être un code (liste sans titre de colonne).
+  if (!/composant|article|corps/.test(stripAccents(sheet.headers[col]))) set.add(normText(sheet.headers[col]));
+  for (const r of sheet.rows) { const v = normText(r[col]); if (v) set.add(v); }
+  return { set, data: d };
+}
+
 const ACT_DEFS = {
+  "gravage": {
+    page: "gravage", name: "Gravage", unit: "OF", dateKey: "debut", dateLabel: "Début opé",
+    tabRole: "Affiche les OF dont un composant Corps est à graver et leur temps de gravage",
+    enCoursRole: "Affiche seulement les OF dont la ligne du composant Corps n'a pas le Statut opé « Soldé »",
+    isDone: x => stripAccents(x.statutOpe).startsWith("solde"),
+    sheets: { OF: ["OF", "Article PF", "Début opé", "Composant OF", "Qté besoin", "Statut opé", "Manquants"] },
+    // Seules les lignes des composants Corps comptent : dans le tableau et dans le calcul du temps.
+    lines() {
+      const L = corpsList();
+      if (L.error) return L;
+      return { deps: [L.data], keep: headers => { const i = headers.indexOf("Composant OF"); return r => L.set.has(normText(r[i])); } };
+    },
+    columns: [
+      { k: "of", t: "OF", cell: x => "<b>" + esc(x.of) + "</b>" },
+      { k: "article", t: "Article PF" },
+      { k: "debut", t: "Début opé", date: true, cell: x => lateDate(x.debut, "Début opé") },
+      { k: "dn", t: "DN", cell: x => x.dn ? esc(x.dn) : redBadge("?", "DN inconnu", "Composant absent de la table de correspondance Article → DN (Paramètres › Temps gammes)"), text: x => x.dn || EMPTY_LABEL },
+      { k: "composant", t: "Composant OF" },
+      { k: "qte", t: "Qté besoin", num: true },
+      { k: "manquants", t: "Manquants", cell: x => x.manquants === "Oui" ? redBadge("Oui") : "Non" }
+    ],
+    build(sh, keep) {
+      const of = sh.OF.sheet, I = sh.OF.idx, isCorps = keep(of.headers);
+      const dnOf = corrRowsOf(state.corrTables.find(t => t.id === CT_DN));
+      const byOF = new Map();
+      for (const r of of.rows) {
+        const k = normText(r[I.OF]);
+        // Un seul composant Corps par OF : la première ligne Corps est retenue.
+        if (!k || byOF.has(k) || !isCorps(r)) continue;
+        const comp = normText(r[I["Composant OF"]]);
+        const m = stripAccents(r[I.Manquants]);
+        byOF.set(k, {
+          id: k, timeKey: k,
+          of: k,
+          article: normText(r[I["Article PF"]]),
+          debut: dayOf(r[I["Début opé"]]),
+          dn: dnOf && dnOf.idx.get(comp) || "",
+          composant: comp,
+          qte: Number(r[I["Qté besoin"]]) || 0,
+          statutOpe: normText(r[I["Statut opé"]]),
+          manquants: m.includes("manquant") || m === "oui" ? "Oui" : "Non"
+        });
+      }
+      return [...byOF.values()];
+    }
+  },
+
   "prepa-of": {
-    page: "prepa", name: "Prépa OF", unit: "OF", dateKey: "debut", dateLabel: "Début opé",
+    page: "prepa", name: "Prépa OF", unit: "OF", dateKey: "debut", dateLabel: "Début opé", home: true,
     tabRole: "Affiche la liste des OF à préparer et leur temps de préparation",
     enCoursRole: "Affiche seulement les OF dont le Statut opé n'est pas « Soldée »",
     isDone: x => stripAccents(x.statutOpe) === "soldee",
@@ -2728,8 +2971,9 @@ function buildActivityPages() {
   const ICON_COLS = '<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>';
   const ICON_X = '<svg class="i" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   const tabs = $("tabs"), main = document.querySelector("main");
-  Object.entries(ACT_DEFS).forEach(([act, d], i) => {
-    const first = i === 0; // la première activité est affichée à l'ouverture
+  const home = Object.keys(ACT_DEFS).find(a => ACT_DEFS[a].home) || Object.keys(ACT_DEFS)[0];
+  Object.entries(ACT_DEFS).forEach(([act, d]) => {
+    const first = act === home; // activité affichée à l'ouverture (Prépa OF)
     tabs.insertAdjacentHTML("beforeend", '<button class="tab' + (first ? " active" : "") + '" data-page="' + d.page + '" data-tip-name="' + esc(d.name) + '" data-tip-role="' + esc(d.tabRole) + '">' + esc(d.name) + "</button>");
     main.insertAdjacentHTML("beforeend",
       '<section class="page act-page' + (first ? " active" : "") + '" id="page-' + d.page + '">' +
@@ -2798,6 +3042,12 @@ function actList(act) {
   const key = JSON.stringify([src.id, g || null]);
   // Les fichiers des tableaux de calcul (ex. base DN) font aussi partie du cache : leur chargement relance le calcul.
   const deps = g ? g.tasks.filter(t => t.calc && (t.calc.corr || t.calc.sourceId)).map(t => t.calc.corr ? corrOf(t.calc) : srcData[t.calc.sourceId]) : [];
+  // Lignes retenues par l'activité (ex. composants Corps) : la liste fait partie du cache.
+  const lines = def.lines ? def.lines() : null;
+  if (lines && lines.error) return { error: lines.error };
+  if (lines) deps.push(...lines.deps);
+  // Table Article → DN lue par le tableau (colonne DN de Gravage).
+  if (def.lines) deps.push(corrRowsOf(state.corrTables.find(t => t.id === CT_DN)));
   const cache = actCache[act];
   if (cache && cache.key === key && cache.data === d && cache.deps.length === deps.length && cache.deps.every((x, i) => x === deps[i])) return cache;
 
@@ -2812,9 +3062,10 @@ function actList(act) {
   }
   if (missing.length) { res.error = "Colonnes introuvables : " + missing.join(", "); return res; }
 
-  const timer = g ? buildGammeTimer(g, src.id) : { error: "Aucune gamme associée à " + def.name + " (Paramètres › Fichiers sources)." };
+  const keep = lines ? lines.keep : null;
+  const timer = g ? buildGammeTimer(g, src.id, keep) : { error: "Aucune gamme associée à " + def.name + " (Paramètres › Fichiers sources)." };
   if (timer.error) res.warning = "Temps non calculés : " + timer.error;
-  res.list = def.build(sh);
+  res.list = def.build(sh, keep);
   for (const x of res.list) {
     x.heures = null; x.detail = null;
     if (timer.error) continue;
@@ -4257,19 +4508,16 @@ function stateToWorkbook() {
 
   const gam = [["Id gamme", "Gamme", "Onglet des lignes", "Colonne dossier", "Colonne quantité", "Découper par date", "Colonne d'exclusion", "Préfixe exclu"]];
   const tasks = [["Id gamme", "N°", "Affectation", "Tâche", "Tps (sec)"]];
-  const calcs = [["Id gamme", "N° tâche", "Libellé", "Source", "Onglet", "Colonne", "Liaison (lignes)", "Liaison (source)", "Table de correspondance (clé)"]];
+  const calcs = [["Id gamme", "N° tâche", "Libellé", "Source", "Onglet", "Colonne", "Liaison (lignes)", "Liaison (source)", "Table de correspondance"]];
   const vals = [["Id gamme", "N° tâche", "Valeur", "Tps (sec)"]];
-  const corrs = [["Id gamme", "N° tâche", "Clé", "Valeur"]];
   for (const g of state.gammes) {
     gam.push([g.id, g.name, g.sheet, g.folderCol, g.qtyCol, g.splitCol || "", g.exclCol || "", g.exclPrefix || ""]);
     g.tasks.forEach((t, i) => {
       tasks.push([g.id, i + 1, t.a, t.name, t.a === "Calcul" ? "" : t.sec]);
       if (t.calc) {
         const c = t.calc;
-        calcs.push([g.id, i + 1, c.label, c.sourceId, c.sheet, c.column, c.linkLocal, c.linkRemote, c.corr ? c.corr.key || "Clé" : ""]);
+        calcs.push([g.id, i + 1, c.label, c.sourceId, c.sheet, c.column, c.linkLocal, c.linkRemote, c.corr ? c.corr.table || "" : ""]);
         for (const v of c.values) vals.push([g.id, i + 1, v.v, v.sec]);
-        const corr = corrOf(c);
-        if (corr) for (const [k, v] of corr.rows) corrs.push([g.id, i + 1, k, v]);
       }
     });
   }
@@ -4277,7 +4525,15 @@ function stateToWorkbook() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tasks), "Gammes - Tâches");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(calcs), "Gammes - Calculs");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(vals), "Gammes - Valeurs");
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(corrs), "Gammes - Correspondances");
+  // Tables de correspondance communes : description, puis lignes.
+  const cts = [["Id table", "Nom", "Clé", "Valeur"]], ctRows = [["Id table", "Clé", "Valeur"]];
+  for (const tb of state.corrTables) {
+    cts.push([tb.id, tb.name, tb.key, tb.label]);
+    const corr = corrRowsOf(tb);
+    if (corr) for (const [k, v] of corr.rows) ctRows.push([tb.id, k, v]);
+  }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cts), "Correspondances");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ctRows), "Correspondances - Lignes");
 
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
     ["Application", "Charge Capa"],
@@ -4341,7 +4597,22 @@ function workbookToState(wb) {
     const tasks = rowsOf("Gammes - Tâches") || [];
     const calcs = rowsOf("Gammes - Calculs") || [];
     const vals = rowsOf("Gammes - Valeurs") || [];
-    // Tables de correspondance : regroupées par gamme et n° de tâche, puis enregistrées hors de l'état.
+    // Tables de correspondance communes (format actuel), lignes enregistrées hors de l'état.
+    const cts = rowsOf("Correspondances");
+    if (cts) {
+      const lines = new Map();
+      for (const r of rowsOf("Correspondances - Lignes") || []) {
+        const id = str(r[0]);
+        if (!id || !str(r[1])) continue;
+        if (!lines.has(id)) lines.set(id, []);
+        lines.get(id).push([str(r[1]), str(r[2])]);
+      }
+      st.corrTables = cts.filter(r => str(r[0])).map(r => {
+        const id = str(r[0]), rows = lines.get(id) || [];
+        return { id, name: str(r[1]) || id, key: str(r[2]), label: str(r[3]), data: rows.length ? corrPut(rows) : "", count: rows.length };
+      });
+    }
+    // Ancien format : une table par gamme et n° de tâche (convertie en table commune par migrateCorrTables).
     const corrRows = new Map();
     for (const r of rowsOf("Gammes - Correspondances") || []) {
       const k = str(r[0]) + "#" + num(r[1]);
@@ -4361,7 +4632,8 @@ function workbookToState(wb) {
             linkLocal: str(c[6]), linkRemote: str(c[7]),
             values: vals.filter(v => str(v[0]) === id && num(v[1]) === num(t[1])).map(v => ({ v: str(v[2]), sec: num(v[3]) }))
           };
-          if (str(c[8])) {
+          if (str(c[8]) && cts) task.calc.corr = { table: str(c[8]) };
+          else if (str(c[8])) {
             const rows = corrRows.get(id + "#" + num(t[1])) || [];
             task.calc.corr = { id: rows.length ? corrPut(rows) : "", count: rows.length, key: str(c[8]) };
           }
