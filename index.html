@@ -25,6 +25,7 @@
   --text-2: #5b6575;
   --accent: #2563eb;
   --accent-soft: #e6eefe;
+  --tab-global: #e3e6eb; /* fond de l'onglet Charge globale */
   --ok: #16a34a;
   --warn: #d97706;
   --err: #dc2626;
@@ -39,6 +40,7 @@
   --text-2: #98a1b2;
   --accent: #5b8cff;
   --accent-soft: #1f2b47;
+  --tab-global: #2a303c;
   --ok: #34d399;
   --warn: #fbbf24;
   --err: #f87171;
@@ -147,6 +149,8 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .tab:hover { color: var(--text); }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .tab.right { margin-left: auto; }
+/* Charge globale : onglet de synthèse, sur fond gris un peu plus foncé que les onglets d'activité. */
+.tab[data-page="global"] { background: var(--tab-global); border-radius: 6px 6px 0 0; }
 
 main { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 8px 16px 16px; }
 .page { display: none; max-width: 1400px; margin: 0 auto; }

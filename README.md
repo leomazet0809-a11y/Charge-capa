@@ -30,7 +30,7 @@ L'application est aussi disponible en ligne sur GitHub Pages ; elle fonctionne a
 | Cadre | Plein écran (re-cliquer pour quitter ; **Échap ne quitte pas** le plein écran, il garde son rôle dans l'appli — maintenir Échap 2 s force la sortie) | Ctrl + Maj + F |
 | Engrenage | Ouvre les Paramètres | Ctrl + , |
 
-Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités, onglet affiché à l'ouverture), puis les activités **Gravage**, **Prépa OF**, **Prépa Expéd** et **Certificats**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
+Sous le ruban, les onglets : **Charge globale** (graphique de toutes les activités, onglet affiché à l'ouverture, sur fond gris un peu plus foncé), puis les activités **Gravage**, **Prépa OF**, **Prépa Expéd** et **Certificats**. Les réglages (*Général*, *Fichiers sources*, *Temps gammes*) sont regroupés dans **Paramètres**, une **fenêtre flottante** qui s'ouvre avec l'**engrenage** du ruban (ou Ctrl + ,) et se ferme avec ✕, Échap ou un nouveau clic sur l'engrenage. Le ruban (Enregistrer, Annuler, Période…) reste utilisable pendant qu'elle est ouverte.
 
 Les menus et fenêtres s'ouvrent avec une animation courte. Pendant un chargement, une fenêtre indique le fichier, l'étape en cours (lecture, analyse des onglets, calcul des temps) et le temps écoulé.
 
